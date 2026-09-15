@@ -1,0 +1,494 @@
+#address-map-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+  background-color: #e5e3df;
+}
+
+.maplibre-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Modo de clique manual (Cruz) */
+.maplibre-wrapper.cursor-crosshair {
+  cursor: crosshair !important;
+}
+.maplibre-wrapper.cursor-crosshair canvas {
+  cursor: crosshair !important;
+}
+
+/* Barra de Busca e Raio Superior */
+#address-map-container .search-header {
+  position: absolute;
+  top: 40px;
+  left: 20px;
+  right: 20px;
+  background-color: #6343F2; /* Roxo principal */
+  padding: 8px 12px;
+  border-radius: 12px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(99, 67, 242, 0.3);
+}
+
+#address-map-container .search-input-wrapper {
+  background-color: #EFEFEF;
+  border-radius: 8px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+#address-map-container .search-input-wrapper input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  outline: none;
+  color: #333;
+}
+
+#address-map-container .search-input-wrapper .search-icon {
+  color: #666;
+  width: 18px;
+  height: 18px;
+}
+
+#address-map-container .radius-badge-container {
+  position: relative;
+}
+
+#address-map-container .radius-badge {
+  background-color: #ffffff;
+  color: #6343F2;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.15s ease;
+}
+
+#address-map-container .radius-badge:hover {
+  transform: scale(1.03);
+}
+
+#address-map-container .radius-menu {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  min-width: 130px;
+  z-index: 20;
+}
+
+#address-map-container .radius-menu-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+#address-map-container .radius-option {
+  background: #f4f4f6;
+  border: 1px solid #e0e0e0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+#address-map-container .radius-option:hover,
+#address-map-container .radius-option.active {
+  background: #6343F2;
+  color: #ffffff;
+  border-color: #6343F2;
+}
+
+/* Marcador Alvo de Localização do Usuário (Central ou Fixo) */
+.user-location-marker {
+  width: 28px;
+  height: 28px;
+  background-color: rgba(99, 67, 242, 0.2);
+  border: 3px solid #6343F2;
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 0 0 15px rgba(99, 67, 242, 0.6);
+  pointer-events: none;
+  animation: pulse 2s infinite;
+}
+.user-location-marker::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background-color: #6343F2;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(99, 67, 242, 0.7); }
+  70% { box-shadow: 0 0 0 15px rgba(99, 67, 242, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 67, 242, 0); }
+}
+
+/* Marcadores de POIs Customizados no Mapa */
+.custom-map-marker {
+  cursor: pointer;
+  z-index: 5;
+}
+
+.custom-map-marker .marker-pin {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  padding: 4px 10px 4px 4px;
+  border-radius: 20px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  border: 1px solid rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.custom-map-marker:hover .marker-pin {
+  transform: scale(1.1);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.custom-map-marker .marker-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  background-color: #6343F2;
+}
+
+.custom-map-marker.category-restaurante .marker-icon,
+.custom-map-marker.category-lanchonete .marker-icon,
+.custom-map-marker.category-pizzaria .marker-icon {
+  background-color: #E27B55;
+}
+.custom-map-marker.category-farmacia .marker-icon {
+  background-color: #6343F2;
+}
+.custom-map-marker.category-supermercado .marker-icon {
+  background-color: #38a169;
+}
+.custom-map-marker.category-outros .marker-icon {
+  background-color: #4a5568;
+}
+
+.custom-map-marker .marker-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2d3748;
+  white-space: nowrap;
+}
+
+/* Botoes Laterais/Flutuantes */
+#address-map-container .recenter-button {
+  position: absolute;
+  right: 20px;
+  bottom: 90px;
+  width: 44px;
+  height: 44px;
+  background-color: #ffffff;
+  color: #333;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.15s ease;
+}
+
+#address-map-container .recenter-button:hover {
+  background-color: #f7f7f7;
+  color: #6343F2;
+}
+
+#address-map-container .change-location-btn {
+  position: absolute;
+  right: 20px;
+  bottom: 145px;
+  background-color: #ffffff;
+  color: #333;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.15s ease;
+}
+
+#address-map-container .change-location-btn:hover {
+  color: #6343F2;
+}
+
+
+/* Modal de Localização (Overlays) */
+.location-prompt-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.location-prompt-modal {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  text-align: center;
+  max-width: 320px;
+  animation: popIn 0.3s ease-out;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.location-prompt-modal h3 {
+  margin: 0 0 10px 0;
+  color: #1a202c;
+  font-size: 20px;
+}
+
+.location-prompt-modal p {
+  font-size: 14px;
+  color: #4a5568;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.location-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.location-buttons button {
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-auto {
+  background: #6343F2;
+  color: white;
+}
+.btn-auto:hover { background: #4f33cc; }
+
+.btn-manual {
+  background: #edf2f7;
+  color: #4a5568;
+}
+.btn-manual:hover { background: #e2e8f0; }
+
+.manual-location-banner {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #3182ce;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  z-index: 20;
+  pointer-events: none;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { top: 80px; opacity: 0; }
+  to { top: 100px; opacity: 1; }
+}
+
+/* Card de Detalhes do POI */
+#address-map-container .poi-detail-card {
+  position: absolute;
+  bottom: 90px;
+  left: 20px;
+  right: 80px;
+  background: #ffffff;
+  padding: 14px;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  z-index: 12;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+#address-map-container .poi-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+#address-map-container .poi-detail-header h3 {
+  font-size: 16px;
+  color: #1a202c;
+  margin: 0;
+}
+
+#address-map-container .close-card-btn {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  color: #888;
+  cursor: pointer;
+}
+
+#address-map-container .poi-category-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  background: #edf2f7;
+  color: #4a5568;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+#address-map-container .poi-address {
+  font-size: 13px;
+  color: #4a5568;
+  margin-bottom: 6px;
+}
+
+#address-map-container .poi-rating {
+  font-size: 13px;
+  color: #2b6cb0;
+  margin-bottom: 10px;
+}
+
+/* Botoes de Ação no Card */
+.poi-actions-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#address-map-container .draw-route-btn {
+  flex: 1;
+  background: #3b82f6; /* Azul rotas */
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+#address-map-container .draw-route-btn:hover {
+  background: #2563eb;
+}
+#address-map-container .draw-route-btn:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+#address-map-container .set-center-btn {
+  flex: 1;
+  background: #6343F2;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Categorias do Rodapé */
+#address-map-container .footer-categories {
+  position: absolute;
+  bottom: 25px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+  align-items: center;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+#address-map-container .category-button {
+  background-color: #ffffff;
+  color: #6343F2;
+  border: 1px solid #6343F2;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+#address-map-container .category-button:hover,
+#address-map-container .category-button.active {
+  background-color: #6343F2;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(99, 67, 242, 0.4);
+}
