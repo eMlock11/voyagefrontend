@@ -1,13 +1,8 @@
-import { useState } from 'react'
+import Payment from './pages/payment/Payment'
 
 function App() {
-
   return (
-    <>
-      <div>
-       
-      </div>
-    </>
+    <Payment />
   )
 }
 
