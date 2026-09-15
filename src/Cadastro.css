@@ -1,0 +1,185 @@
+#tela-cadastro {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: 20px;
+  background-color: #05070e;
+}
+
+#tela-cadastro .card-dispositivo {
+  background-color: #070a14;
+  border: 2px solid #5a45ff;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 360px;
+  min-height: 680px;
+  padding: 36px 24px 30px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 10px 30px rgba(90, 69, 255, 0.2);
+}
+
+#tela-cadastro .cabecalho {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#tela-cadastro .titulo {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+#tela-cadastro .secao-avatar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+#tela-cadastro .avatar-wrapper {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background-color: #d1d5db;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#tela-cadastro .avatar-wrapper:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+#tela-cadastro .avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#tela-cadastro .icone-avatar {
+  width: 95px;
+  height: 95px;
+  fill: #ffffff;
+}
+
+#tela-cadastro .avatar-imagem {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#tela-cadastro .formulario {
+  width: 100%;
+  max-width: 290px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+#tela-cadastro .campo-grupo {
+  display: flex;
+  flex-direction: column;
+}
+
+#tela-cadastro .linha-input {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+#tela-cadastro .icone-campo {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  fill: #ffffff;
+}
+
+#tela-cadastro .conteudo-input {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+#tela-cadastro .label-campo {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+#tela-cadastro .input-texto {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 16px;
+  outline: none;
+  width: 100%;
+  padding: 2px 0;
+}
+
+#tela-cadastro .linha-divisoria {
+  width: 100%;
+  height: 1.5px;
+  background-color: #717686;
+  margin-top: 6px;
+}
+
+#tela-cadastro .input-texto:focus + .linha-divisoria,
+#tela-cadastro .campo-grupo:focus-within .linha-divisoria {
+  background-color: #5a45ff;
+}
+
+#tela-cadastro .secao-botao {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+#tela-cadastro .botao-criar {
+  background-color: #538d4e;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  border: none;
+  border-radius: 14px;
+  width: 180px;
+  padding: 12px 0;
+  text-align: center;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+#tela-cadastro .botao-criar:hover {
+  background-color: #447740;
+  transform: translateY(-2px);
+}
+
+#tela-cadastro .botao-criar:active {
+  transform: translateY(0);
+}
+
+#tela-cadastro .rodape-link {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #a0aec0;
+}
+
+#tela-cadastro .link-entrar {
+  color: #7966ff;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+#tela-cadastro .link-entrar:hover {
+  text-decoration: underline;
+}
