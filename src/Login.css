@@ -1,0 +1,165 @@
+#tela-login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: 20px;
+  background-color: #05070e;
+}
+
+#tela-login .card-dispositivo {
+  background-color: #070a14;
+  border: 2px solid #5a45ff;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 360px;
+  min-height: 560px;
+  padding: 48px 24px 36px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(90, 69, 255, 0.2);
+}
+
+#tela-login .cabecalho-login {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+#tela-login .logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+#tela-login .logo-icone {
+  font-size: 38px;
+  font-weight: 900;
+  font-style: italic;
+  color: #ffffff;
+  transform: rotate(-5deg);
+  margin-right: 2px;
+}
+
+#tela-login .logo-texto {
+  font-size: 36px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+#tela-login .subtitulo-login {
+  font-size: 15px;
+  color: #cbd5e1;
+  font-weight: 400;
+  margin-top: 4px;
+}
+
+#tela-login .formulario-login {
+  width: 100%;
+  max-width: 290px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+#tela-login .campo-grupo {
+  display: flex;
+  flex-direction: column;
+}
+
+#tela-login .linha-input {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+#tela-login .icone-campo {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  fill: #ffffff;
+}
+
+#tela-login .conteudo-input {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+#tela-login .label-campo {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+#tela-login .input-texto {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 16px;
+  outline: none;
+  width: 100%;
+  padding: 2px 0;
+}
+
+#tela-login .linha-divisoria {
+  width: 100%;
+  height: 1.5px;
+  background-color: #717686;
+  margin-top: 6px;
+}
+
+#tela-login .input-texto:focus + .linha-divisoria,
+#tela-login .campo-grupo:focus-within .linha-divisoria {
+  background-color: #5a45ff;
+}
+
+#tela-login .secao-botao {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+#tela-login .botao-entrar {
+  background-color: #538d4e;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  border: none;
+  border-radius: 14px;
+  width: 180px;
+  padding: 12px 0;
+  text-align: center;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+#tela-login .botao-entrar:hover {
+  background-color: #447740;
+  transform: translateY(-2px);
+}
+
+#tela-login .botao-entrar:active {
+  transform: translateY(0);
+}
+
+#tela-login .rodape-link {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 14px;
+  color: #a0aec0;
+}
+
+#tela-login .link-cadastro {
+  color: #7966ff;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+#tela-login .link-cadastro:hover {
+  text-decoration: underline;
+}
