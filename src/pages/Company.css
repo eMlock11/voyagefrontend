@@ -1,0 +1,641 @@
+/* ==========================================================================
+   Company Page Styles (Página de Gestão da Empresa - Voyage)
+   Escopo isolado sob #company-page para evitar vazamento de estilos
+   ========================================================================== */
+
+#company-page {
+  background-color: #0b0e1e;
+  color: #ffffff;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: inherit;
+  padding-bottom: 50px;
+}
+
+/* Container que emula o formato de tela do app ou centraliza no desktop */
+#company-page .company-container {
+  width: 100%;
+  max-width: 480px;
+  background-color: #0b0e1e;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+/* Topo / Header da Marca */
+#company-page .company-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  background-color: #0b0e1e;
+  border-bottom: 1px solid #1c2242;
+}
+
+#company-page .company-logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#company-page .company-logo-text {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+}
+
+#company-page .company-logo-text span {
+  color: #6d5dfc;
+}
+
+#company-page .company-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#company-page .header-icon-btn {
+  background: transparent;
+  border: none;
+  color: #9fa8c7;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+#company-page .header-icon-btn:hover {
+  color: #ffffff;
+  background-color: #1a2040;
+}
+
+/* Hero da Empresa (Banner & Perfil Resumido) */
+#company-page .company-hero {
+  background: linear-gradient(180deg, #171c38 0%, #0f132a 100%);
+  padding: 24px 20px;
+  border-bottom: 1px solid #1c2242;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+#company-page .avatar-wrapper {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+#company-page .company-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 3px solid #6d5dfc;
+  background-color: #21284d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+#company-page .company-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#company-page .avatar-badge-edit {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #5c4df2;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0b0e1e;
+  cursor: pointer;
+  color: #ffffff;
+}
+
+#company-page .company-title-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+#company-page .company-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+#company-page .verified-badge {
+  color: #5c4df2;
+  display: flex;
+  align-items: center;
+}
+
+#company-page .company-subtitle {
+  font-size: 14px;
+  color: #9fa8c7;
+  margin-bottom: 10px;
+}
+
+#company-page .company-meta-tags {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+#company-page .meta-tag {
+  background-color: rgba(109, 93, 252, 0.15);
+  color: #a399fc;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(109, 93, 252, 0.3);
+}
+
+#company-page .meta-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: #1a2040;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+#company-page .meta-rating .star {
+  color: #ffb703;
+}
+
+/* Barra de Abas (Tabs no Estilo Pílula das Referências Sushifan/Tabajara) */
+#company-page .company-tabs-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: #121630;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid #1c2242;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+#company-page .company-tabs-nav::-webkit-scrollbar {
+  display: none;
+}
+
+#company-page .tab-btn {
+  background: transparent;
+  border: none;
+  color: #9fa8c7;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#company-page .tab-btn:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+#company-page .tab-btn.active {
+  background-color: #5c4df2;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(92, 77, 242, 0.4);
+}
+
+/* Conteúdo Principal das Abas */
+#company-page .company-tab-content {
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Cards Gerais */
+#company-page .company-card {
+  background-color: #131731;
+  border: 1px solid #1f2549;
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#company-page .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #1c2244;
+  padding-bottom: 10px;
+}
+
+#company-page .card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#company-page .card-action-link {
+  font-size: 12px;
+  color: #6d5dfc;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Grid de KPIs / Métricas */
+#company-page .kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+#company-page .kpi-box {
+  background-color: #171d3d;
+  border: 1px solid #232b57;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#company-page .kpi-label {
+  font-size: 12px;
+  color: #9fa8c7;
+  font-weight: 500;
+}
+
+#company-page .kpi-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+#company-page .kpi-growth {
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#company-page .kpi-growth.positive {
+  color: #4ade80;
+}
+
+/* Formulários Minimalistas Estilo Voyage */
+#company-page .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#company-page .form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9fa8c7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#company-page .form-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #0b0e1e;
+  border: 1px solid #232b57;
+  border-radius: 10px;
+  padding: 10px 14px;
+  transition: border-color 0.2s ease;
+}
+
+#company-page .form-input-wrapper:focus-within {
+  border-color: #5c4df2;
+}
+
+#company-page .form-input-icon {
+  color: #9fa8c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#company-page .form-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 14px;
+  font-family: inherit;
+  width: 100%;
+}
+
+#company-page .form-input::placeholder {
+  color: #59658e;
+}
+
+#company-page .form-textarea {
+  background: #0b0e1e;
+  border: 1px solid #232b57;
+  border-radius: 10px;
+  padding: 12px;
+  color: #ffffff;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+}
+
+#company-page .form-textarea:focus {
+  border-color: #5c4df2;
+}
+
+/* Linha de Dois Inputs */
+#company-page .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Botão de Ação Primário (Verde Voyage nas Referências) */
+#company-page .primary-btn {
+  background-color: #4f934f;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(79, 147, 79, 0.35);
+}
+
+#company-page .primary-btn:hover {
+  background-color: #58a458;
+  transform: translateY(-1px);
+}
+
+#company-page .primary-btn:active {
+  transform: translateY(0);
+}
+
+/* Botão Secundário / Outline */
+#company-page .secondary-btn {
+  background-color: transparent;
+  color: #9fa8c7;
+  border: 1px solid #252e5a;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+#company-page .secondary-btn:hover {
+  color: #ffffff;
+  border-color: #3b4787;
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+/* Lista de Membros da Equipe */
+#company-page .team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#company-page .team-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: #171d3d;
+  border: 1px solid #212850;
+  border-radius: 10px;
+}
+
+#company-page .team-member-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#company-page .team-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #2b3363;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+#company-page .team-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+#company-page .team-role {
+  font-size: 12px;
+  color: #9fa8c7;
+}
+
+#company-page .badge-role {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+#company-page .badge-role.admin {
+  background-color: rgba(92, 77, 242, 0.2);
+  color: #a399fc;
+  border: 1px solid rgba(92, 77, 242, 0.4);
+}
+
+#company-page .badge-role.manager {
+  background-color: rgba(56, 189, 248, 0.2);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+#company-page .badge-role.operator {
+  background-color: rgba(156, 163, 175, 0.2);
+  color: #d1d5db;
+  border: 1px solid rgba(156, 163, 175, 0.4);
+}
+
+/* Card de Plano & Faturamento */
+#company-page .plan-card {
+  background: linear-gradient(135deg, #1e194e 0%, #151833 100%);
+  border: 1px solid #4a3eb3;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+#company-page .plan-badge {
+  align-self: flex-start;
+  background-color: #5c4df2;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+#company-page .plan-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+#company-page .plan-price {
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+#company-page .plan-price span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #9fa8c7;
+}
+
+#company-page .plan-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+#company-page .plan-feature-item {
+  font-size: 13px;
+  color: #d5daf0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#company-page .plan-feature-item svg {
+  color: #4ade80;
+  flex-shrink: 0;
+}
+
+/* Lista de Logs de Auditoria */
+#company-page .audit-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#company-page .audit-log-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background-color: #0d1124;
+  border: 1px solid #1e2447;
+  border-radius: 8px;
+}
+
+#company-page .audit-desc {
+  font-size: 13px;
+  color: #ffffff;
+}
+
+#company-page .audit-author {
+  font-size: 11px;
+  color: #9fa8c7;
+  margin-top: 2px;
+}
+
+#company-page .audit-date {
+  font-size: 11px;
+  color: #687399;
+  white-space: nowrap;
+}
+
+/* Rodapé de Saída / Navegação */
+#company-page .company-footer {
+  margin-top: auto;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #1c2242;
+  background-color: #0b0e1e;
+}
+
+#company-page .logout-btn {
+  background-color: #5c4df2;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}

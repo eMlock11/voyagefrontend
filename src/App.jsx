@@ -1,13 +1,9 @@
-import { useState } from 'react'
+import React from 'react'
+import Company from './pages/Company'
 
 function App() {
-
   return (
-    <>
-      <div>
-       
-      </div>
-    </>
+    <Company />
   )
 }
 
