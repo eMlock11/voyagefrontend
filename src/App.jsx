@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Cadastro from './Cadastro';
-import Login from './Login';
-import EditarPerfil from './EditarPerfil';
-import Company from './pages/Company';
+import Cadastro from './pages/User/Cadastro';
+import Login from './pages/User/Login';
+import EditarPerfil from './pages/User/EditarPerfil';
+import Company from './pages/Company/Company';
 import Payment from './pages/payment/Payment';
 import AddressMap from './pages/AddressMap/AddressMap';
 
@@ -18,7 +18,7 @@ function App() {
         <Route path="/payment" element={<Payment />} />
         <Route path="/address" element={<AddressMap />} />
         <Route path="/map" element={<AddressMap />} />
-        
+
         {/* Rota padrão para /login */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
