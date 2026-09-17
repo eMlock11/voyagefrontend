@@ -639,3 +639,178 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+/* Feedback e status de requisições */
+#company-page .status-banner {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+#company-page .status-banner.success {
+  background-color: rgba(79, 147, 79, 0.15);
+  border: 1px solid #4f934f;
+  color: #72db72;
+}
+
+#company-page .status-banner.error {
+  background-color: rgba(220, 53, 69, 0.15);
+  border: 1px solid #dc3545;
+  color: #ff808b;
+}
+
+#company-page .status-banner.info {
+  background-color: rgba(92, 77, 242, 0.15);
+  border: 1px solid #5c4df2;
+  color: #9d92ff;
+}
+
+#company-page .loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ==========================================================================
+   Barra de Pesquisa de Empresas
+   ========================================================================== */
+#company-page .company-search-bar {
+  padding: 14px 20px 8px;
+  width: 100%;
+  position: relative;
+}
+
+#company-page .company-search-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #131731;
+  border: 1px solid #1e2447;
+  border-radius: 12px;
+  padding: 6px 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#company-page .company-search-input-wrapper:focus-within {
+  border-color: #5c4df2;
+  box-shadow: 0 0 0 3px rgba(92, 77, 242, 0.2);
+}
+
+#company-page .company-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 13px;
+  outline: none;
+}
+
+#company-page .company-search-input::placeholder {
+  color: #687399;
+}
+
+#company-page .company-search-btn {
+  background-color: #5c4df2;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+#company-page .company-search-btn:hover {
+  opacity: 0.9;
+}
+
+#company-page .company-search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 20px;
+  right: 20px;
+  background-color: #131731;
+  border: 1px solid #28305f;
+  border-radius: 12px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 50;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  margin-top: 4px;
+}
+
+#company-page .company-search-item {
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #1c2242;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+#company-page .company-search-item:last-child {
+  border-bottom: none;
+}
+
+#company-page .company-search-item:hover {
+  background-color: #1e2447;
+}
+
+#company-page .company-search-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+#company-page .company-search-item-desc {
+  font-size: 11px;
+  color: #9fa8c7;
+  margin-top: 2px;
+}
+
+#company-page .company-search-item-badge {
+  font-size: 11px;
+  background-color: rgba(92, 77, 242, 0.2);
+  color: #a79eff;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+#company-page .btn-new-company {
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px dashed #5c4df2;
+  color: #a79eff;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+#company-page .btn-new-company:hover {
+  background-color: rgba(92, 77, 242, 0.2);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+

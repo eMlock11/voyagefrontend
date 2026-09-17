@@ -1,11 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Company.css';
+import { companyService } from '../../services/companyService';
 
 function Company() {
   // Estado para controlar a aba selecionada (Opção A)
   const [activeTab, setActiveTab] = useState('kpis');
 
-  // Estado local para os dados do perfil corporativo (Etapa 1: Front-end demonstrativo)
+  // ID da empresa no banco de dados (se já carregada ou criada)
+  const [companyId, setCompanyId] = useState(null);
+
+  // Estados de feedback de API
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null); // { type: 'success' | 'error' | 'info', text: string }
+
+  // Estados da barra de busca de empresas
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  // Estado local para os dados do perfil corporativo
   const [formData, setFormData] = useState({
     razaoSocial: 'Pará Lanches Comércio de Alimentos LTDA',
     nomeFantasia: 'Pará Lanches',
@@ -16,10 +31,112 @@ function Company() {
     sobre: 'O Pará Lanches é referência em lanches artesanais, atendimento acolhedor e refeições rápidas de qualidade na região central.'
   });
 
+  // Função para aplicar os dados de uma empresa selecionada
+  const applyCompanyData = (comp) => {
+    setCompanyId(comp.id);
+    setFormData((prev) => ({
+      ...prev,
+      nomeFantasia: comp.name || prev.nomeFantasia,
+      razaoSocial: comp.name || prev.razaoSocial,
+      cnpj: comp.cnpj || prev.cnpj,
+      categoria: comp.category || prev.categoria,
+      places: comp.places || prev.places,
+    }));
+    setShowDropdown(false);
+    setStatusMessage({ type: 'info', text: `Empresa "${comp.name}" carregada.` });
+  };
+
+  // 1. Efeito para buscar os dados da empresa no banco ao iniciar o componente
+  useEffect(() => {
+    async function loadCompanyData() {
+      setLoading(true);
+      try {
+        const companies = await companyService.getCompanies();
+        if (Array.isArray(companies) && companies.length > 0) {
+          applyCompanyData(companies[0]);
+        }
+      } catch (err) {
+        console.warn('Aviso ao carregar dados do banco de dados:', err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadCompanyData();
+  }, []);
+
+  // Busca de empresas por nome ou categoria
+  const handleSearch = async (term = searchTerm) => {
+    setIsSearching(true);
+    try {
+      const query = term ? `name=${encodeURIComponent(term)}` : '';
+      const results = await companyService.getCompanies(query);
+      setSearchResults(Array.isArray(results) ? results : []);
+      setShowDropdown(true);
+    } catch (err) {
+      console.error('Erro na pesquisa:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Limpar formulário para criar nova empresa
+  const handleNewCompany = () => {
+    setCompanyId(null);
+    setFormData({
+      razaoSocial: '',
+      nomeFantasia: '',
+      cnpj: '',
+      categoria: 'Lanchonete',
+      telefone: '',
+      places: '',
+      sobre: ''
+    });
+    setStatusMessage({ type: 'info', text: 'Formulário limpo. Preencha os campos para cadastrar uma nova empresa.' });
+    setActiveTab('profile');
+    setShowDropdown(false);
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  // 2. Função para salvar (inserir se nova, ou atualizar se já existir)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setStatusMessage(null);
+
+    const payload = {
+      name: formData.nomeFantasia || formData.razaoSocial,
+      category: formData.categoria || 'Lanchonete',
+      cnpj: formData.cnpj,
+      evaluate: 4.8,
+      places: formData.places || 'Endereço Comercial'
+    };
+
+    try {
+      if (companyId) {
+        // Atualização (PUT)
+        const updated = await companyService.updateCompany(companyId, payload);
+        setStatusMessage({ type: 'success', text: 'Empresa atualizada com sucesso no banco de dados!' });
+      } else {
+        // Inserção (POST)
+        const created = await companyService.createCompany(payload);
+        if (created && created.id) {
+          setCompanyId(created.id);
+        }
+        setStatusMessage({ type: 'success', text: 'Empresa cadastrada e salva com sucesso no banco de dados!' });
+      }
+    } catch (err) {
+      console.error('Erro ao salvar empresa:', err);
+      setStatusMessage({ type: 'error', text: err.message || 'Erro ao persistir os dados da empresa.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
 
   return (
     <div id="company-page">
@@ -49,6 +166,85 @@ function Company() {
             </button>
           </div>
         </header>
+
+        {/* 1.1 Barra de Busca de Empresas no Banco */}
+        <div className="company-search-bar">
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div className="company-search-input-wrapper" style={{ flex: 1 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9fa8c7" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                className="company-search-input"
+                placeholder="Pesquisar empresa cadastrada por nome..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={() => handleSearch(searchTerm)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearch(searchTerm);
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="company-search-btn"
+                onClick={() => handleSearch(searchTerm)}
+                disabled={isSearching}
+              >
+                {isSearching ? '...' : 'Buscar'}
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="btn-new-company"
+              onClick={handleNewCompany}
+              title="Cadastrar uma nova empresa"
+            >
+              + Nova
+            </button>
+          </div>
+
+          {/* Lista de Resultados Suspensos */}
+          {showDropdown && (
+            <div className="company-search-dropdown">
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 12px', background: '#0e1227', borderBottom: '1px solid #1e2447', fontSize: '11px', color: '#687399' }}>
+                <span>{searchResults.length} empresa(s) encontrada(s)</span>
+                <button
+                  type="button"
+                  onClick={() => setShowDropdown(false)}
+                  style={{ background: 'none', border: 'none', color: '#9fa8c7', cursor: 'pointer', fontSize: '12px' }}
+                >
+                  ✕ Fechar
+                </button>
+              </div>
+
+              {searchResults.length === 0 ? (
+                <div style={{ padding: '14px', textAlign: 'center', color: '#9fa8c7', fontSize: '12px' }}>
+                  Nenhuma empresa encontrada com este nome.
+                </div>
+              ) : (
+                searchResults.map((item) => (
+                  <div
+                    key={item.id}
+                    className="company-search-item"
+                    onClick={() => applyCompanyData(item)}
+                  >
+                    <div>
+                      <div className="company-search-item-name">{item.name}</div>
+                      <div className="company-search-item-desc">{item.places} • CNPJ: {item.cnpj}</div>
+                    </div>
+                    <span className="company-search-item-badge">#{item.id} - {item.category}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
 
         {/* 2. Hero da Organização / Foto / Título e Selo Verificado */}
         <section className="company-hero">
@@ -83,7 +279,9 @@ function Company() {
               <span className="star">★</span>
               <span>4.8/5</span>
             </div>
-            <span className="meta-tag">ID: #0042</span>
+            <span className="meta-tag">
+              {loading ? 'Carregando...' : companyId ? `ID: #${companyId}` : 'Nova Empresa'}
+            </span>
           </div>
         </section>
 
@@ -194,7 +392,16 @@ function Company() {
                 </span>
               </div>
 
-              <form onSubmit={(e) => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {statusMessage && (
+                <div className={`status-banner ${statusMessage.type}`}>
+                  {statusMessage.type === 'success' && <span>✓</span>}
+                  {statusMessage.type === 'error' && <span>⚠</span>}
+                  {statusMessage.type === 'info' && <span>ℹ</span>}
+                  <span>{statusMessage.text}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div className="form-group">
                   <label className="form-label">Nome Fantasia</label>
                   <div className="form-input-wrapper">
@@ -210,6 +417,7 @@ function Company() {
                       value={formData.nomeFantasia}
                       onChange={handleInputChange}
                       placeholder="Nome de exibição para clientes"
+                      required
                     />
                   </div>
                 </div>
@@ -245,6 +453,7 @@ function Company() {
                         value={formData.cnpj}
                         onChange={handleInputChange}
                         placeholder="00.000.000/0000-00"
+                        required
                       />
                     </div>
                   </div>
@@ -252,14 +461,24 @@ function Company() {
                   <div className="form-group">
                     <label className="form-label">Categoria</label>
                     <div className="form-input-wrapper">
-                      <input
+                      <select
                         className="form-input"
-                        type="text"
                         name="categoria"
                         value={formData.categoria}
                         onChange={handleInputChange}
-                        placeholder="Ex: Lanchonete"
-                      />
+                        style={{ backgroundColor: '#131731', color: '#ffffff' }}
+                      >
+                        <option value="Lanchonete">Lanchonete</option>
+                        <option value="Restaurante">Restaurante</option>
+                        <option value="Pizzaria">Pizzaria</option>
+                        <option value="Churrascaria">Churrascaria</option>
+                        <option value="Supermercado">Supermercado</option>
+                        <option value="Farmácia">Farmácia</option>
+                        <option value="Serviços">Serviços</option>
+                        <option value="Hospital">Hospital</option>
+                        <option value="Bar">Bar</option>
+                        <option value="Outros">Outros</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -299,6 +518,7 @@ function Company() {
                       value={formData.places}
                       onChange={handleInputChange}
                       placeholder="Endereço da unidade principal"
+                      required
                     />
                   </div>
                 </div>
@@ -314,8 +534,15 @@ function Company() {
                   />
                 </div>
 
-                <button type="submit" className="primary-btn">
-                  Salvar Alterações
+                <button type="submit" className="primary-btn" disabled={saving}>
+                  {saving ? (
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      <span className="loading-spinner"></span>
+                      Salvando no Banco...
+                    </span>
+                  ) : (
+                    companyId ? 'Atualizar Empresa' : 'Cadastrar Empresa'
+                  )}
                 </button>
               </form>
             </div>
