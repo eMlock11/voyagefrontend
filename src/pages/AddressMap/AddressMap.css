@@ -20,6 +20,7 @@
 .maplibre-wrapper.cursor-crosshair {
   cursor: crosshair !important;
 }
+
 .maplibre-wrapper.cursor-crosshair canvas {
   cursor: crosshair !important;
 }
@@ -30,7 +31,8 @@
   top: 40px;
   left: 20px;
   right: 20px;
-  background-color: #6343F2; /* Roxo principal */
+  background-color: #6343F2;
+  /* Roxo principal */
   padding: 8px 12px;
   border-radius: 12px;
   z-index: 10;
@@ -78,7 +80,7 @@
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: transform 0.15s ease;
 }
 
@@ -96,7 +98,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   min-width: 130px;
   z-index: 20;
 }
@@ -140,6 +142,7 @@
   pointer-events: none;
   animation: pulse 2s infinite;
 }
+
 .user-location-marker::after {
   content: "";
   position: absolute;
@@ -154,9 +157,17 @@
 }
 
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(99, 67, 242, 0.7); }
-  70% { box-shadow: 0 0 0 15px rgba(99, 67, 242, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(99, 67, 242, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(99, 67, 242, 0.7);
+  }
+
+  70% {
+    box-shadow: 0 0 0 15px rgba(99, 67, 242, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(99, 67, 242, 0);
+  }
 }
 
 /* Marcadores de POIs Customizados no Mapa */
@@ -172,14 +183,14 @@
   background: #ffffff;
   padding: 4px 10px 4px 4px;
   border-radius: 20px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .custom-map-marker:hover .marker-pin {
   transform: scale(1.1);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .custom-map-marker .marker-icon {
@@ -198,12 +209,15 @@
 .custom-map-marker.category-pizzaria .marker-icon {
   background-color: #E27B55;
 }
+
 .custom-map-marker.category-farmacia .marker-icon {
   background-color: #6343F2;
 }
+
 .custom-map-marker.category-supermercado .marker-icon {
   background-color: #38a169;
 }
+
 .custom-map-marker.category-outros .marker-icon {
   background-color: #4a5568;
 }
@@ -229,7 +243,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   z-index: 10;
   transition: background 0.15s ease;
@@ -251,7 +265,7 @@
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   z-index: 10;
   transition: background 0.15s ease;
@@ -265,8 +279,11 @@
 /* Modal de Localização (Overlays) */
 .location-prompt-overlay {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   z-index: 50;
   display: flex;
@@ -279,15 +296,22 @@
   background: white;
   padding: 24px;
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   text-align: center;
   max-width: 320px;
   animation: popIn 0.3s ease-out;
 }
 
 @keyframes popIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .location-prompt-modal h3 {
@@ -323,13 +347,19 @@
   background: #6343F2;
   color: white;
 }
-.btn-auto:hover { background: #4f33cc; }
+
+.btn-auto:hover {
+  background: #4f33cc;
+}
 
 .btn-manual {
   background: #edf2f7;
   color: #4a5568;
 }
-.btn-manual:hover { background: #e2e8f0; }
+
+.btn-manual:hover {
+  background: #e2e8f0;
+}
 
 .manual-location-banner {
   position: absolute;
@@ -342,15 +372,22 @@
   border-radius: 30px;
   font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   z-index: 20;
   pointer-events: none;
   animation: slideDown 0.3s ease-out;
 }
 
 @keyframes slideDown {
-  from { top: 80px; opacity: 0; }
-  to { top: 100px; opacity: 1; }
+  from {
+    top: 80px;
+    opacity: 0;
+  }
+
+  to {
+    top: 100px;
+    opacity: 1;
+  }
 }
 
 /* Card de Detalhes do POI */
@@ -362,14 +399,21 @@
   background: #ffffff;
   padding: 14px;
   border-radius: 12px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
   z-index: 12;
   animation: slideUp 0.2s ease-out;
 }
 
 @keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 #address-map-container .poi-detail-header {
@@ -410,6 +454,42 @@
   margin-bottom: 6px;
 }
 
+#address-map-container .poi-info-extra {
+  font-size: 12px;
+  color: #4a5568;
+  margin-bottom: 4px;
+}
+
+.poi-loading-pill {
+  position: absolute;
+  top: 105px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(6px);
+  color: #6343F2;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 20px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+  z-index: 15;
+  pointer-events: none;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 #address-map-container .poi-rating {
   font-size: 13px;
   color: #2b6cb0;
@@ -425,7 +505,8 @@
 
 #address-map-container .draw-route-btn {
   flex: 1;
-  background: #3b82f6; /* Azul rotas */
+  background: #3b82f6;
+  /* Azul rotas */
   color: white;
   border: none;
   padding: 8px;
@@ -435,9 +516,11 @@
   cursor: pointer;
   transition: background 0.15s ease;
 }
+
 #address-map-container .draw-route-btn:hover {
   background: #2563eb;
 }
+
 #address-map-container .draw-route-btn:disabled {
   background: #93c5fd;
   cursor: not-allowed;
@@ -481,7 +564,7 @@
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   white-space: nowrap;
   transition: all 0.2s ease;
 }
