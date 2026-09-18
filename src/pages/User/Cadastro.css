@@ -167,6 +167,46 @@
   transform: translateY(0);
 }
 
+/* Seletor de Tipo de Perfil (Cliente vs Proprietário / Owner) */
+#tela-cadastro .seletor-tipo {
+  display: flex;
+  background-color: #121626;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 6px;
+  border: 1px solid #232a42;
+}
+
+#tela-cadastro .btn-tipo {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+#tela-cadastro .btn-tipo.ativo {
+  background-color: #5a45ff;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(90, 69, 255, 0.4);
+}
+
+#tela-cadastro .badge-opcional {
+  font-size: 10px;
+  color: #8b95a5;
+  font-weight: 400;
+  margin-left: 4px;
+}
+
 #tela-cadastro .rodape-link {
   text-align: center;
   margin-top: 12px;
@@ -183,3 +223,4 @@
 #tela-cadastro .link-entrar:hover {
   text-decoration: underline;
 }
+

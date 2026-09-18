@@ -14,9 +14,9 @@ function App() {
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/editar-perfil" element={<EditarPerfil />} />
         <Route path="/perfil/editar" element={<EditarPerfil />} />
+        <Route path="/address" element={<AddressMap />} />
         <Route path="/company" element={<Company />} />
         <Route path="/payment" element={<Payment />} />
-        <Route path="/address" element={<AddressMap />} />
         <Route path="/map" element={<AddressMap />} />
 
         {/* Rota padrão para /login */}
