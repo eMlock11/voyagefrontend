@@ -1,16 +1,25 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './AddressMap.css';
+import {
+  mapService,
+  CATEGORY_GROUPS,
+  VOYAGE_CATEGORIES,
+  getCategoryFromOSMTags
+} from '../../services/mapService';
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl);
 
-// Interface para os POIs (locais de interesse)
 interface POI {
   id: number | string;
   name: string;
   category: string;
+  categoryId?: string;
+  categoryGroup?: string;
+  categoryIcon?: string;
+  categoryColor?: string;
   subText?: string;
   coordinates: [number, number]; // [lng, lat]
   evaluate: number;
@@ -20,68 +29,18 @@ interface POI {
   opening_hours?: string;
 }
 
-// Categorias mapeadas para termos amigáveis e tags OSM amplas (incluindo nodes, ways e relations)
-const CATEGORY_TAGS: Record<string, string> = {
-  Restaurante: '["amenity"~"restaurant|fast_food|cafe|bar|pub|pizzeria|food_court"]',
-  Farmacia: '["amenity"="pharmacy"]',
-  Supermercado: '["shop"~"supermarket|convenience|bakery|grocery|department_store|general|deli|pastry|butcher"]',
-  Servicos: '["shop"~"car_repair|car_parts|laundry|hairdresser|beauty|clothes|shoes|optician|hardware|dry_cleaning|stationery|electronics"]',
-  Publico: '["amenity"~"hospital|clinic|police|post_office|townhall|bank|atm|school|kindergarten|community_centre|courthouse|fire_station|public_building"]'
-};
-
-// Helper para normalizar o tipo/categoria baseado nas tags OSM
-const categorizeOSMTags = (tags: Record<string, string>): string => {
-  if (tags.amenity === 'pharmacy') return 'Farmacia';
-  if (['restaurant', 'fast_food', 'cafe', 'bar', 'pub', 'food_court', 'ice_cream'].includes(tags.amenity)) return 'Restaurante';
-  if (['supermarket', 'convenience', 'bakery', 'grocery', 'department_store', 'deli', 'butcher'].includes(tags.shop)) return 'Supermercado';
-  if (['car_repair', 'car_parts', 'laundry', 'hairdresser', 'beauty', 'clothes', 'hardware'].includes(tags.shop) || tags.craft) return 'Servicos';
-  if (['hospital', 'clinic', 'police', 'post_office', 'townhall', 'bank', 'school'].includes(tags.amenity)) return 'Publico';
-  return 'Comercio';
-};
-
-// Helper para gerar o GeoJSON do Círculo de Raio
-const createGeoJSONCircle = (center: [number, number], radiusInKm: number | null, points = 64) => {
-  if (!radiusInKm || radiusInKm <= 0) {
-    return {
-      type: 'Feature' as const,
-      geometry: { type: 'Polygon' as const, coordinates: [] },
-      properties: {}
-    };
-  }
-
-  const [lng, lat] = center;
-  const ret: [number, number][] = [];
-  const distanceX = radiusInKm / (111.32 * Math.cos((lat * Math.PI) / 180));
-  const distanceY = radiusInKm / 110.574;
-
-  for (let i = 0; i < points; i++) {
-    const theta = (i / points) * (2 * Math.PI);
-    const x = distanceX * Math.cos(theta);
-    const y = distanceY * Math.sin(theta);
-    ret.push([lng + x, lat + y]);
-  }
-  ret.push(ret[0]);
-
-  return {
-    type: 'Feature' as const,
-    geometry: {
-      type: 'Polygon' as const,
-      coordinates: [ret]
-    },
-    properties: {}
-  };
-};
-
 const AddressMap: React.FC = () => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const userMarkerRef = useRef<maplibregl.Marker | null>(null);
+  const moveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Estados
   const [centerPos, setCenterPos] = useState<[number, number]>([-47.8908, -22.0174]); // Padrão: São Carlos / SP
   const [radiusKm, setRadiusKm] = useState<number | null>(3); // null = Sem limite de raio (Livre)
-  const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
+  const [selectedGroup, setSelectedGroup] = useState<string>('todos');
+  const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [pois, setPois] = useState<POI[]>([]);
   const [loadingPois, setLoadingPois] = useState<boolean>(false);
@@ -93,174 +52,81 @@ const AddressMap: React.FC = () => {
   const [isSettingManualLocation, setIsSettingManualLocation] = useState<boolean>(false);
   const [isRouteLoading, setIsRouteLoading] = useState<boolean>(false);
 
-  // Buscar POIs via Overpass API com suporte a bbox da visão atual ou raio
+  // Lista de subcategorias baseadas no grupo selecionado
+  const subCategoriesOfGroup = useMemo(() => {
+    if (selectedGroup === 'todos') return [];
+    return VOYAGE_CATEGORIES.filter((c) => c.group === selectedGroup);
+  }, [selectedGroup]);
+
+  // Buscar POIs via mapService (com cache em memória integrado)
   const fetchPOIs = async () => {
     if (!mapRef.current) return;
     setLoadingPois(true);
 
     const map = mapRef.current;
-    let locationClause = '';
+    let boundsParam: any = undefined;
 
-    if (radiusKm && radiusKm > 0) {
-      const [lng, lat] = centerPos;
-      const radiusMeters = Math.min(radiusKm * 1000, 10000);
-      locationClause = `(around:${radiusMeters},${lat},${lng})`;
-    } else {
-      const bounds = map.getBounds();
-      const south = bounds.getSouth();
-      const west = bounds.getWest();
-      const north = bounds.getNorth();
-      const east = bounds.getEast();
-      locationClause = `(${south},${west},${north},${east})`;
+    if (!radiusKm || radiusKm <= 0) {
+      const b = map.getBounds();
+      boundsParam = {
+        south: b.getSouth(),
+        west: b.getWest(),
+        north: b.getNorth(),
+        east: b.getEast()
+      };
     }
-
-    let filterClause = '';
-    if (selectedCategory !== 'Todos' && CATEGORY_TAGS[selectedCategory]) {
-      const tagQuery = CATEGORY_TAGS[selectedCategory];
-      filterClause = `
-        node${locationClause}${tagQuery}["name"];
-        way${locationClause}${tagQuery}["name"];
-        relation${locationClause}${tagQuery}["name"];
-      `;
-    } else {
-      filterClause = `
-        node${locationClause}["amenity"~"restaurant|fast_food|cafe|pharmacy|hospital|clinic|police|bank|post_office|school|supermarket|pub|bar|pizzeria"]["name"];
-        node${locationClause}["shop"]["name"];
-        way${locationClause}["amenity"~"restaurant|fast_food|cafe|pharmacy|hospital|clinic|police|bank|post_office|school|supermarket|pub|bar|pizzeria"]["name"];
-        way${locationClause}["shop"]["name"];
-        way${locationClause}["building"="supermarket"]["name"];
-        relation${locationClause}["shop"]["name"];
-      `;
-    }
-
-    const overpassQuery = `
-      [out:json][timeout:20];
-      (
-        ${filterClause}
-      );
-      out center 80;
-    `;
 
     try {
-      const endpoints = [
-        'https://overpass-api.de/api/interpreter',
-        'https://lz4.overpass-api.de/api/interpreter',
-        'https://overpass.kumi.systems/api/interpreter'
-      ];
+      const results = await mapService.getPOIs({
+        center: centerPos,
+        radiusKm: radiusKm,
+        bounds: boundsParam,
+        category: selectedCategory,
+        group: selectedCategory ? null : selectedGroup
+      });
 
-      let data: any = null;
-      for (const endpoint of endpoints) {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000);
-          const res = await fetch(`${endpoint}?data=${encodeURIComponent(overpassQuery)}`, {
-            signal: controller.signal
-          });
-          clearTimeout(timeoutId);
-          if (res.ok) {
-            data = await res.json();
-            break;
-          }
-        } catch (e) {
-          // tentar proximo endpoint
-        }
-      }
-
-      if (data && data.elements) {
-        const parsedPois: POI[] = data.elements
-          .filter((el: any) => el.tags && el.tags.name)
-          .map((el: any) => {
-            const coord: [number, number] = [
-              el.lon ?? el.center?.lon,
-              el.lat ?? el.center?.lat
-            ];
-            const tags = el.tags || {};
-            const street = tags['addr:street'] || tags['addr:place'] || 'Endereço próximo';
-            const houseNumber = tags['addr:housenumber'] || '';
-
-            return {
-              id: el.id,
-              name: tags.name,
-              category: categorizeOSMTags(tags),
-              coordinates: coord,
-              evaluate: Number((4.2 + (Math.abs(Number(el.id)) % 8) * 0.1).toFixed(1)),
-              place: street,
-              number: houseNumber,
-              phone: tags.phone || tags['contact:phone'],
-              opening_hours: tags.opening_hours
-            };
-          });
-
-        setPois(parsedPois);
-      }
+      setPois(results);
     } catch (err) {
-      console.error("Erro ao carregar POIs:", err);
+      console.error('[AddressMap] Erro ao buscar estabelecimentos:', err);
     } finally {
       setLoadingPois(false);
     }
   };
 
-  // Busca textual direta para estabelecimentos específicos (ex: "Savegnago", "Jaú Serve", "Poupatempo")
+  // Busca textual direta para estabelecimentos (ex: "Savegnago", "Motel", "Oficina")
   const handleSearchSubmit = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key !== 'Enter' || !searchQuery.trim()) return;
 
     setLoadingPois(true);
     try {
-      const [lng, lat] = centerPos;
-      // Busca via Nominatim do OpenStreetMap próximo da região
-      const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-        searchQuery
-      )}&viewbox=${lng - 0.2},${lat + 0.2},${lng + 0.2},${lat - 0.2}&bounded=0&addressdetails=1&limit=10`;
-
-      const res = await fetch(nominatimUrl, {
-        headers: { 'Accept-Language': 'pt-BR,pt;q=0.9' }
-      });
-      const results = await res.json();
+      const results = await mapService.searchByName(searchQuery, centerPos);
 
       if (results && results.length > 0) {
-        const foundPois: POI[] = results.map((r: any) => {
-          const coord: [number, number] = [parseFloat(r.lon), parseFloat(r.lat)];
-          const addr = r.address || {};
-          const street = addr.road || addr.suburb || addr.city || r.display_name.split(',')[0];
-          const houseNumber = addr.house_number || '';
-
-          return {
-            id: `nom-${r.place_id}`,
-            name: r.name || r.display_name.split(',')[0],
-            category: r.type ? r.type.charAt(0).toUpperCase() + r.type.slice(1) : 'Local',
-            coordinates: coord,
-            evaluate: 4.8,
-            place: street,
-            number: houseNumber
-          };
-        });
-
         setPois((prev) => {
           const existingIds = new Set(prev.map((p) => p.id));
-          const newItems = foundPois.filter((p) => !existingIds.has(p.id));
+          const newItems = results.filter((p: any) => !existingIds.has(p.id));
           return [...newItems, ...prev];
         });
 
-        // Focar no primeiro resultado encontrado
-        const first = foundPois[0];
+        const first = results[0];
         if (mapRef.current) {
           mapRef.current.flyTo({ center: first.coordinates, zoom: 16 });
         }
         setClickedPoi(first);
       }
     } catch (err) {
-      console.error("Erro na busca por texto:", err);
+      console.error('[AddressMap] Erro na busca por texto:', err);
     } finally {
       setLoadingPois(false);
     }
   };
 
-  // Carregar POIs ao mudar o centro, raio ou categoria
+  // Carregar POIs ao mudar o centro, raio, grupo ou categoria
   useEffect(() => {
     fetchPOIs();
-  }, [centerPos, radiusKm, selectedCategory]);
+  }, [centerPos, radiusKm, selectedGroup, selectedCategory]);
 
-  // Inicializar o Mapa
+  // Inicializar o Mapa Libre
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
@@ -306,7 +172,7 @@ const AddressMap: React.FC = () => {
       // Camada do Raio (GeoJSON)
       map.addSource('radius-circle-source', {
         type: 'geojson',
-        data: createGeoJSONCircle(centerPos, radiusKm)
+        data: mapService.createGeoJSONCircle(centerPos, radiusKm)
       });
 
       map.addLayer({
@@ -338,9 +204,8 @@ const AddressMap: React.FC = () => {
         .addTo(map);
     });
 
-    // Evento de Clique no Mapa (Captura tanto modo manual quanto features/pontos do mapa vetorial)
+    // Evento de Clique no Mapa
     map.on('click', (e) => {
-      // Se o usuário está no modo de definir local manual
       if (isSettingManualLocation) {
         const { lng, lat } = e.lngLat;
         setCenterPos([lng, lat]);
@@ -349,7 +214,7 @@ const AddressMap: React.FC = () => {
         return;
       }
 
-      // Tentar capturar clique em elementos vetoriais do próprio OpenFreeMap (POI, building, labels)
+      // Tentar capturar clique em elementos vetoriais do OpenFreeMap
       const features = map.queryRenderedFeatures(e.point);
       const namedFeature = features.find(
         (f) => f.properties && (f.properties.name || f.properties.name_en || f.properties.name_pt)
@@ -358,15 +223,18 @@ const AddressMap: React.FC = () => {
       if (namedFeature && namedFeature.properties) {
         const props = namedFeature.properties;
         const name = props.name || props.name_pt || props.name_en;
-        const category = props.class || props.subclass || props.category || 'Local';
+        const matched = getCategoryFromOSMTags(props);
         const [lng, lat] = [e.lngLat.lng, e.lngLat.lat];
 
         const poi: POI = {
           id: `osm-${Date.now()}`,
           name: name,
-          category: category.charAt(0).toUpperCase() + category.slice(1),
+          category: matched?.label || props.class || 'Local',
+          categoryId: matched?.id || 'outros',
+          categoryIcon: matched?.icon || '📍',
+          categoryColor: matched?.color || '#6343f2',
           coordinates: [lng, lat],
-          evaluate: 4.5,
+          evaluate: 4.6,
           place: props.street || `Coordenadas: ${lat.toFixed(4)}, ${lng.toFixed(4)}`,
           number: props.housenumber || ''
         };
@@ -376,12 +244,14 @@ const AddressMap: React.FC = () => {
         return;
       }
 
-      // Se clicou em um ponto sem nome no mapa
+      // Se clicou em um ponto sem identificador
       const { lng, lat } = e.lngLat;
       const genericPoi: POI = {
         id: `custom-${Date.now()}`,
         name: `Ponto Marcado`,
         category: 'Ponto no Mapa',
+        categoryIcon: '📍',
+        categoryColor: '#4a5568',
         coordinates: [lng, lat],
         evaluate: 5.0,
         place: `Lat: ${lat.toFixed(4)}`,
@@ -391,21 +261,25 @@ const AddressMap: React.FC = () => {
       setClickedPoi(genericPoi);
     });
 
-    // Mudar cursor para ponteiro quando passar o mouse sobre locais com nome
+    // Cursor pointer ao passar em itens com nome
     map.on('mousemove', (e) => {
       const features = map.queryRenderedFeatures(e.point);
       const hasNamed = features.some((f) => f.properties && (f.properties.name || f.properties.name_en));
       map.getCanvas().style.cursor = hasNamed ? 'pointer' : '';
     });
 
-    // Quando mover o mapa no modo "Sem Raio", recarrega os POIs da nova área visível
+    // Debounce no evento de arrastar o mapa no modo "Sem Raio"
     map.on('moveend', () => {
       if (radiusKm === null) {
-        fetchPOIs();
+        if (moveTimeoutRef.current) clearTimeout(moveTimeoutRef.current);
+        moveTimeoutRef.current = setTimeout(() => {
+          fetchPOIs();
+        }, 400); // Aguarda 400ms após soltar o mapa
       }
     });
 
     return () => {
+      if (moveTimeoutRef.current) clearTimeout(moveTimeoutRef.current);
       map.remove();
     };
   }, [radiusKm]);
@@ -422,7 +296,7 @@ const AddressMap: React.FC = () => {
     const updateRadiusLayer = () => {
       const source = map.getSource('radius-circle-source') as maplibregl.GeoJSONSource;
       if (source) {
-        source.setData(createGeoJSONCircle(centerPos, radiusKm));
+        source.setData(mapService.createGeoJSONCircle(centerPos, radiusKm));
       }
     };
 
@@ -438,7 +312,6 @@ const AddressMap: React.FC = () => {
     if (!mapRef.current) return;
     const map = mapRef.current;
 
-    // Se o modal foi fechado, limpa a rota da tela
     if (!clickedPoi && map.isStyleLoaded()) {
       const routeSource = map.getSource('route-source') as maplibregl.GeoJSONSource;
       if (routeSource) {
@@ -450,12 +323,19 @@ const AddressMap: React.FC = () => {
       }
     }
 
-    // Limpar marcadores anteriores
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
-    // Filtrar POIs por busca
     const filteredPois = pois.filter((poi) => {
+      // Filtrar pelo grupo ativo
+      if (selectedGroup !== 'todos') {
+        if (selectedCategory?.id) {
+          if (poi.categoryId !== selectedCategory.id) return false;
+        } else if (poi.categoryGroup && poi.categoryGroup !== selectedGroup) {
+          return false;
+        }
+      }
+
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
       return (
@@ -465,27 +345,16 @@ const AddressMap: React.FC = () => {
       );
     });
 
-    // Renderizar novos marcadores no mapa
     filteredPois.forEach((poi) => {
       const el = document.createElement('div');
-      el.className = `custom-map-marker category-${poi.category.toLowerCase()}`;
+      el.className = `custom-map-marker marker-cat-${poi.categoryId || 'default'}`;
 
-      let iconSvg = '';
-      if (['Restaurante', 'Lanchonete', 'Pizzaria'].includes(poi.category)) {
-        iconSvg = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path></svg>`;
-      } else if (poi.category === 'Farmacia') {
-        iconSvg = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M10.5 20.5 19 12a2.12 2.12 0 0 0-3-3l-8.5 8.5a2.12 2.12 0 0 0 3 3z"></path><path d="m15 7 2 2"></path></svg>`;
-      } else if (poi.category === 'Supermercado') {
-        iconSvg = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="12" cy="12" r="3"></circle></svg>`;
-      } else if (poi.category === 'Servicos') {
-        iconSvg = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`;
-      } else {
-        iconSvg = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
-      }
+      const icon = poi.categoryIcon || '📍';
+      const color = poi.categoryColor || '#6343f2';
 
       el.innerHTML = `
-        <div class="marker-pin">
-          <div class="marker-icon">${iconSvg}</div>
+        <div class="marker-pin" style="border-left: 3px solid ${color};">
+          <div class="marker-icon" style="background-color: ${color};">${icon}</div>
           <span class="marker-title">${poi.name}</span>
         </div>
       `;
@@ -502,25 +371,17 @@ const AddressMap: React.FC = () => {
 
       markersRef.current.push(marker);
     });
-  }, [pois, searchQuery, clickedPoi]);
+  }, [pois, searchQuery, clickedPoi, selectedGroup, selectedCategory]);
 
-  // Tratamento da Rota pela API OSRM
+  // Traçar rota via mapService
   const handleDrawRoute = async () => {
     if (!clickedPoi || !mapRef.current) return;
     setIsRouteLoading(true);
 
-    const [userLng, userLat] = centerPos;
-    const [poiLng, poiLat] = clickedPoi.coordinates;
-    const url = `https://router.project-osrm.org/route/v1/driving/${userLng},${userLat};${poiLng},${poiLat}?geometries=geojson`;
-
     try {
-      const response = await fetch(url);
-      const data = await response.json();
+      const routeGeoJSON = await mapService.getRoute(centerPos, clickedPoi.coordinates);
 
-      if (data.routes && data.routes.length > 0) {
-        const routeGeoJSON = data.routes[0].geometry;
-
-        // Atualizar o mapa com a nova linha da rota
+      if (routeGeoJSON && mapRef.current) {
         const routeSource = mapRef.current.getSource('route-source') as maplibregl.GeoJSONSource;
         if (routeSource) {
           routeSource.setData({
@@ -530,7 +391,6 @@ const AddressMap: React.FC = () => {
           });
         }
 
-        // Fazer a câmera focar na rota completa
         const coordinates: [number, number][] = routeGeoJSON.coordinates;
         const bounds = coordinates.reduce((b, coord) => {
           return b.extend(coord);
@@ -539,8 +399,8 @@ const AddressMap: React.FC = () => {
         mapRef.current.fitBounds(bounds, { padding: 80, maxZoom: 16 });
       }
     } catch (error) {
-      console.error("Erro ao buscar rota OSRM:", error);
-      alert("Não foi possível traçar a rota neste momento.");
+      console.error('[AddressMap] Erro ao traçar rota:', error);
+      alert('Não foi possível traçar a rota neste momento.');
     } finally {
       setIsRouteLoading(false);
     }
@@ -559,13 +419,13 @@ const AddressMap: React.FC = () => {
           setShowLocationPrompt(false);
         },
         () => {
-          alert("Não foi possível obter sua localização. Defina manualmente.");
+          alert('Não foi possível obter sua localização. Defina manualmente.');
           setIsSettingManualLocation(true);
           setShowLocationPrompt(false);
         }
       );
     } else {
-      alert("Navegador não suporta geolocalização.");
+      alert('Navegador não suporta geolocalização.');
       setIsSettingManualLocation(true);
       setShowLocationPrompt(false);
     }
@@ -581,12 +441,12 @@ const AddressMap: React.FC = () => {
       {/* Container do Mapa Libre */}
       <div ref={mapContainerRef} className={`maplibre-wrapper ${isSettingManualLocation ? 'cursor-crosshair' : ''}`} />
 
-      {/* Modal / Prompt de Localização Inicial */}
+      {/* Modal Inicial de Localização */}
       {showLocationPrompt && (
         <div className="location-prompt-overlay">
           <div className="location-prompt-modal">
             <h3>Definir Meu Local</h3>
-            <p>Para buscar serviços próximos, precisamos saber onde você está. Como deseja configurar?</p>
+            <p>Para buscar serviços e estabelecimentos próximos, precisamos saber onde você está. Como deseja configurar?</p>
             <div className="location-buttons">
               <button className="btn-auto" onClick={handleAutoLocation}>
                 📍 Usar Localização Atual (Automático)
@@ -599,7 +459,7 @@ const AddressMap: React.FC = () => {
         </div>
       )}
 
-      {/* Banner flutuante avisando sobre o modo manual */}
+      {/* Banner flutuante modo manual */}
       {isSettingManualLocation && (
         <div className="manual-location-banner">
           Toque em qualquer lugar do mapa para definir sua localização.
@@ -611,7 +471,7 @@ const AddressMap: React.FC = () => {
         <div className="search-input-wrapper">
           <input
             type="text"
-            placeholder="Buscar estabelecimento (ex: Savegnago, farmácia... pressione Enter)"
+            placeholder="Buscar motel, adega, oficina, savegnago... (Enter)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleSearchSubmit}
@@ -670,7 +530,7 @@ const AddressMap: React.FC = () => {
         </svg>
       </button>
 
-      {/* Botão para invocar o prompt novamente caso o usuário queira trocar */}
+      {/* Botão para alterar localização */}
       {!showLocationPrompt && !isSettingManualLocation && (
         <button
           className="change-location-btn"
@@ -684,7 +544,7 @@ const AddressMap: React.FC = () => {
       {/* Indicador de Carregamento de POIs */}
       {loadingPois && (
         <div className="poi-loading-pill">
-          <span>🔄 Buscando locais próximos...</span>
+          <span>🔄 Buscando dados no OpenStreetMap...</span>
         </div>
       )}
 
@@ -695,7 +555,9 @@ const AddressMap: React.FC = () => {
             <h3>{clickedPoi.name}</h3>
             <button className="close-card-btn" onClick={() => setClickedPoi(null)}>✕</button>
           </div>
-          <p className="poi-category-badge">{clickedPoi.category}</p>
+          <p className="poi-category-badge" style={{ color: clickedPoi.categoryColor || '#6343f2' }}>
+            {clickedPoi.categoryIcon} {clickedPoi.category}
+          </p>
           <p className="poi-address">📍 {clickedPoi.place}{clickedPoi.number ? `, ${clickedPoi.number}` : ''}</p>
           {clickedPoi.phone && <p className="poi-info-extra">📞 {clickedPoi.phone}</p>}
           {clickedPoi.opening_hours && <p className="poi-info-extra">⏰ {clickedPoi.opening_hours}</p>}
@@ -716,29 +578,48 @@ const AddressMap: React.FC = () => {
         </div>
       )}
 
-      {/* Categorias */}
-      <div className="footer-categories">
-        <button className={`category-button ${selectedCategory === 'Todos' ? 'active' : ''}`} onClick={() => setSelectedCategory('Todos')}>
-          Todos
-        </button>
-        <button className={`category-button ${selectedCategory === 'Supermercado' ? 'active' : ''}`} onClick={() => setSelectedCategory('Supermercado')}>
-          🛒 Mercados
-        </button>
-        <button className={`category-button ${selectedCategory === 'Farmacia' ? 'active' : ''}`} onClick={() => setSelectedCategory('Farmacia')}>
-          💊 Farmácias
-        </button>
-        <button className={`category-button ${selectedCategory === 'Restaurante' ? 'active' : ''}`} onClick={() => setSelectedCategory('Restaurante')}>
-          🍽️ Restaurantes
-        </button>
-        <button className={`category-button ${selectedCategory === 'Servicos' ? 'active' : ''}`} onClick={() => setSelectedCategory('Servicos')}>
-          🔧 Mecânicos / Lojas
-        </button>
-        <button className={`category-button ${selectedCategory === 'Publico' ? 'active' : ''}`} onClick={() => setSelectedCategory('Publico')}>
-          🏛️ Poupatempo / Serviços
-        </button>
+      {/* Barra Inferior com Grupos Principais e Subcategorias Deslizáveis */}
+      <div className="footer-category-wrapper">
+        {/* Subcategorias específicas do grupo quando um grupo é ativado */}
+        {subCategoriesOfGroup.length > 0 && (
+          <div className="subcategory-pills">
+            <button
+              className={`subcat-pill ${selectedCategory === null ? 'active' : ''}`}
+              onClick={() => setSelectedCategory(null)}
+            >
+              Todos do grupo
+            </button>
+            {subCategoriesOfGroup.map((sub) => (
+              <button
+                key={sub.id}
+                className={`subcat-pill ${selectedCategory?.id === sub.id ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(sub)}
+              >
+                {sub.icon} {sub.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Grupos Principais do Voyage */}
+        <div className="footer-categories">
+          {CATEGORY_GROUPS.map((g) => (
+            <button
+              key={g.id}
+              className={`category-button ${selectedGroup === g.id ? 'active' : ''}`}
+              onClick={() => {
+                setSelectedGroup(g.id);
+                setSelectedCategory(null);
+              }}
+            >
+              <span>{g.icon}</span> {g.label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
 };
 
 export default AddressMap;
+
