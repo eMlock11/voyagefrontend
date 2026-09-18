@@ -1,27 +1,18 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://voyagegabi.onrender.com';
+import { api } from './api';
 
 export const userService = {
   /**
-   * Realiza login do usuário com email e senha
+   * Realiza login do usuário com email e senha na API Voyage
    * @param {Object} credentials { email, password }
    * @returns {Promise<{ message: string, token: string, user: Object }>}
    */
   async login(credentials) {
-    const response = await fetch(`${API_BASE_URL}/user/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
-    });
-
-    const data = await response.json().catch(() => null);
-    if (!response.ok) {
-      const errorMsg =
-        data?.error ||
-        (data?.errors && data.errors.join(', ')) ||
-        `Erro ao realizar login (${response.status})`;
-      throw new Error(errorMsg);
+    const data = await api.post('/user/login', credentials);
+    if (data && data.token) {
+      localStorage.setItem('token', data.token);
+    }
+    if (data && data.user) {
+      localStorage.setItem('user', JSON.stringify(data.user));
     }
     return data;
   },
@@ -37,113 +28,93 @@ export const userService = {
       ...userData,
     };
 
-    const response = await fetch(`${API_BASE_URL}/user`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json().catch(() => null);
-    if (!response.ok) {
-      const errorMsg =
-        data?.error ||
-        (data?.errors && data.errors.join(', ')) ||
-        `Erro ao cadastrar usuário (${response.status})`;
-      throw new Error(errorMsg);
+    const data = await api.post('/user', payload);
+    if (data && data.token) {
+      localStorage.setItem('token', data.token);
+    }
+    if (data && data.user) {
+      localStorage.setItem('user', JSON.stringify(data.user));
     }
     return data;
   },
 
   /**
    * Obtém os dados de um usuário pelo ID
+   * O Bearer token é injetado automaticamente a partir do localStorage.
    * @param {number|string} id
-   * @param {string} token
+   * @param {string} [token] - Opcional, caso queira passar manualmente
    * @returns {Promise<Object>}
    */
   async getUserById(id, token) {
-    const headers = {
-      'Content-Type': 'application/json',
-    };
+    const options = {};
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      options.headers = { Authorization: `Bearer ${token}` };
     }
-
-    const response = await fetch(`${API_BASE_URL}/user/${id}`, {
-      headers,
-    });
-
-    const data = await response.json().catch(() => null);
-    if (!response.ok) {
-      const errorMsg =
-        data?.error ||
-        (data?.errors && data.errors.join(', ')) ||
-        `Erro ao buscar usuário #${id}`;
-      throw new Error(errorMsg);
-    }
-    return data;
+    return await api.get(`/user/${id}`, options);
   },
 
   /**
    * Atualiza os dados do perfil do usuário
+   * O Bearer token é injetado automaticamente a partir do localStorage.
    * @param {number|string} id
    * @param {Object} userData
-   * @param {string} token
+   * @param {string} [token] - Opcional
    * @returns {Promise<Object>}
    */
   async updateUser(id, userData, token) {
-    const headers = {
-      'Content-Type': 'application/json',
-    };
+    const options = {};
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      options.headers = { Authorization: `Bearer ${token}` };
     }
-
-    const response = await fetch(`${API_BASE_URL}/user/${id}`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(userData),
-    });
-
-    const data = await response.json().catch(() => null);
-    if (!response.ok) {
-      const errorMsg =
-        data?.error ||
-        (data?.errors && data.errors.join(', ')) ||
-        `Erro ao atualizar usuário (${response.status})`;
-      throw new Error(errorMsg);
-    }
-    return data;
+    return await api.put(`/user/${id}`, userData, options);
   },
 
   /**
    * Lista usuários (requer permissão de admin)
    * @param {string} query
-   * @param {string} token
+   * @param {string} [token]
    * @returns {Promise<Array>}
    */
   async getUsers(query = '', token) {
-    const url = query ? `${API_BASE_URL}/user?${query}` : `${API_BASE_URL}/user`;
-    const headers = {
-      'Content-Type': 'application/json',
-    };
+    const endpoint = query ? `/user?${query}` : '/user';
+    const options = {};
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      options.headers = { Authorization: `Bearer ${token}` };
     }
-
-    const response = await fetch(url, {
-      headers,
-    });
-
-    const data = await response.json().catch(() => null);
-    if (!response.ok) {
-      const errorMsg =
-        data?.error ||
-        (data?.errors && data.errors.join(', ')) ||
-        `Erro ao buscar usuários (${response.status})`;
-      throw new Error(errorMsg);
-    }
-    return data;
+    return await api.get(endpoint, options);
   },
+
+  /**
+   * Encerra a sessão do usuário no frontend
+   */
+  logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  },
+
+  /**
+   * Retorna o token atual do usuário
+   */
+  getToken() {
+    return localStorage.getItem('token');
+  },
+
+  /**
+   * Retorna o usuário logado
+   */
+  getCurrentUser() {
+    const userStr = localStorage.getItem('user');
+    try {
+      return userStr ? JSON.parse(userStr) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Verifica se o usuário está autenticado
+   */
+  isAuthenticated() {
+    return !!localStorage.getItem('token');
+  }
 };

@@ -4,7 +4,7 @@
   align-items: center;
   min-height: 100vh;
   width: 100%;
-  padding: 20px;
+  padding: 30px 20px;
   background-color: #05070e;
 }
 
@@ -13,9 +13,9 @@
   border: 2px solid #5a45ff;
   border-radius: 24px;
   width: 100%;
-  max-width: 360px;
-  min-height: 680px;
-  padding: 36px 24px 30px 24px;
+  max-width: 380px;
+  min-height: auto;
+  padding: 32px 24px 30px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -24,7 +24,7 @@
 
 #tela-cadastro .cabecalho {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 #tela-cadastro .titulo {
@@ -37,12 +37,12 @@
 #tela-cadastro .secao-avatar {
   display: flex;
   justify-content: center;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
 }
 
 #tela-cadastro .avatar-wrapper {
-  width: 150px;
-  height: 150px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   background-color: #d1d5db;
   display: flex;
@@ -67,8 +67,8 @@
 }
 
 #tela-cadastro .icone-avatar {
-  width: 95px;
-  height: 95px;
+  width: 75px;
+  height: 75px;
   fill: #ffffff;
 }
 
@@ -80,10 +80,10 @@
 
 #tela-cadastro .formulario {
   width: 100%;
-  max-width: 290px;
+  max-width: 320px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 18px;
 }
 
 #tela-cadastro .campo-grupo {
@@ -121,10 +121,28 @@
   background: transparent;
   border: none;
   color: #ffffff;
-  font-size: 16px;
+  font-size: 15px;
   outline: none;
   width: 100%;
   padding: 2px 0;
+}
+
+#tela-cadastro .select-texto {
+  background-color: #121626;
+  border: 1px solid #232a42;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  padding: 6px 10px;
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+#tela-cadastro .select-texto option {
+  background-color: #121626;
+  color: #ffffff;
 }
 
 #tela-cadastro .linha-divisoria {
@@ -142,20 +160,22 @@
 #tela-cadastro .secao-botao {
   display: flex;
   justify-content: center;
-  margin-top: 15px;
+  margin-top: 10px;
 }
 
 #tela-cadastro .botao-criar {
   background-color: #538d4e;
   color: #ffffff;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   border: none;
   border-radius: 14px;
-  width: 180px;
+  width: 100%;
+  max-width: 200px;
   padding: 12px 0;
   text-align: center;
   transition: background-color 0.2s ease, transform 0.1s ease;
+  cursor: pointer;
 }
 
 #tela-cadastro .botao-criar:hover {
@@ -167,6 +187,12 @@
   transform: translateY(0);
 }
 
+#tela-cadastro .botao-criar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* Seletor de Tipo de Perfil (Cliente vs Proprietário / Owner) */
 #tela-cadastro .seletor-tipo {
   display: flex;
@@ -175,6 +201,7 @@
   padding: 4px;
   gap: 6px;
   border: 1px solid #232a42;
+  margin-bottom: 6px;
 }
 
 #tela-cadastro .btn-tipo {
@@ -207,9 +234,16 @@
   margin-left: 4px;
 }
 
+#tela-cadastro .badge-obrigatorio {
+  font-size: 13px;
+  color: #ef4444;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
 #tela-cadastro .rodape-link {
   text-align: center;
-  margin-top: 12px;
+  margin-top: 8px;
   font-size: 14px;
   color: #a0aec0;
 }
@@ -223,4 +257,3 @@
 #tela-cadastro .link-entrar:hover {
   text-decoration: underline;
 }
-

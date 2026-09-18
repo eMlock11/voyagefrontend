@@ -10,12 +10,16 @@ Este arquivo é mantido por agentes de IA e desenvolvedores para registrar o est
 - **Arquivos:** `src/Cadastro.jsx`, `src/Cadastro.css`
 - **Rota:** `/cadastro`
 - **ID da Tela:** `#tela-cadastro`
-- **Padrão visual:**
-  - Segue estritamente `docs/User.md` e as capturas de tela de referência.
+- **Padrão visual e funcionalidade:**
+  - Segue estritamente `docs/User.md` e a identidade visual do Voyage.
+  - Seletor de tipo de conta: **Cliente** vs **Empresário** (`owner`).
+  - Para tipo **Empresário (Owner / Companhia)**:
+    - Exige obrigatoriamente: **CNPJ**, **Categoria da Empresa** e **Localização / Endereço**.
+    - Cadastra o usuário no backend e insere automaticamente os dados da empresa via `companyService`.
   - Design monobloco com tema escuro (`#070a14`), borda estilo dispositivo mobile.
   - Cabeçalho com título "Foto de Perfil".
-  - Avatar circular cinza (`#d1d5db`) com ícone vetorizado de busto, clique para selecionar foto local e preview em tela.
-  - Campos borderless com linha inferior: Nome, E-mail, Senha.
+  - Avatar circular com clique para selecionar foto local e preview em tela.
+  - Campos com linha inferior: Nome Fantasia / Razão, E-mail corporativo, CNPJ, Categoria, Localização, Telefone, Senha.
   - Botão verde arredondado "Criar".
   - Link de navegação para a rota de login (`/login`).
 - **Isolamento CSS:** Todas as regras no CSS estão restritas ao seletor `#tela-cadastro`.

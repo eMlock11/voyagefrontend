@@ -5,19 +5,25 @@ import EditarPerfil from './pages/User/EditarPerfil';
 import Company from './pages/Company/Company';
 import Payment from './pages/payment/Payment';
 import AddressMap from './pages/AddressMap/AddressMap';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Rotas Públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/editar-perfil" element={<EditarPerfil />} />
-        <Route path="/perfil/editar" element={<EditarPerfil />} />
-        <Route path="/address" element={<AddressMap />} />
-        <Route path="/company" element={<Company />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/map" element={<AddressMap />} />
+
+        {/* Rotas Protegidas (Requerem Login com Bearer Token) */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/company" element={<Company />} />
+          <Route path="/editar-perfil" element={<EditarPerfil />} />
+          <Route path="/perfil/editar" element={<EditarPerfil />} />
+          <Route path="/address" element={<AddressMap />} />
+          <Route path="/map" element={<AddressMap />} />
+          <Route path="/payment" element={<Payment />} />
+        </Route>
 
         {/* Rota padrão para /login */}
         <Route path="/" element={<Navigate to="/login" replace />} />

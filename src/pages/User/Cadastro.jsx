@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { userService } from '../../services/userService'
+import { companyService } from '../../services/companyService'
 import './Cadastro.css'
 
 function Cadastro() {
@@ -12,6 +13,12 @@ function Cadastro() {
   const [tipo, setTipo] = useState('client') // 'client' | 'owner'
   const [telefone, setTelefone] = useState('')
   const [cpf, setCpf] = useState('')
+
+  // Campos específicos obrigatórios para 'owner' (Empresário / Companhia)
+  const [cnpj, setCnpj] = useState('')
+  const [categoria, setCategoria] = useState('Lanchonete')
+  const [localizacao, setLocalizacao] = useState('')
+
   const [carregando, setCarregando] = useState(false)
   const [mensagem, setMensagem] = useState(null) // { tipo: 'sucesso' | 'erro', texto: string }
 
@@ -31,9 +38,25 @@ function Cadastro() {
       return
     }
 
+    if (tipo === 'owner') {
+      if (!cnpj.trim()) {
+        setMensagem({ tipo: 'erro', texto: 'Para conta de Empresário, o CNPJ é obrigatório.' })
+        return
+      }
+      if (!categoria.trim()) {
+        setMensagem({ tipo: 'erro', texto: 'Selecione a categoria da sua empresa.' })
+        return
+      }
+      if (!localizacao.trim()) {
+        setMensagem({ tipo: 'erro', texto: 'Informe a localização / endereço da empresa.' })
+        return
+      }
+    }
+
     try {
       setCarregando(true)
-      const payload = {
+
+      const userPayload = {
         name: nome.trim(),
         email: email.trim(),
         password: senha,
@@ -41,20 +64,32 @@ function Cadastro() {
       }
 
       if (telefone.trim()) {
-        payload.phone = telefone.trim()
+        userPayload.phone = telefone.trim()
       }
       if (cpf.trim()) {
-        payload.cpf = cpf.trim()
+        userPayload.cpf = cpf.trim()
       }
 
-      const res = await userService.register(payload)
+      // 1. Cadastra o usuário / proprietário
+      const res = await userService.register(userPayload)
 
-      // Salva token e usuário se retornados
-      if (res.token) {
-        localStorage.setItem('token', res.token)
-      }
-      if (res.user) {
-        localStorage.setItem('user', JSON.stringify(res.user))
+      // Se for empresário (owner), cadastra também a empresa vinculada
+      if (tipo === 'owner') {
+        try {
+          const companyPayload = {
+            name: nome.trim(),
+            category: categoria.trim(),
+            cnpj: cnpj.trim(),
+            evaluate: 4.8,
+            places: localizacao.trim(),
+          }
+          const novaEmpresa = await companyService.createCompany(companyPayload)
+          if (novaEmpresa) {
+            localStorage.setItem('user_company', JSON.stringify(novaEmpresa))
+          }
+        } catch (compErr) {
+          console.warn('Aviso ao registrar dados da empresa vinculada:', compErr.message)
+        }
       }
 
       setMensagem({ tipo: 'sucesso', texto: 'Conta criada com sucesso! Redirecionando...' })
@@ -148,7 +183,7 @@ function Cadastro() {
             </button>
           </div>
 
-          {/* Campo Nome */}
+          {/* Campo Nome / Razão Social */}
           <div className="campo-grupo">
             <div className="linha-input">
               <svg
@@ -157,16 +192,22 @@ function Cadastro() {
                 fill="#ffffff"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                {tipo === 'owner' ? (
+                  <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" />
+                ) : (
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                )}
               </svg>
               <div className="conteudo-input">
-                <span className="label-campo">Nome completo</span>
+                <span className="label-campo">
+                  {tipo === 'owner' ? 'Nome Fantasia / Empresa' : 'Nome completo'}
+                </span>
                 <input
                   type="text"
                   className="input-texto"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  placeholder="Seu nome ou razão"
+                  placeholder={tipo === 'owner' ? 'Ex: Pizzaria Bella Napoli' : 'Seu nome completo'}
                   required
                   disabled={carregando}
                 />
@@ -187,7 +228,7 @@ function Cadastro() {
                 <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
               </svg>
               <div className="conteudo-input">
-                <span className="label-campo">E-mail</span>
+                <span className="label-campo">E-mail corporativo / comercial</span>
                 <input
                   type="email"
                   className="input-texto"
@@ -202,6 +243,107 @@ function Cadastro() {
             <div className="linha-divisoria"></div>
           </div>
 
+          {/* CAMPOS OBRIGATÓRIOS PARA OWNER (EMPRESA) */}
+          {tipo === 'owner' && (
+            <>
+              {/* Campo CNPJ (Obrigatório para Owner) */}
+              <div className="campo-grupo">
+                <div className="linha-input">
+                  <svg
+                    className="icone-campo"
+                    viewBox="0 0 24 24"
+                    fill="#ffffff"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+                  </svg>
+                  <div className="conteudo-input">
+                    <span className="label-campo">
+                      CNPJ <span className="badge-obrigatorio">*</span>
+                    </span>
+                    <input
+                      type="text"
+                      className="input-texto"
+                      value={cnpj}
+                      onChange={(e) => setCnpj(e.target.value)}
+                      placeholder="00.000.000/0000-00"
+                      required
+                      disabled={carregando}
+                    />
+                  </div>
+                </div>
+                <div className="linha-divisoria"></div>
+              </div>
+
+              {/* Campo Categoria da Empresa (Obrigatório para Owner) */}
+              <div className="campo-grupo">
+                <div className="linha-input">
+                  <svg
+                    className="icone-campo"
+                    viewBox="0 0 24 24"
+                    fill="#ffffff"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+                  </svg>
+                  <div className="conteudo-input">
+                    <span className="label-campo">
+                      Categoria da Empresa <span className="badge-obrigatorio">*</span>
+                    </span>
+                    <select
+                      className="select-texto"
+                      value={categoria}
+                      onChange={(e) => setCategoria(e.target.value)}
+                      required
+                      disabled={carregando}
+                    >
+                      <option value="Lanchonete">Lanchonete</option>
+                      <option value="Restaurante">Restaurante</option>
+                      <option value="Pizzaria">Pizzaria</option>
+                      <option value="Churrascaria">Churrascaria</option>
+                      <option value="Supermercado">Supermercado</option>
+                      <option value="Farmácia">Farmácia</option>
+                      <option value="Serviços">Serviços</option>
+                      <option value="Hospital">Hospital</option>
+                      <option value="Bar">Bar</option>
+                      <option value="Outros">Outros</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="linha-divisoria"></div>
+              </div>
+
+              {/* Campo Localização / Endereço (Obrigatório para Owner) */}
+              <div className="campo-grupo">
+                <div className="linha-input">
+                  <svg
+                    className="icone-campo"
+                    viewBox="0 0 24 24"
+                    fill="#ffffff"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                  </svg>
+                  <div className="conteudo-input">
+                    <span className="label-campo">
+                      Localização / Endereço Comercial <span className="badge-obrigatorio">*</span>
+                    </span>
+                    <input
+                      type="text"
+                      className="input-texto"
+                      value={localizacao}
+                      onChange={(e) => setLocalizacao(e.target.value)}
+                      placeholder="Rua, número, bairro e cidade"
+                      required
+                      disabled={carregando}
+                    />
+                  </div>
+                </div>
+                <div className="linha-divisoria"></div>
+              </div>
+            </>
+          )}
+
           {/* Campo Telefone (opcional) */}
           <div className="campo-grupo">
             <div className="linha-input">
@@ -215,7 +357,7 @@ function Cadastro() {
               </svg>
               <div className="conteudo-input">
                 <span className="label-campo">
-                  Telefone <span className="badge-opcional">(opcional)</span>
+                  Telefone / WhatsApp <span className="badge-opcional">(opcional)</span>
                 </span>
                 <input
                   type="tel"
@@ -230,33 +372,35 @@ function Cadastro() {
             <div className="linha-divisoria"></div>
           </div>
 
-          {/* Campo CPF (opcional) */}
-          <div className="campo-grupo">
-            <div className="linha-input">
-              <svg
-                className="icone-campo"
-                viewBox="0 0 24 24"
-                fill="#ffffff"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
-              </svg>
-              <div className="conteudo-input">
-                <span className="label-campo">
-                  CPF <span className="badge-opcional">(opcional)</span>
-                </span>
-                <input
-                  type="text"
-                  className="input-texto"
-                  value={cpf}
-                  onChange={(e) => setCpf(e.target.value)}
-                  placeholder="000.000.000-00"
-                  disabled={carregando}
-                />
+          {/* Campo CPF (apenas para cliente) */}
+          {tipo === 'client' && (
+            <div className="campo-grupo">
+              <div className="linha-input">
+                <svg
+                  className="icone-campo"
+                  viewBox="0 0 24 24"
+                  fill="#ffffff"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+                </svg>
+                <div className="conteudo-input">
+                  <span className="label-campo">
+                    CPF <span className="badge-opcional">(opcional)</span>
+                  </span>
+                  <input
+                    type="text"
+                    className="input-texto"
+                    value={cpf}
+                    onChange={(e) => setCpf(e.target.value)}
+                    placeholder="000.000.000-00"
+                    disabled={carregando}
+                  />
+                </div>
               </div>
+              <div className="linha-divisoria"></div>
             </div>
-            <div className="linha-divisoria"></div>
-          </div>
+          )}
 
           {/* Campo Senha */}
           <div className="campo-grupo">

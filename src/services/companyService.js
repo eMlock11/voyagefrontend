@@ -1,81 +1,39 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://voyagegabi.onrender.com';
+import { api } from './api';
 
 export const companyService = {
   /**
-   * Busca todas as empresas ou com filtro (sem autenticação)
+   * Busca todas as empresas ou com filtro.
+   * Inclui automaticamente o Bearer token do localStorage se presente.
    */
   async getCompanies(query = '') {
-    const url = query ? `${API_BASE_URL}/company?${query}` : `${API_BASE_URL}/company`;
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => null);
-      throw new Error(err?.error || `Erro ao buscar empresas (${response.status})`);
-    }
-    return response.json();
+    const endpoint = query ? `/company?${query}` : '/company';
+    return await api.get(endpoint);
   },
 
   /**
-   * Busca uma única empresa por ID (sem autenticação)
+   * Busca uma única empresa por ID.
+   * Inclui automaticamente o Bearer token do localStorage se presente.
    */
   async getCompanyById(id) {
-    const response = await fetch(`${API_BASE_URL}/company/${id}`, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => null);
-      throw new Error(err?.error || `Erro ao buscar empresa #${id}`);
-    }
-    return response.json();
+    return await api.get(`/company/${id}`);
   },
 
   /**
-   * Cadastra / insere uma nova empresa no banco de dados (sem autenticação)
+   * Cadastra / insere uma nova empresa no banco de dados.
+   * Inclui automaticamente o Bearer token do localStorage.
    * @param {Object} companyData { name, category, cnpj, evaluate, places }
    */
   async createCompany(companyData) {
-    const response = await fetch(`${API_BASE_URL}/company`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(companyData),
-    });
-
-    const data = await response.json().catch(() => null);
-    if (!response.ok) {
-      const errorMsg = data?.error || (data?.errors && data.errors.join(', ')) || `Erro ao salvar empresa (${response.status})`;
-      throw new Error(errorMsg);
-    }
-    return data;
+    return await api.post('/company', companyData);
   },
 
   /**
-   * Atualiza os dados de uma empresa existente (sem autenticação)
+   * Atualiza os dados de uma empresa existente.
+   * Inclui automaticamente o Bearer token do localStorage.
    * @param {number|string} id
    * @param {Object} companyData
    */
   async updateCompany(id, companyData) {
-    const response = await fetch(`${API_BASE_URL}/company/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(companyData),
-    });
-
-    const data = await response.json().catch(() => null);
-    if (!response.ok) {
-      const errorMsg = data?.error || (data?.errors && data.errors.join(', ')) || `Erro ao atualizar empresa (${response.status})`;
-      throw new Error(errorMsg);
-    }
-    return data;
+    return await api.put(`/company/${id}`, companyData);
   }
 };

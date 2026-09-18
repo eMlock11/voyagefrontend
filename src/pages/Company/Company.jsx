@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Company.css';
 import { companyService } from '../../services/companyService';
+import { userService } from '../../services/userService';
 
 function Company() {
+  const navigate = useNavigate();
   // Estado para controlar a aba selecionada (Opção A)
   const [activeTab, setActiveTab] = useState('kpis');
+
+  const currentUser = userService.getCurrentUser();
+  const isOwner = currentUser?.type === 'owner';
 
   // ID da empresa no banco de dados (se já carregada ou criada)
   const [companyId, setCompanyId] = useState(null);
@@ -14,97 +20,115 @@ function Company() {
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null); // { type: 'success' | 'error' | 'info', text: string }
 
-  // Estados da barra de busca de empresas
+  // Estados da barra de busca de empresas (visível apenas para consulta geral)
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Estado local para os dados do perfil corporativo
+  // Estado local para os dados do perfil corporativo da própria empresa
   const [formData, setFormData] = useState({
-    razaoSocial: 'Pará Lanches Comércio de Alimentos LTDA',
-    nomeFantasia: 'Pará Lanches',
-    cnpj: '34.567.890/0001-12',
+    razaoSocial: '',
+    nomeFantasia: '',
+    cnpj: '',
     categoria: 'Lanchonete',
-    telefone: '(16) 3376-9659',
-    places: 'Av. Dr. Carlos Botelho, 1551 - Centro, São Carlos - SP',
-    sobre: 'O Pará Lanches é referência em lanches artesanais, atendimento acolhedor e refeições rápidas de qualidade na região central.'
+    telefone: '',
+    places: '',
+    sobre: ''
   });
 
   // Função para aplicar os dados de uma empresa selecionada
   const applyCompanyData = (comp) => {
     setCompanyId(comp.id);
-    setFormData((prev) => ({
-      ...prev,
-      nomeFantasia: comp.name || prev.nomeFantasia,
-      razaoSocial: comp.name || prev.razaoSocial,
-      cnpj: comp.cnpj || prev.cnpj,
-      categoria: comp.category || prev.categoria,
-      places: comp.places || prev.places,
-    }));
+    setFormData({
+      nomeFantasia: comp.name || '',
+      razaoSocial: comp.name || '',
+      cnpj: comp.cnpj || '',
+      categoria: comp.category || 'Lanchonete',
+      telefone: comp.phone || '',
+      places: comp.places || '',
+      sobre: comp.about || comp.sobre || ''
+    });
     setShowDropdown(false);
-    setStatusMessage({ type: 'info', text: `Empresa "${comp.name}" carregada.` });
   };
 
-  // 1. Efeito para buscar os dados da empresa no banco ao iniciar o componente
+  // 1. Efeito para buscar exclusivamente os dados da própria empresa do owner no banco ao iniciar o componente
   useEffect(() => {
+    // Se o usuário não for empresário (owner), bloqueia acesso ou redireciona
+    if (!isOwner) {
+      setStatusMessage({
+        type: 'error',
+        text: 'Acesso restrito: Apenas o dono da empresa pode visualizar e alterar os dados corporativos.'
+      });
+      return;
+    }
+
     async function loadCompanyData() {
       setLoading(true);
       try {
+        const storedCompany = localStorage.getItem('user_company');
+
+        // Se há empresa recém-criada no storage deste owner, aplica imediatamente
+        if (storedCompany) {
+          try {
+            const parsed = JSON.parse(storedCompany);
+            if (parsed && (parsed.id || parsed.name)) {
+              applyCompanyData(parsed);
+              setLoading(false);
+              return;
+            }
+          } catch {
+            // Segue fluxo de busca
+          }
+        }
+
         const companies = await companyService.getCompanies();
         if (Array.isArray(companies) && companies.length > 0) {
-          applyCompanyData(companies[0]);
+          // Busca estritamente a empresa correspondente ao dono logado
+          const myCompany = companies.find(
+            (c) =>
+              c.name?.toLowerCase().trim() === currentUser?.name?.toLowerCase().trim() ||
+              (currentUser?.cnpj && c.cnpj === currentUser.cnpj)
+          );
+
+          if (myCompany) {
+            applyCompanyData(myCompany);
+          } else {
+            // Caso seja um novo owner sem empresa encontrada ainda
+            setFormData((prev) => ({
+              ...prev,
+              nomeFantasia: currentUser?.name || '',
+              razaoSocial: currentUser?.name || '',
+            }));
+          }
         }
       } catch (err) {
-        console.warn('Aviso ao carregar dados do banco de dados:', err.message);
+        console.warn('Aviso ao carregar dados da empresa:', err.message);
       } finally {
         setLoading(false);
       }
     }
 
     loadCompanyData();
-  }, []);
-
-  // Busca de empresas por nome ou categoria
-  const handleSearch = async (term = searchTerm) => {
-    setIsSearching(true);
-    try {
-      const query = term ? `name=${encodeURIComponent(term)}` : '';
-      const results = await companyService.getCompanies(query);
-      setSearchResults(Array.isArray(results) ? results : []);
-      setShowDropdown(true);
-    } catch (err) {
-      console.error('Erro na pesquisa:', err);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  // Limpar formulário para criar nova empresa
-  const handleNewCompany = () => {
-    setCompanyId(null);
-    setFormData({
-      razaoSocial: '',
-      nomeFantasia: '',
-      cnpj: '',
-      categoria: 'Lanchonete',
-      telefone: '',
-      places: '',
-      sobre: ''
-    });
-    setStatusMessage({ type: 'info', text: 'Formulário limpo. Preencha os campos para cadastrar uma nova empresa.' });
-    setActiveTab('profile');
-    setShowDropdown(false);
-  };
+  }, [isOwner]);
 
   const handleInputChange = (e) => {
+    if (!isOwner) return;
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 2. Função para salvar (inserir se nova, ou atualizar se já existir)
+  // 2. Função para salvar (apenas o dono autenticado tem permissão)
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isOwner) {
+      setStatusMessage({
+        type: 'error',
+        text: 'Permissão negada: Somente o proprietário da empresa pode realizar alterações.'
+      });
+      return;
+    }
+
     setSaving(true);
     setStatusMessage(null);
 
@@ -120,14 +144,16 @@ function Company() {
       if (companyId) {
         // Atualização (PUT)
         const updated = await companyService.updateCompany(companyId, payload);
-        setStatusMessage({ type: 'success', text: 'Empresa atualizada com sucesso no banco de dados!' });
+        localStorage.setItem('user_company', JSON.stringify({ ...formData, id: companyId, ...updated }));
+        setStatusMessage({ type: 'success', text: 'Dados da sua empresa atualizados com sucesso!' });
       } else {
         // Inserção (POST)
         const created = await companyService.createCompany(payload);
         if (created && created.id) {
           setCompanyId(created.id);
+          localStorage.setItem('user_company', JSON.stringify(created));
         }
-        setStatusMessage({ type: 'success', text: 'Empresa cadastrada e salva com sucesso no banco de dados!' });
+        setStatusMessage({ type: 'success', text: 'Empresa cadastrada e vinculada com sucesso!' });
       }
     } catch (err) {
       console.error('Erro ao salvar empresa:', err);
@@ -167,83 +193,14 @@ function Company() {
           </div>
         </header>
 
-        {/* 1.1 Barra de Busca de Empresas no Banco */}
-        <div className="company-search-bar">
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <div className="company-search-input-wrapper" style={{ flex: 1 }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9fa8c7" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                type="text"
-                className="company-search-input"
-                placeholder="Pesquisar empresa cadastrada por nome..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onFocus={() => handleSearch(searchTerm)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSearch(searchTerm);
-                  }
-                }}
-              />
-              <button
-                type="button"
-                className="company-search-btn"
-                onClick={() => handleSearch(searchTerm)}
-                disabled={isSearching}
-              >
-                {isSearching ? '...' : 'Buscar'}
-              </button>
-            </div>
-
-            <button
-              type="button"
-              className="btn-new-company"
-              onClick={handleNewCompany}
-              title="Cadastrar uma nova empresa"
-            >
-              + Nova
-            </button>
-          </div>
-
-          {/* Lista de Resultados Suspensos */}
-          {showDropdown && (
-            <div className="company-search-dropdown">
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 12px', background: '#0e1227', borderBottom: '1px solid #1e2447', fontSize: '11px', color: '#687399' }}>
-                <span>{searchResults.length} empresa(s) encontrada(s)</span>
-                <button
-                  type="button"
-                  onClick={() => setShowDropdown(false)}
-                  style={{ background: 'none', border: 'none', color: '#9fa8c7', cursor: 'pointer', fontSize: '12px' }}
-                >
-                  ✕ Fechar
-                </button>
-              </div>
-
-              {searchResults.length === 0 ? (
-                <div style={{ padding: '14px', textAlign: 'center', color: '#9fa8c7', fontSize: '12px' }}>
-                  Nenhuma empresa encontrada com este nome.
-                </div>
-              ) : (
-                searchResults.map((item) => (
-                  <div
-                    key={item.id}
-                    className="company-search-item"
-                    onClick={() => applyCompanyData(item)}
-                  >
-                    <div>
-                      <div className="company-search-item-name">{item.name}</div>
-                      <div className="company-search-item-desc">{item.places} • CNPJ: {item.cnpj}</div>
-                    </div>
-                    <span className="company-search-item-badge">#{item.id} - {item.category}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
+        {/* Banner de Identificação do Dono */}
+        <div style={{ padding: '8px 16px', background: 'rgba(92, 77, 242, 0.1)', border: '1px solid rgba(92, 77, 242, 0.3)', borderRadius: '10px', margin: '0 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '12px', color: '#c4c8df' }}>
+            Painel exclusivo do Proprietário: <strong style={{ color: '#ffffff' }}>{currentUser?.name || 'Sua Empresa'}</strong>
+          </span>
+          <span style={{ fontSize: '11px', background: '#5c4df2', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
+            CNPJ: {formData.cnpj || 'Não informado'}
+          </span>
         </div>
 
         {/* 2. Hero da Organização / Foto / Título e Selo Verificado */}
@@ -570,10 +527,14 @@ function Company() {
               <div className="team-list">
                 <div className="team-item">
                   <div className="team-member-info">
-                    <div className="team-avatar">JJ</div>
+                    <div className="team-avatar">
+                      {currentUser?.name
+                        ? currentUser.name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
+                        : 'EU'}
+                    </div>
                     <div>
-                      <div className="team-name">João Junior (Você)</div>
-                      <div className="team-role">joao00@hotmail.com</div>
+                      <div className="team-name">{currentUser?.name || 'Você'} (Proprietário)</div>
+                      <div className="team-role">{currentUser?.email || 'proprietario@empresa.com'}</div>
                     </div>
                   </div>
                   <span className="badge-role admin">Proprietário</span>
@@ -725,13 +686,24 @@ function Company() {
 
         {/* 5. Rodapé de Saída no Padrão do Menu Lateral */}
         <footer className="company-footer">
-          <button className="header-icon-btn" title="Voltar ao Catálogo" aria-label="Voltar">
+          <button
+            className="header-icon-btn"
+            title="Ir para o Mapa"
+            aria-label="Voltar ao Mapa"
+            onClick={() => navigate('/map')}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 14 4 9l5-5" />
               <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11" />
             </svg>
           </button>
-          <button className="logout-btn">
+          <button
+            className="logout-btn"
+            onClick={() => {
+              userService.logout();
+              navigate('/login');
+            }}
+          >
             Sair
           </button>
         </footer>

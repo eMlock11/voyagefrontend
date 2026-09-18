@@ -35,7 +35,8 @@ function Login() {
 
       setMensagem({ tipo: 'sucesso', texto: 'Login efetuado com sucesso! Redirecionando...' })
       setTimeout(() => {
-        navigate('/company')
+        const userType = res.user?.type
+        navigate(userType === 'owner' ? '/company' : '/map')
       }, 1000)
     } catch (err) {
       setMensagem({ tipo: 'erro', texto: err.message || 'Credenciais inválidas.' })
