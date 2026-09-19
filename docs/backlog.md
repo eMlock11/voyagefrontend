@@ -64,14 +64,15 @@ Este arquivo é mantido por agentes de IA e desenvolvedores para registrar o est
 
 ## 3. Módulo: Pagamento e Assinatura (Payment / Voyage+)
 
-### [IMPLEMENTADO] Telas de Pagamento e Assinatura
+### [IMPLEMENTADO] Telas de Pagamento e Assinatura (3 Planos, Cartões & PIX)
 - **Arquivos:** `src/pages/payment/Payment.jsx`, `src/pages/payment/Payment.css`
 - **Rota:** `/payment`
 - **ID da Tela:** `#payment-root`
 - **Funcionalidades:**
-  - Tabela comparativa do plano Voyage+ vs Gratuito.
-  - Métodos de pagamento: Cartão de Crédito, Débito e PIX com QR Code dinâmico.
-  - Gerenciamento de cartões salvos e formulário de novo cartão.
+  - **3 Planos de Assinatura:** Seleção interativa entre **Básico (Gratuito)**, **Intermediário (R$ 14,90/mês)** e **Plus (Voyage+ R$ 29,90/mês)** com badges, lista de recursos e cálculo dinâmico de botões.
+  - **Métodos de pagamento:** Cartão de Crédito, Débito e PIX Instantâneo.
+  - **Gestão & Cadastro de Cartões:** Máscara de digitação automática em tempo real para número (`0000 0000 0000 0000`), validade (`MM/AA`) e CVC. Detecção inteligente de bandeira (Visa, Mastercard, Elo, Amex) com preview dinâmico no cartão virtual e persistência na lista de cartões salvos.
+  - **PIX Fictício Interativo:** Geração de QR Code vetorial de alta definição com ícone centralizado, chave Copia e Cola dinâmica com o plano escolhido, timer regressivo visual de 30 minutos e confirmação simulada.
 
 ---
 
