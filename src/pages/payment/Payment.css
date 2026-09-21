@@ -103,18 +103,18 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  justify-content: space-between;
 }
 
 #payment-root .plan-intro {
   text-align: center;
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 }
 
 #payment-root .plan-intro h3 {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 6px;
+  font-size: 19px;
+  font-weight: 800;
+  margin-bottom: 4px;
+  letter-spacing: -0.3px;
 }
 
 #payment-root .plan-intro p {
@@ -122,92 +122,174 @@
   color: #a7aacc;
 }
 
-#payment-root .comparison-table-container {
-  background: #171836;
-  border-radius: 18px;
-  padding: 18px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 24px;
-}
-
-#payment-root .comparison-header-row {
+/* Grid dos 3 Planos */
+#payment-root .plans-selector-grid {
   display: flex;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  font-weight: 700;
-  font-size: 14px;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
-#payment-root .comparison-col-label {
-  flex: 1.4;
-  color: #8c8fae;
-  font-size: 12px;
+#payment-root .plan-card-item {
+  background: #171836;
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  transition: all 0.22s ease-in-out;
+  position: relative;
 }
 
-#payment-root .comparison-col-free {
-  flex: 1;
-  text-align: center;
-  color: #a0a3c2;
-  font-size: 13px;
+#payment-root .plan-card-item:hover {
+  background: #1c1e42;
+  border-color: rgba(84, 55, 234, 0.4);
 }
 
-#payment-root .comparison-col-plus {
-  flex: 1;
-  text-align: center;
-  color: #8b72ff;
-  font-size: 13px;
-  font-weight: 800;
+#payment-root .plan-card-item.selected {
+  border-color: #5437ea;
+  background: #1e1f48;
+  box-shadow: 0 4px 20px rgba(84, 55, 234, 0.35);
 }
 
-#payment-root .comparison-row {
+#payment-root .plan-card-item.selected.plus {
+  border-color: #7b5aff;
+  box-shadow: 0 4px 22px rgba(123, 90, 255, 0.45);
+}
+
+#payment-root .plan-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+#payment-root .plan-title-box {
   display: flex;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 12px;
+  gap: 8px;
 }
 
-#payment-root .comparison-row:last-child {
-  border-bottom: none;
-}
-
-#payment-root .comparison-row .feature-title {
-  flex: 1.4;
-  color: #e2e4f0;
-  font-weight: 500;
-}
-
-#payment-root .comparison-row .feature-free,
-#payment-root .comparison-row .feature-plus {
-  flex: 1;
-  text-align: center;
-}
-
-#payment-root .feature-free {
-  color: #9295b3;
-}
-
-#payment-root .feature-plus {
-  color: #4fa65b;
-  font-weight: 600;
-}
-
-#payment-root .tag-pill {
-  display: inline-block;
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 12px;
-}
-
-#payment-root .tag-pill.limit {
-  background: rgba(255, 255, 255, 0.08);
-  color: #9da0be;
-}
-
-#payment-root .tag-pill.unlimit {
-  background: rgba(79, 166, 91, 0.2);
-  color: #5ed670;
+#payment-root .plan-name {
+  font-size: 16px;
   font-weight: 700;
+  color: #ffffff;
+}
+
+#payment-root .plan-badge-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+#payment-root .plan-badge-tag.basic {
+  background: rgba(255, 255, 255, 0.1);
+  color: #c2c5db;
+}
+
+#payment-root .plan-badge-tag.intermediary {
+  background: rgba(84, 55, 234, 0.3);
+  color: #a38dff;
+}
+
+#payment-root .plan-badge-tag.plus {
+  background: linear-gradient(135deg, #7b5aff 0%, #a855f7 100%);
+  color: #ffffff;
+}
+
+#payment-root .plan-price-box {
+  text-align: right;
+}
+
+#payment-root .plan-price-val {
+  font-size: 17px;
+  font-weight: 800;
+  color: #ffffff;
+  display: block;
+}
+
+#payment-root .plan-period-val {
+  font-size: 10px;
+  color: #8c8fae;
+}
+
+#payment-root .plan-desc-text {
+  font-size: 12px;
+  color: #a0a3c2;
+  margin-bottom: 10px;
+  line-height: 1.35;
+}
+
+#payment-root .plan-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#payment-root .feature-bullet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+#payment-root .feature-bullet.inc {
+  color: #d1d5db;
+}
+
+#payment-root .feature-bullet.exc {
+  color: #636687;
+  text-decoration: line-through;
+}
+
+#payment-root .feat-icon.check {
+  color: #4fa65b;
+  flex-shrink: 0;
+}
+
+#payment-root .feat-icon.cross {
+  color: #555877;
+  flex-shrink: 0;
+}
+
+#payment-root .plan-radio-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 6px;
+}
+
+#payment-root .plan-radio-circle {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #5437ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#payment-root .plan-radio-inner {
+  width: 8px;
+  height: 8px;
+  background-color: #5437ea;
+  border-radius: 50%;
+}
+
+#payment-root .plan-select-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #a7aacc;
+}
+
+#payment-root .plan-card-item.selected .plan-select-label {
+  color: #7b5aff;
 }
 
 /* ============================================================
@@ -220,20 +302,60 @@
   justify-content: space-between;
 }
 
+#payment-root .selected-plan-banner {
+  background: #171836;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(84, 55, 234, 0.3);
+  margin-bottom: 14px;
+}
+
+#payment-root .summary-label {
+  font-size: 11px;
+  color: #8c8fae;
+  display: block;
+}
+
+#payment-root .summary-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+#payment-root .btn-change-plan {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: #a7aacc;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#payment-root .btn-change-plan:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
 #payment-root .payment-options-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 4px;
 }
 
 #payment-root .payment-option-btn {
   background: #171836;
   border: 2px solid transparent;
   color: #ffffff;
-  padding: 16px 18px;
+  padding: 14px 16px;
   border-radius: 14px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -249,23 +371,42 @@
 #payment-root .payment-option-btn.selected {
   border-color: #5437ea;
   background: #20224a;
-  box-shadow: 0 0 12px rgba(84, 55, 234, 0.4);
+  box-shadow: 0 0 14px rgba(84, 55, 234, 0.35);
 }
 
 #payment-root .option-icon-box {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   background: #5437ea;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
+  flex-shrink: 0;
+}
+
+#payment-root .option-icon-box.pix-icon {
+  background: #00bfa5;
+}
+
+#payment-root .option-text-info {
+  flex: 1;
+  text-align: left;
 }
 
 #payment-root .option-title {
-  flex: 1;
-  text-align: left;
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+#payment-root .option-sub {
+  display: block;
+  font-size: 11px;
+  color: #8c8fae;
+  margin-top: 2px;
 }
 
 #payment-root .option-radio-indicator {
@@ -289,18 +430,24 @@
 /* ============================================================
    TELA 3: CARTÕES SALVOS
    ============================================================ */
-#payment-root .cards-list-view {
+#payment-root .saved-cards-view {
   display: flex;
   flex-direction: column;
   flex: 1;
   gap: 14px;
 }
 
+#payment-root .saved-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 #payment-root .saved-card-item {
   background: #171836;
   border: 1.5px solid transparent;
   border-radius: 14px;
-  padding: 16px;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -315,57 +462,60 @@
 #payment-root .saved-card-item.selected {
   border-color: #5437ea;
   background: #20224a;
+  box-shadow: 0 0 12px rgba(84, 55, 234, 0.3);
 }
 
-#payment-root .card-flag-badge {
-  width: 44px;
-  height: 30px;
+#payment-root .card-brand-badge {
+  min-width: 48px;
+  height: 32px;
+  padding: 0 6px;
   background: #2b2e5c;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.5px;
   color: #ffffff;
 }
 
-#payment-root .card-details-info {
+#payment-root .card-info-col {
   flex: 1;
 }
 
-#payment-root .card-masked-number {
-  font-size: 15px;
-  font-weight: 600;
+#payment-root .card-number-masked {
+  font-size: 14px;
+  font-weight: 700;
   letter-spacing: 1px;
 }
 
 #payment-root .card-expiry-text {
   font-size: 11px;
   color: #8c8fae;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
 #payment-root .btn-add-card {
-  background: #5437ea;
-  color: #ffffff;
-  border: none;
-  padding: 14px;
+  background: rgba(84, 55, 234, 0.15);
+  color: #a38dff;
+  border: 1px dashed #5437ea;
+  padding: 12px;
   border-radius: 12px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  margin-top: 8px;
-  transition: background 0.2s;
+  margin-top: 4px;
+  transition: all 0.2s;
 }
 
 #payment-root .btn-add-card:hover {
-  background: #6a4ff5;
+  background: #5437ea;
+  color: #ffffff;
 }
 
 /* ============================================================
@@ -377,17 +527,31 @@
   flex: 1;
 }
 
+#payment-root .card-error-alert {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
 #payment-root .virtual-card-preview {
   width: 100%;
-  height: 160px;
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%);
+  height: 155px;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 70%, #06b6d4 100%);
   border-radius: 16px;
-  padding: 16px 20px;
+  padding: 14px 18px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 10px 20px rgba(6, 182, 212, 0.25);
-  margin-bottom: 24px;
+  box-shadow: 0 10px 24px rgba(67, 56, 202, 0.35);
+  margin-bottom: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 #payment-root .card-chip-row {
@@ -397,10 +561,11 @@
 }
 
 #payment-root .card-chip {
-  width: 34px;
-  height: 24px;
-  background: linear-gradient(135deg, #e5e7eb 0%, #9ca3af 100%);
+  width: 32px;
+  height: 22px;
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
   border-radius: 4px;
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.4);
 }
 
 #payment-root .card-type-tag {
@@ -490,13 +655,13 @@
 }
 
 /* ============================================================
-   TELA 5: CHECKOUT PIX & CONFIRMAÇÃO
+   TELA 5: CHECKOUT PIX & QR CODE FICTÍCIO REALISTA
    ============================================================ */
 #payment-root .pix-checkout-view {
   display: flex;
   flex-direction: column;
-  flex: 1;
   align-items: center;
+  flex: 1;
   text-align: center;
 }
 
@@ -505,20 +670,35 @@
   color: #56c267;
   padding: 6px 14px;
   border-radius: 20px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+}
+
+#payment-root .pix-pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #56c267;
+  border-radius: 50%;
+  animation: pixPulse 1.5s infinite;
+}
+
+@keyframes pixPulse {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 8px #56c267; }
+  100% { transform: scale(0.9); opacity: 0.7; }
 }
 
 #payment-root .pix-qrcode-box {
   background: #ffffff;
-  padding: 14px;
+  padding: 12px;
   border-radius: 16px;
-  margin-bottom: 14px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  margin-bottom: 10px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5);
+  display: inline-block;
 }
 
 #payment-root .pix-qrcode-box svg {
@@ -529,16 +709,21 @@
   font-size: 12px;
   color: #fca5a5;
   margin-bottom: 14px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 4px 10px;
+  border-radius: 12px;
 }
 
 #payment-root .pix-copy-section {
   width: 100%;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 #payment-root .pix-copy-label {
-  font-size: 12px;
+  font-size: 11px;
   color: #9b9ebf;
   margin-bottom: 6px;
   text-align: left;
@@ -548,20 +733,20 @@
   background: #171836;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 #payment-root .pix-key-code {
-  font-size: 12px;
+  font-size: 11px;
   color: #ffffff;
   font-family: monospace;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 260px;
+  max-width: 230px;
 }
 
 #payment-root .btn-copy-pix {
@@ -570,57 +755,61 @@
   color: #ffffff;
   padding: 6px 12px;
   border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 #payment-root .btn-copy-pix:hover {
   background: #6a4ff5;
 }
 
+#payment-root .btn-copy-pix.copied {
+  background: #4fa65b;
+}
+
 #payment-root .pix-instructions-card {
   width: 100%;
   background: #171836;
-  border-radius: 14px;
-  padding: 14px 16px;
+  border-radius: 12px;
+  padding: 12px 14px;
   text-align: left;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 #payment-root .pix-instructions-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   color: #ffffff;
 }
 
 #payment-root .pix-steps-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 #payment-root .pix-step-item {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: 12px;
+  font-size: 11px;
   color: #c2c5db;
 }
 
 #payment-root .step-number-bullet {
   background: #5437ea;
   color: #ffffff;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   flex-shrink: 0;
   margin-top: 1px;
@@ -636,7 +825,7 @@
   border: none;
   padding: 14px;
   border-radius: 20px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   transition: background-color 0.2s, transform 0.1s;
