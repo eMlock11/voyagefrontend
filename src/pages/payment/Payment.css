@@ -654,3 +654,69 @@
 #payment-root .btn-primary-action:active {
   transform: scale(0.98);
 }
+
+/* ===================================================
+   DESKTOP (≥ 768px) — Expande layout para telas maiores
+   Mobile continua com os estilos acima inalterados
+   =================================================== */
+@media (min-width: 768px) {
+  /* Wrapper externo centralizado */
+  body > #root,
+  #root {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 32px 20px;
+  }
+
+  #payment-root {
+    max-width: 600px;
+    min-height: unset;
+    border-radius: 32px;
+    margin: 0 auto;
+  }
+
+  #payment-root .payment-header {
+    padding: 32px 32px 20px;
+  }
+
+  #payment-root .header-top-row {
+    margin-bottom: 16px;
+  }
+
+  /* Conteúdo interno com mais respiro */
+  #payment-root .payment-content,
+  #payment-root .payment-section,
+  #payment-root .order-summary,
+  #payment-root .payment-methods,
+  #payment-root .payment-body {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  /* Método de pagamento — mais espaço */
+  #payment-root .payment-method-item,
+  #payment-root .method-option {
+    padding: 16px 20px;
+  }
+
+  /* Botão de confirmação maior */
+  #payment-root .confirm-btn,
+  #payment-root .pay-btn,
+  #payment-root .btn-primary-action {
+    padding: 16px 0;
+    font-size: 17px;
+    border-radius: 18px;
+  }
+
+  /* Tipografia um pouco maior */
+  #payment-root .section-title,
+  #payment-root .order-title {
+    font-size: 17px;
+  }
+
+  #payment-root .total-label,
+  #payment-root .total-value {
+    font-size: 20px;
+  }
+}

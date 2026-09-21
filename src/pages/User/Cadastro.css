@@ -257,3 +257,66 @@
 #tela-cadastro .link-entrar:hover {
   text-decoration: underline;
 }
+
+/* ===================================================
+   DESKTOP (≥ 768px) — Expande layout para telas maiores
+   Mobile continua com os estilos acima inalterados
+   =================================================== */
+@media (min-width: 768px) {
+  #tela-cadastro {
+    padding: 40px 32px;
+  }
+
+  #tela-cadastro .card-dispositivo {
+    max-width: 580px;
+    padding: 40px 48px 40px 48px;
+    border-radius: 28px;
+  }
+
+  #tela-cadastro .titulo {
+    font-size: 26px;
+  }
+
+  #tela-cadastro .avatar-wrapper {
+    width: 140px;
+    height: 140px;
+  }
+
+  #tela-cadastro .icone-avatar {
+    width: 90px;
+    height: 90px;
+  }
+
+  #tela-cadastro .formulario {
+    max-width: 480px;
+    gap: 22px;
+  }
+
+  #tela-cadastro .input-texto {
+    font-size: 16px;
+  }
+
+  #tela-cadastro .label-campo {
+    font-size: 14px;
+  }
+
+  #tela-cadastro .botao-criar {
+    max-width: 240px;
+    font-size: 18px;
+    padding: 14px 0;
+    border-radius: 16px;
+  }
+
+  #tela-cadastro .rodape-link {
+    font-size: 15px;
+  }
+
+  #tela-cadastro .seletor-tipo {
+    margin-bottom: 8px;
+  }
+
+  #tela-cadastro .btn-tipo {
+    font-size: 14px;
+    padding: 10px 0;
+  }
+}

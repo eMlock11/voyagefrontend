@@ -216,3 +216,58 @@
 #tela-editar-perfil .botao-salvar:active {
   transform: translateY(0);
 }
+
+/* ===================================================
+   DESKTOP (≥ 768px) — Expande layout para telas maiores
+   Mobile continua com os estilos acima inalterados
+   =================================================== */
+@media (min-width: 768px) {
+  #tela-editar-perfil {
+    padding: 40px 32px;
+  }
+
+  #tela-editar-perfil .card-dispositivo {
+    max-width: 540px;
+    min-height: unset;
+    padding: 36px 48px 40px 48px;
+    border-radius: 28px;
+  }
+
+  #tela-editar-perfil .titulo-edicao {
+    font-size: 26px;
+  }
+
+  #tela-editar-perfil .avatar-wrapper {
+    width: 180px;
+    height: 180px;
+  }
+
+  #tela-editar-perfil .icone-avatar {
+    width: 115px;
+    height: 115px;
+  }
+
+  #tela-editar-perfil .overlay-editar-foto {
+    height: 44px;
+  }
+
+  #tela-editar-perfil .formulario-edicao {
+    max-width: 440px;
+    gap: 26px;
+  }
+
+  #tela-editar-perfil .input-texto {
+    font-size: 17px;
+  }
+
+  #tela-editar-perfil .label-campo {
+    font-size: 14px;
+  }
+
+  #tela-editar-perfil .botao-salvar {
+    width: 220px;
+    font-size: 18px;
+    padding: 14px 0;
+    border-radius: 16px;
+  }
+}

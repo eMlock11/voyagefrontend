@@ -163,3 +163,55 @@
 #tela-login .link-cadastro:hover {
   text-decoration: underline;
 }
+
+/* ===================================================
+   DESKTOP (≥ 768px) — Expande layout para telas maiores
+   Mobile continua com os estilos acima inalterados
+   =================================================== */
+@media (min-width: 768px) {
+  #tela-login {
+    padding: 40px 32px;
+  }
+
+  #tela-login .card-dispositivo {
+    max-width: 520px;
+    min-height: unset;
+    padding: 56px 48px 48px 48px;
+    border-radius: 28px;
+  }
+
+  #tela-login .cabecalho-login {
+    margin-bottom: 48px;
+  }
+
+  #tela-login .logo-icone {
+    font-size: 46px;
+  }
+
+  #tela-login .logo-texto {
+    font-size: 44px;
+  }
+
+  #tela-login .subtitulo-login {
+    font-size: 16px;
+  }
+
+  #tela-login .formulario-login {
+    max-width: 400px;
+    gap: 28px;
+  }
+
+  #tela-login .input-texto {
+    font-size: 17px;
+  }
+
+  #tela-login .botao-entrar {
+    width: 220px;
+    font-size: 18px;
+    padding: 14px 0;
+  }
+
+  #tela-login .rodape-link {
+    font-size: 15px;
+  }
+}

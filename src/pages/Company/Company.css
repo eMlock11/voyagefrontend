@@ -813,4 +813,86 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ===================================================
+   DESKTOP (≥ 768px) — Expande layout para telas maiores
+   Opção A: container mais largo, layout vertical mantido
+   =================================================== */
+@media (min-width: 768px) {
+  #company-page .company-container {
+    max-width: 860px;
+  }
 
+  #company-page .company-header-bar {
+    padding: 20px 32px 16px;
+  }
+
+  #company-page .company-logo-text {
+    font-size: 28px;
+  }
+
+  #company-page .company-hero {
+    padding: 36px 40px;
+  }
+
+  #company-page .company-avatar {
+    width: 116px;
+    height: 116px;
+  }
+
+  /* Seção de abas / nav interna */
+  #company-page .company-tabs {
+    padding: 0 32px;
+  }
+
+  /* Conteúdo interno com mais respiro lateral */
+  #company-page .tab-content,
+  #company-page .section-content,
+  #company-page .orders-list,
+  #company-page .products-list,
+  #company-page .menu-list {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  /* Cards de estatísticas em grid de 3 colunas se existirem */
+  #company-page .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 0 32px;
+  }
+
+  /* Cards individuais com mais padding */
+  #company-page .stat-card,
+  #company-page .info-card {
+    padding: 20px 24px;
+  }
+
+  /* Botões de ação maiores */
+  #company-page .action-btn,
+  #company-page .primary-btn {
+    padding: 14px 28px;
+    font-size: 15px;
+  }
+
+  /* Textos de título de seção */
+  #company-page .section-title,
+  #company-page .company-name {
+    font-size: 22px;
+  }
+
+  /* Items de lista com mais padding */
+  #company-page .order-item,
+  #company-page .product-item,
+  #company-page .menu-item {
+    padding: 16px 32px;
+  }
+}
+
+/* ===================================================
+   LARGE DESKTOP (≥ 1200px) — Aumenta levemente mais
+   =================================================== */
+@media (min-width: 1200px) {
+  #company-page .company-container {
+    max-width: 980px;
+  }
+}
