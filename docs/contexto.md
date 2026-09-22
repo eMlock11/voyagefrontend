@@ -1,6 +1,69 @@
-# Voyage — Contexto atualizado do projeto e frontend
+# Voyage — Contexto para redesign com biblioteca visual
 
-Revisão: 12/09/2026. Substitui integralmente a análise de 11/09/2026. Correções reconhecidas abaixo são verificadas no código, não comprovadas em uma API em execução.
+Versão alternativa de 22/09/2026. Revisão técnica de origem: 21/09/2026, com inspeção estática do frontend em src.zip e package(1).json. A revisão histórica do backend é de 12/09/2026; seus achados não foram revalidados nesta entrega. Nenhuma execução da aplicação ou chamada à API foi realizada nesta revisão visual.
+
+
+
+## Autorização atual — biblioteca visual e nova direção de design
+
+Esta versão deve ser usada com `arquitetura_com_biblioteca.md`; substitui as regras anteriores de CSS puro e de proibição de novas dependências visuais. O usuário autoriza selecionar, instalar e configurar uma solução visual principal, seus pacotes necessários e ícones quando úteis ao redesign, sem pedir nova autorização para cada etapa. A escolha deve ser justificada no plano e conferida na documentação oficial atual, considerando React/Vite e versões instaladas. Uma combinação de utilitários e componentes é permitida se formar uma estratégia única; não empilhar kits completos concorrentes.
+
+Pode alterar paleta, tema claro/escuro, tipografia, componentes, navegação visual, espaçamentos e composição para obter aparência diferente. Não precisa preservar o roxo, fundo escuro ou molduras de celular. Preservar nome Voyage, regras de negócio, rotas e handlers; mudança de nome/logo e ampliação funcional exigem decisão específica. Na ausência de referências, registrar uma direção visual e iniciar por uma tela piloto.
+
+Pode modificar package.json, lockfile, configuração visual e componentes TSX necessários. Não atualizar toda a base nem forçar dependências incompatíveis. CSS legado pode coexistir durante a migração, sem resets duplicados ou conflitos com MapLibre. A escolha e instalação da biblioteca ficam para a implementação: nenhuma biblioteca foi instalada ao criar estes documentos.
+
+Não há autorização para novos serviços pagos, gateway de pagamento, mudança de backend/banco ou gravações remotas como parte do design. Permanecem as regras de demonstração, dados sintéticos, autenticação e contratos abaixo. Validar interface, teclado, responsividade, lint/build e tipos conforme ambiente disponível, sem anunciar testes não executados.
+
+Para uso, apontar o Antigravity aos dois arquivos alternativos ou substituir o conteúdo dos arquivos canônicos. Não manter as proibições antigas carregadas em paralelo. Onde as seções históricas mencionarem arquitetura.md, considerar a versão com biblioteca visual.
+
+## Atualização de estado — ler antes das seções históricas
+
+Esta atualização e `arquitetura.md` revisado em 21/09/2026 substituem as afirmações antigas de que o frontend não existe, de que toda integração ainda é futura e de que a etapa atual proíbe lógica. As seções de backend preservam evidências históricas; não comprovam o estado do servidor hoje.
+
+### Fontes e estado observado
+
+Foram inspecionados `src.zip` e `package(1).json`. Já existem App.jsx, main.tsx, ProtectedRoute.jsx, páginas de login, cadastro, edição de perfil, Company.jsx, Payment.jsx, AddressMap.tsx, estilos por página e serviços api.js, companyService.js, userService.js e mapService.js. A base mistura JavaScript/JSX e TypeScript/TSX. Novos componentes devem usar TSX, preservando os existentes sem conversão massiva nesta tarefa.
+
+O package declara React ^18.3.1, Vite ^5.4.10, React Router DOM ^7.18.3, MapLibre GL ^6.9.1 e TypeScript ^7.0.2. Versões instaladas, compatibilidade, compilação e funcionamento não foram verificados. A inclusão de dependências visuais está autorizada conforme a seção inicial; verificar compatibilidade e preservar a base sempre que possível.
+
+| Área | Evidência atual | Implicação para o trabalho |
+| --- | --- | --- |
+| Rotas públicas | /login e /cadastro | Preservar os caminhos existentes. |
+| Rotas sob ProtectedRoute | /company, /editar-perfil, /perfil/editar, /address, /map e /payment | O mapa atual é protegido no frontend; o catálogo público do plano anterior continua proposta. Não mudar permissões numa tarefa visual. |
+| Rota inicial e desconhecidas | Redirecionam para /login | Não substituir automaticamente pelo catálogo proposto. |
+| Sessão | userService guarda token/user em localStorage; isAuthenticated verifica presença do token | A proposta histórica de token só em memória não foi a implementação adotada. Preservar a sessão no redesign; registrar decisão de persistência como pendente de revisão funcional. |
+| HTTP | api.js centraliza fetch e Bearer, com fallback para servidor remoto | Chamadas já estão escritas, mas não verificadas. Usar ambiente controlado para revisar telas; não disparar operações reais por acidente. |
+| Mapa | MapLibre, tiles OpenFreeMap, consultas Overpass, Nominatim e rotas OSRM aparecem no código | Geocodificação e rotas existem no código frontend; isso não significa novos endpoints no backend Voyage. Preservar atribuições e distinguir origem dos dados. |
+| Pagamentos | Interface local de planos, cartão e PIX em Payment.jsx | Não há comprovação de cobrança real; diverge do escopo histórico de registros de pagamento. |
+
+### Prioridade atual: qualidade visual sobre a base existente
+
+A tarefa atual é revisar instruções e orientar redesign. Problemas do backend continuam condicionando a integração de cada módulo, mas não impedem trabalhar visualmente com dados sintéticos. Não reconstruir o frontend do zero nem iniciar correções amplas do backend como efeito colateral de CSS.
+
+`arquitetura.md` contém as regras visuais e o checklist. Este contexto mantém contratos e negócio. Componentes reutilizáveis, Grid/Flexbox, variáveis CSS, classes de baixa especificidade, estados React e mudanças de estrutura da tela estão permitidos dentro do redesign. Selecionar e instalar a biblioteca visual conforme autorização inicial e arquitetura_com_biblioteca.md.
+
+### Achados concretos de design
+
+1. Payment.css altera #root global em desktop. Como as páginas são importadas estaticamente no App, essas regras podem afetar outras rotas. Transferir para wrapper local.
+2. Company.css tem seletores de desktop sem correspondência: .company-tabs/.tab-content/.stats-grid versus .company-tabs-nav/.company-tab-content/.kpi-grid no JSX. Ajustar nomes antes de aumentar a quantidade de CSS.
+3. Company.css e AddressMap.css definem fadeIn com transforms diferentes. Prefixar animações e usos: IDs não isolam keyframes.
+4. Cores e medidas repetidas sem tokens em globals.css, estilos inline estáticos e páginas extensas dificultam padronização. Extrair gradualmente apenas o que a tarefa requer.
+5. Há breakpoints de desktop em conta, empresa e pagamentos; não dizer que inexiste responsividade. O mapa usa controles absolutos e 100vh sem media queries no CSS enviado. Conferir sobreposição, teclado móvel e alturas.
+6. Há uma base escura/roxa e mapa claro. Esta aparência não é obrigatória: a nova direção estética está autorizada, preservando nome e regras do produto. Melhorar hierarquia e layout antes de efeitos decorativos.
+
+### Divergências de conteúdo que afetam a apresentação
+
+Company.jsx inclui receita de R$ 48.250, plano de R$ 149,90/mês, histórico e indicação fixa de 2FA ativo. Payment.jsx define Básico, Intermediário e Voyage+, com preços/benefícios, cartões sintéticos e PIX local. Esses elementos não comprovam regras aprovadas, contratos ou segurança implementada. O contexto anterior prevê apenas BASIC/PREMIUM e registros de pagamento.
+
+Preservar a distinção entre protótipo e produto: sinalizar os blocos demonstrativos, usar dados sintéticos e não anunciar pagamento, ativação de plano ou 2FA como reais. Não solicitar dados reais de cartão no protótipo. Não promover esses exemplos a regras comerciais nem removê-los como decisão de produto sem esclarecer o escopo. Quando uma tarefa exigir definir o produto final, confirmar quais planos e funcionalidades são pretendidos.
+
+As funções de mapa consultam fontes externas diferentes da API Voyage. As restrições históricas sobre ausência de geocodificação e radius em graus referem-se aos contratos de Address do backend analisado. Não aplicá-las automaticamente ao cálculo local ou aos dados do provedor externo: conferir implementação e origem antes de usar rótulos como quilômetros.
+
+### Verificação desta entrega
+
+Inspeção estática de arquivos e comparação das instruções com o código. Apenas documentos foram editados. Não houve build, lint, teste de tipos, renderização no navegador, requisição remota ou revisão nova do backend. O ZIP contém src, mas não a entrada HTML, configuração Vite/TypeScript nem lockfile; uma execução fiel exige completar a raiz do frontend. Prints e referências visuais ainda não foram fornecidos, portanto o refinamento estético final permanece a definir.
+
+As seções seguintes preservam contratos e planejamento histórico de 12/09, com referências ao estado atual corrigidas. Em divergências sobre o frontend atual, esta atualização prevalece; em contratos do backend, conferir as fontes atuais antes de integrar.
 
 ## 0. Resumo e regras de execução para o Antigravity
 
@@ -10,7 +73,7 @@ Revisão: 12/09/2026. Substitui integralmente a análise de 11/09/2026. Correç�
 
 Construir o frontend do **Voyage** e aproveitar a base existente de backend. A interpretação provisória é um guia de empresas e serviços, com catálogo, contas, endereços, painel de empresas e registros de pagamento. Existem perfis client, owner e admin. BASIC/PREMIUM e favoritos estão modelados, mas não autorizam inventar regras comerciais ou endpoints.
 
-O frontend começa do zero. O backend é parcial, com Express, Prisma e PostgreSQL. Há correções verificadas no código, mas a API completa ainda não foi executada nesta análise. Priorizar correções de acesso e contratos antes de integrar dados reais; telas podem avançar com mocks claramente identificados.
+O frontend já tem implementação parcial, descrita na atualização de 21/09 acima. O backend é parcial, com Express, Prisma e PostgreSQL. Há correções verificadas no código, mas a API completa ainda não foi executada nesta análise. Priorizar correções de acesso e contratos antes de integrar dados reais; telas podem avançar com mocks claramente identificados.
 
 ### 0.2 Linguagens e base técnica — decisão do usuário
 
@@ -24,7 +87,7 @@ O frontend começa do zero. O backend é parcial, com Express, Prisma e PostgreS
 
 Não introduzir Python, PHP, Java, C#, Go, Dart ou outra linguagem para implementar partes da aplicação. Não converter o backend inteiro para TypeScript, trocar framework, criar microserviços ou iniciar outro backend como parte de uma tarefa de frontend. Uma mudança desse porte precisa de decisão específica do usuário.
 
-React + Vite é a base de implementação planejada neste contexto; a exigência expressa do usuário é manter JavaScript e TypeScript. Não afirmar que as dependências do frontend já foram instaladas. Definir versões compatíveis quando a implementação começar.
+React + Vite é a base declarada no package frontend recebido; a exigência expressa do usuário é manter JavaScript e TypeScript. Não afirmar que as dependências do frontend já foram instaladas. Definir versões compatíveis quando a implementação começar.
 
 ### 0.3 Escopo e sequência de trabalho
 
@@ -81,11 +144,11 @@ Exceções novas precisam indicar motivo, alcance, risco e condição de remoç�
 
 ### 0.7 Prompt de início de tarefa
 
-> Leia o contexto.md, começando pela seção 0, e confira as fontes atuais antes de alterar código. Trabalhe no Voyage mantendo JavaScript no backend existente e TypeScript no frontend novo. Preserve Express, Prisma e PostgreSQL; use a base planejada React + Vite para as telas. Execute apenas a etapa solicitada e suas dependências necessárias. Respeite as exceções documentadas, sem inventar recursos ou contornar validações. Se a API não estiver disponível, avance com mocks sintéticos identificados. Ao terminar, informe o que foi implementado, o que foi realmente verificado e o que permanece pendente. Atualize os contratos deste contexto quando necessário.
+> Leia arquitetura_com_biblioteca.md e contexto_com_biblioteca.md (ou suas cópias canônicas), começando pela autorização de biblioteca visual, depois a atualização de estado e a seção 0, e confira as fontes atuais antes de alterar código. Trabalhe no Voyage mantendo JavaScript no backend existente e TypeScript no frontend novo. Preserve Express, Prisma e PostgreSQL; use a base planejada React + Vite para as telas. Execute apenas a etapa solicitada e suas dependências necessárias. Respeite as exceções documentadas, sem inventar recursos ou contornar validações. Se a API não estiver disponível, avance com mocks sintéticos identificados. Ao terminar, informe o que foi implementado, o que foi realmente verificado e o que permanece pendente. Atualize os contratos deste contexto quando necessário.
 
 ## 1. Estado do projeto
 
-O frontend ainda não existe. O usuário informou que a API ainda não está pronta; há uma base de backend que deve ser completada e validada, sem criar outra API paralela.
+O frontend parcial foi recebido em 21/09/2026. Na revisão histórica, o usuário informou que a API ainda não estava pronta; há uma base de backend que deve ser completada e validada, sem criar outra API paralela.
 
 Nome identificado nos HTTP: Voyage. O package.json usa o nome técnico `kevin`, não necessariamente a marca.
 
@@ -336,9 +399,9 @@ Proposta frontend: sempre enviar companyId selecionado para evitar ambiguidade. 
 
 Não há valor/moeda/status de liquidação/gateway/comprovante. Tratar como registro de pagamento; PIX e phone são exemplos, não enums. Definir significado comercial dos campos antes de rótulos definitivos ou regras de assinatura.
 
-## 11. Plano para o frontend do zero
+## 11. Plano histórico do frontend — adaptar à implementação atual
 
-Base planejada ainda não implementada: React + TypeScript + Vite, roteamento e cliente HTTP centralizado. Manter JavaScript no backend existente e TypeScript no frontend, conforme decisão do usuário. Confirmar versões na implementação. Começar com dados sintéticos e serviços substituíveis, avançando para API local validada. Não transformar bugs em requisitos da interface.
+Plano original: React + TypeScript + Vite, roteamento e cliente HTTP centralizado. A implementação parcial recebida está descrita na atualização inicial; as rotas abaixo são propostas históricas, não inventário das rotas atuais. Manter JavaScript no backend existente e TypeScript no frontend, conforme decisão do usuário. Confirmar versões na implementação. Começar com dados sintéticos e serviços substituíveis, avançando para API local validada. Não transformar bugs em requisitos da interface.
 
 | Tela proposta | Conteúdo / condição |
 | --- | --- |
@@ -355,7 +418,7 @@ Base planejada ainda não implementada: React + TypeScript + Vite, roteamento e 
 
 Visibilidade de botões não substitui autorização no servidor. Não entregar ainda como funcional: exclusão de usuário, favoritagem gravável, avaliação individual, checkout, compra de plano ou desvinculação empresa–endereço.
 
-Direção visual: português do Brasil, responsivo, busca destacada, categorias acessíveis, cards sem exigir fotos inexistentes. Marca, logo e cores ainda não definidos. Formulários com rótulos, foco de teclado, erros por campo; estados carregando/vazio/erro/sessão expirada, nova tentativa e confirmação de exclusão. Mocks identificados como demonstração, sem simular sucesso real.
+Direção visual: português do Brasil, responsivo, busca destacada, categorias acessíveis, cards sem exigir fotos inexistentes. Identidade final ainda não confirmada; há aparência escura/roxa no código recebido, com mapa claro. Formulários com rótulos, foco de teclado, erros por campo; estados carregando/vazio/erro/sessão expirada, nova tentativa e confirmação de exclusão. Mocks identificados como demonstração, sem simular sucesso real.
 
 Estrutura proposta: src/app (rotas/providers/layout); src/features/auth, companies, addresses, payments, users; src/components; src/services; src/types; src/mocks. Interfaces de serviços comuns a mock e HTTP, sem condicionais espalhados nas telas.
 
@@ -378,8 +441,8 @@ Esses testes de integração não foram executados. A única execução desta re
 
 ## 13. Instrução para continuidade
 
-Estamos construindo o Voyage, sem frontend existente e com backend parcial Express/Prisma/PostgreSQL. Use as fontes atuais da seção 2, não os serviços antigos. Preserve correções já feitas: auth de Company, whitelist/sanitização de User, datas/propriedade em Payment, upload/vínculos de Address e novas permissões de admin.
+Estamos evoluindo o Voyage, com frontend parcial existente e backend historicamente parcial Express/Prisma/PostgreSQL. Para a tarefa visual atual, ler a atualização inicial e arquitetura.md antes de usar este plano histórico. Use as fontes atuais da seção 2, não os serviços antigos. Preserve correções já feitas: auth de Company, whitelist/sanitização de User, datas/propriedade em Payment, upload/vínculos de Address e novas permissões de admin.
 
 Priorize os achados da seção 4: usuários completos no detalhe público de endereço, Payment sem middleware conectado, alteração livre de signature, associação a empresa alheia e fallback JWT. Não dizer que sanitizeUser protege respostas de Address. Não dizer que upload ou vínculo não existem; existem, mas precisam das correções indicadas.
 
-Inicie frontend responsivo em português com mocks sintéticos e serviços substituíveis. Não invente checkout, planos pagos, endpoints de favoritos ou exclusão de usuário. Não reutilize credenciais HTTP. Documente decisões e atualize este arquivo quando contratos forem corrigidos e testados. Este pedido gerou documentação, sem alterar o código. Nas próximas tarefas de implementação solicitadas, alterar os arquivos necessários dentro das regras da seção 0, sem exigir confirmação para cada ajuste rotineiro.
+Evolua o frontend existente em português, preservando integrações e separando demonstrações. Use mocks sintéticos identificados em ambiente de revisão visual. Não invente checkout, planos pagos, endpoints de favoritos ou exclusão de usuário. Não reutilize credenciais HTTP. Documente decisões e atualize este arquivo quando contratos forem corrigidos e testados. Este pedido gerou documentação, sem alterar o código. Nas próximas tarefas de implementação solicitadas, alterar os arquivos necessários dentro das regras da seção 0, sem exigir confirmação para cada ajuste rotineiro.

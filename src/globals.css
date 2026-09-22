@@ -1,4 +1,76 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  /* Cores de Fundo e Superfícies (Modern Slate) */
+  --voyage-bg-main: #080a12;
+  --voyage-bg-card: #0e1222;
+  --voyage-bg-card-hover: #13182e;
+  --voyage-bg-surface: #151b30;
+  --voyage-bg-surface-hover: #1c2440;
+  --voyage-bg-input: #111628;
+  --voyage-bg-glass: rgba(14, 18, 34, 0.85);
+
+  /* Cores de Texto */
+  --voyage-text-primary: #ffffff;
+  --voyage-text-secondary: #94a3b8;
+  --voyage-text-muted: #64748b;
+  --voyage-text-dim: #475569;
+
+  /* Cores de Ação e Destaque */
+  --voyage-accent-primary: #6366f1;
+  --voyage-accent-primary-hover: #4f46e5;
+  --voyage-accent-primary-subtle: rgba(99, 102, 241, 0.15);
+  --voyage-accent-secondary: #38bdf8;
+  --voyage-accent-secondary-hover: #0ea5e9;
+
+  /* Estados e Feedback */
+  --voyage-status-success: #10b981;
+  --voyage-status-success-subtle: rgba(16, 185, 129, 0.15);
+  --voyage-status-error: #ef4444;
+  --voyage-status-error-subtle: rgba(239, 68, 68, 0.15);
+  --voyage-status-warning: #f59e0b;
+  --voyage-status-warning-subtle: rgba(245, 158, 11, 0.15);
+  --voyage-status-info: #3b82f6;
+
+  /* Bordas e Divisores */
+  --voyage-border-subtle: rgba(255, 255, 255, 0.08);
+  --voyage-border-card: rgba(255, 255, 255, 0.12);
+  --voyage-border-focus: rgba(99, 102, 241, 0.6);
+  --voyage-border-glow: rgba(99, 102, 241, 0.35);
+
+  /* Gradientes */
+  --voyage-gradient-brand: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  --voyage-gradient-card: linear-gradient(180deg, rgba(21, 27, 48, 0.8) 0%, rgba(14, 18, 34, 0.95) 100%);
+  --voyage-gradient-glow: radial-gradient(circle at top center, rgba(99, 102, 241, 0.15), transparent 70%);
+
+  /* Espaçamentos */
+  --voyage-space-xs: 4px;
+  --voyage-space-sm: 8px;
+  --voyage-space-md: 12px;
+  --voyage-space-lg: 16px;
+  --voyage-space-xl: 24px;
+  --voyage-space-2xl: 32px;
+  --voyage-space-3xl: 48px;
+  --voyage-space-4xl: 64px;
+
+  /* Raios de Borda */
+  --voyage-radius-xs: 6px;
+  --voyage-radius-sm: 8px;
+  --voyage-radius-md: 14px;
+  --voyage-radius-lg: 20px;
+  --voyage-radius-xl: 24px;
+  --voyage-radius-full: 9999px;
+
+  /* Sombras */
+  --voyage-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --voyage-shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --voyage-shadow-elevated: 0 20px 45px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --voyage-shadow-glow: 0 0 35px rgba(99, 102, 241, 0.25);
+
+  /* Transições */
+  --voyage-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --voyage-transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 * {
   margin: 0;
@@ -8,23 +80,60 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background-color: #0b0e1e;
-  color: #ffffff;
+  background-color: var(--voyage-bg-main);
+  color: var(--voyage-text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  min-height: 100vh;
 }
 
 #root {
   min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
 
+/* Custom Desktop Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--voyage-bg-main);
+}
+::-webkit-scrollbar-thumb {
+  background: #1f2746;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2d3862;
+}
+
 button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+input, select, textarea {
   font-family: inherit;
 }
 
-input {
-  font-family: inherit;
+/* Badge Demonstrativo Padrão */
+.voyage-demo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #a5b4fc;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--voyage-radius-full);
 }

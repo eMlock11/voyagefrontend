@@ -9,6 +9,7 @@ import {
   VOYAGE_CATEGORIES,
   getCategoryFromOSMTags
 } from '../../services/mapService';
+import { Sidebar } from '../../components/Sidebar/Sidebar';
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl);
 
@@ -17,7 +18,7 @@ interface POI {
   name: string;
   category: string;
   categoryId?: string;
-  categoryGroup?: string;
+  categoryGroup?: string | null;
   categoryIcon?: string;
   categoryColor?: string;
   subText?: string;
@@ -46,6 +47,7 @@ const AddressMap: React.FC = () => {
   const [loadingPois, setLoadingPois] = useState<boolean>(false);
   const [clickedPoi, setClickedPoi] = useState<POI | null>(null);
   const [showRadiusMenu, setShowRadiusMenu] = useState<boolean>(false);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
   // Estados de Localização
   const [showLocationPrompt, setShowLocationPrompt] = useState<boolean>(true);
@@ -438,6 +440,27 @@ const AddressMap: React.FC = () => {
 
   return (
     <div id="address-map-container">
+      {/* Sidebar de Navegação */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        activeItem="mapa"
+      />
+
+      {/* Botão Hambúrguer para abrir Sidebar */}
+      <button
+        className="map-sidebar-toggle"
+        onClick={() => setSidebarOpen(true)}
+        title="Abrir Menu de Navegação"
+        aria-label="Abrir Menu"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
       {/* Container do Mapa Libre */}
       <div ref={mapContainerRef} className={`maplibre-wrapper ${isSettingManualLocation ? 'cursor-crosshair' : ''}`} />
 

@@ -1,322 +1,317 @@
+/* ==========================================================================
+   Cadastro Page - Voyage Desktop Multi-Column Styles
+   ========================================================================== */
+
 #tela-cadastro {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
   width: 100%;
-  padding: 30px 20px;
-  background-color: #05070e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--voyage-bg-main);
+  padding: var(--voyage-space-2xl) var(--voyage-space-lg);
+  position: relative;
 }
 
-#tela-cadastro .card-dispositivo {
-  background-color: #070a14;
-  border: 2px solid #5a45ff;
-  border-radius: 24px;
+#tela-cadastro::before {
+  content: '';
+  position: absolute;
+  top: 5%;
+  right: 15%;
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cadastro-wrapper {
   width: 100%;
-  max-width: 380px;
-  min-height: auto;
-  padding: 32px 24px 30px 24px;
+  max-width: 860px;
+  background-color: var(--voyage-bg-card);
+  border: 1px solid var(--voyage-border-card);
+  border-radius: var(--voyage-radius-xl);
+  box-shadow: var(--voyage-shadow-elevated);
+  padding: 40px 32px;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .cadastro-wrapper {
+    padding: 48px 56px;
+  }
+}
+
+/* Header */
+.cadastro-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.brand-badge-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--voyage-accent-primary-subtle);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--voyage-radius-full);
+  margin-bottom: 12px;
+}
+
+.brand-badge-icon {
+  color: var(--voyage-accent-primary);
+}
+
+.brand-badge-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}
+
+.cadastro-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.cadastro-subtitle {
+  font-size: 15px;
+  color: var(--voyage-text-secondary);
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Seletor de Perfil em Cards */
+.perfil-cards-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+@media (min-width: 600px) {
+  .perfil-cards-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.perfil-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--voyage-bg-surface);
+  border: 2px solid var(--voyage-border-subtle);
+  border-radius: var(--voyage-radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--voyage-transition-fast), background var(--voyage-transition-fast), transform var(--voyage-transition-fast);
+}
+
+.perfil-card:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+}
+
+.perfil-card.ativo {
+  border-color: var(--voyage-accent-primary);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.perfil-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--voyage-radius-sm);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--voyage-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color var(--voyage-transition-fast), background var(--voyage-transition-fast);
+}
+
+.perfil-card.ativo .perfil-card-icon {
+  background: var(--voyage-accent-primary);
+  color: #ffffff;
+}
+
+.perfil-card-info {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  box-shadow: 0 10px 30px rgba(90, 69, 255, 0.2);
+  flex: 1;
 }
 
-#tela-cadastro .cabecalho {
-  text-align: center;
-  margin-bottom: 16px;
-}
-
-#tela-cadastro .titulo {
-  color: #ffffff;
-  font-size: 22px;
+.perfil-card-title {
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  color: #ffffff;
+  margin-bottom: 2px;
 }
 
-#tela-cadastro .secao-avatar {
+.perfil-card-desc {
+  font-size: 12px;
+  color: var(--voyage-text-muted);
+  line-height: 1.3;
+}
+
+.perfil-check-icon {
+  color: var(--voyage-accent-primary);
+  flex-shrink: 0;
+}
+
+/* Upload de Avatar */
+.avatar-upload-section {
   display: flex;
-  justify-content: center;
-  margin-bottom: 24px;
+  align-items: center;
+  gap: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--voyage-border-subtle);
+  border-radius: var(--voyage-radius-md);
+  margin-bottom: 28px;
 }
 
-#tela-cadastro .avatar-wrapper {
-  width: 120px;
-  height: 120px;
+.avatar-preview-box {
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  background-color: #d1d5db;
+  background: var(--voyage-bg-surface);
+  border: 2px solid var(--voyage-border-subtle);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   cursor: pointer;
+  position: relative;
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color var(--voyage-transition-fast);
+  flex-shrink: 0;
 }
 
-#tela-cadastro .avatar-wrapper:hover {
-  transform: scale(1.03);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+.avatar-preview-box:hover {
+  border-color: var(--voyage-accent-primary);
 }
 
-#tela-cadastro .avatar-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-#tela-cadastro .icone-avatar {
-  width: 75px;
-  height: 75px;
-  fill: #ffffff;
-}
-
-#tela-cadastro .avatar-imagem {
+.avatar-img-preview {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-#tela-cadastro .formulario {
-  width: 100%;
-  max-width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-#tela-cadastro .campo-grupo {
-  display: flex;
-  flex-direction: column;
-}
-
-#tela-cadastro .linha-input {
+.avatar-placeholder-inner {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
-#tela-cadastro .icone-campo {
-  width: 24px;
+.avatar-default-icon {
+  color: var(--voyage-text-muted);
+}
+
+.avatar-camera-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
   height: 24px;
-  flex-shrink: 0;
-  fill: #ffffff;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
 }
 
-#tela-cadastro .conteudo-input {
+.avatar-text-col {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  gap: 2px;
 }
 
-#tela-cadastro .label-campo {
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
-#tela-cadastro .input-texto {
-  background: transparent;
-  border: none;
-  color: #ffffff;
-  font-size: 15px;
-  outline: none;
-  width: 100%;
-  padding: 2px 0;
-}
-
-#tela-cadastro .select-texto {
-  background-color: #121626;
-  border: 1px solid #232a42;
-  border-radius: 8px;
-  color: #ffffff;
+.avatar-label {
   font-size: 14px;
-  outline: none;
-  width: 100%;
-  padding: 6px 10px;
-  margin-top: 4px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.avatar-hint {
+  font-size: 12px;
+  color: var(--voyage-text-muted);
+}
+
+/* Form Grid Desktop */
+.form-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+@media (min-width: 640px) {
+  .form-fields-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .full-width-field {
+    grid-column: 1 / -1;
+  }
+}
+
+.custom-select {
   cursor: pointer;
 }
 
-#tela-cadastro .select-texto option {
-  background-color: #121626;
+.custom-select option {
+  background-color: var(--voyage-bg-card);
   color: #ffffff;
+  padding: 8px;
 }
 
-#tela-cadastro .linha-divisoria {
-  width: 100%;
-  height: 1.5px;
-  background-color: #717686;
-  margin-top: 6px;
-}
-
-#tela-cadastro .input-texto:focus + .linha-divisoria,
-#tela-cadastro .campo-grupo:focus-within .linha-divisoria {
-  background-color: #5a45ff;
-}
-
-#tela-cadastro .secao-botao {
+/* Botão de Criação */
+.cadastro-actions {
   display: flex;
   justify-content: center;
-  margin-top: 10px;
 }
 
-#tela-cadastro .botao-criar {
-  background-color: #538d4e;
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: 700;
-  border: none;
-  border-radius: 14px;
+.btn-primary-cadastro {
   width: 100%;
-  max-width: 200px;
-  padding: 12px 0;
-  text-align: center;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-  cursor: pointer;
+  max-width: 360px;
+  height: 50px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #ffffff;
+  border-radius: var(--voyage-radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+  transition: transform var(--voyage-transition-fast), box-shadow var(--voyage-transition-fast);
 }
 
-#tela-cadastro .botao-criar:hover {
-  background-color: #447740;
+.btn-primary-cadastro:hover:not(:disabled) {
   transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.55);
 }
 
-#tela-cadastro .botao-criar:active {
-  transform: translateY(0);
-}
-
-#tela-cadastro .botao-criar:disabled {
+.btn-primary-cadastro:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
-/* Seletor de Tipo de Perfil (Cliente vs Proprietário / Owner) */
-#tela-cadastro .seletor-tipo {
+/* Rodapé */
+.cadastro-footer {
+  margin-top: 24px;
+  text-align: center;
   display: flex;
-  background-color: #121626;
-  border-radius: 12px;
-  padding: 4px;
-  gap: 6px;
-  border: 1px solid #232a42;
-  margin-bottom: 6px;
-}
-
-#tela-cadastro .btn-tipo {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 8px 0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
   justify-content: center;
   gap: 6px;
-}
-
-#tela-cadastro .btn-tipo.ativo {
-  background-color: #5a45ff;
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(90, 69, 255, 0.4);
-}
-
-#tela-cadastro .badge-opcional {
-  font-size: 10px;
-  color: #8b95a5;
-  font-weight: 400;
-  margin-left: 4px;
-}
-
-#tela-cadastro .badge-obrigatorio {
-  font-size: 13px;
-  color: #ef4444;
-  font-weight: 700;
-  margin-left: 2px;
-}
-
-#tela-cadastro .rodape-link {
-  text-align: center;
-  margin-top: 8px;
   font-size: 14px;
-  color: #a0aec0;
-}
-
-#tela-cadastro .link-entrar {
-  color: #7966ff;
-  font-weight: 600;
-  margin-left: 4px;
-}
-
-#tela-cadastro .link-entrar:hover {
-  text-decoration: underline;
-}
-
-/* ===================================================
-   DESKTOP (≥ 768px) — Expande layout para telas maiores
-   Mobile continua com os estilos acima inalterados
-   =================================================== */
-@media (min-width: 768px) {
-  #tela-cadastro {
-    padding: 40px 32px;
-  }
-
-  #tela-cadastro .card-dispositivo {
-    max-width: 580px;
-    padding: 40px 48px 40px 48px;
-    border-radius: 28px;
-  }
-
-  #tela-cadastro .titulo {
-    font-size: 26px;
-  }
-
-  #tela-cadastro .avatar-wrapper {
-    width: 140px;
-    height: 140px;
-  }
-
-  #tela-cadastro .icone-avatar {
-    width: 90px;
-    height: 90px;
-  }
-
-  #tela-cadastro .formulario {
-    max-width: 480px;
-    gap: 22px;
-  }
-
-  #tela-cadastro .input-texto {
-    font-size: 16px;
-  }
-
-  #tela-cadastro .label-campo {
-    font-size: 14px;
-  }
-
-  #tela-cadastro .botao-criar {
-    max-width: 240px;
-    font-size: 18px;
-    padding: 14px 0;
-    border-radius: 16px;
-  }
-
-  #tela-cadastro .rodape-link {
-    font-size: 15px;
-  }
-
-  #tela-cadastro .seletor-tipo {
-    margin-bottom: 8px;
-  }
-
-  #tela-cadastro .btn-tipo {
-    font-size: 14px;
-    padding: 10px 0;
-  }
 }

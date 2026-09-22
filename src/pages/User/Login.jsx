@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { userService } from '../../services/userService'
+import { Mail, Lock, Eye, EyeOff, Compass, Building2, MapPin, ShieldCheck, ArrowRight } from 'lucide-react'
 import './Login.css'
 
 function Login() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+  const [mostrarSenha, setMostrarSenha] = useState(false)
   const [carregando, setCarregando] = useState(false)
   const [mensagem, setMensagem] = useState(null) // { tipo: 'sucesso' | 'erro', texto: string }
 
@@ -47,105 +49,155 @@ function Login() {
 
   return (
     <div id="tela-login">
-      <div className="card-dispositivo">
-        {/* Marca / Logo Voyage */}
-        <div className="cabecalho-login">
-          <div className="logo-container">
-            <span className="logo-icone">V</span>
-            <span className="logo-texto">oyage</span>
+      <div className="login-wrapper">
+        {/* Lado Esquerdo: Vitrine Institucional Voyage (Desktop) */}
+        <div className="login-hero-panel">
+          <div className="login-hero-glow"></div>
+          
+          <div className="login-brand-header">
+            <div className="brand-logo-badge">
+              <Compass className="brand-icon" size={28} />
+            </div>
+            <div className="brand-text">
+              <span className="brand-name">Voyage</span>
+              <span className="brand-tag">Platform</span>
+            </div>
           </div>
-          <p className="subtitulo-login">Seu Destino Começa Aqui</p>
+
+          <div className="login-hero-content">
+            <h1 className="hero-title">
+              Descubra lugares incríveis e impulsione o seu <span className="highlight-text">negócio local</span>.
+            </h1>
+            <p className="hero-description">
+              A plataforma inteligente que conecta estabelecimentos comerciais a milhares de clientes através de geolocalização e rotas em tempo real.
+            </p>
+
+            <div className="hero-features-grid">
+              <div className="hero-feature-item">
+                <div className="feature-icon-wrapper">
+                  <MapPin size={20} />
+                </div>
+                <div>
+                  <h4>Exploração GIS</h4>
+                  <p>Mapeamento de rotas e pontos de interesse com precisão.</p>
+                </div>
+              </div>
+
+              <div className="hero-feature-item">
+                <div className="feature-icon-wrapper">
+                  <Building2 size={20} />
+                </div>
+                <div>
+                  <h4>Gestão Empresarial</h4>
+                  <p>Painel com métricas, filiais e visibilidade comercial.</p>
+                </div>
+              </div>
+
+              <div className="hero-feature-item">
+                <div className="feature-icon-wrapper">
+                  <ShieldCheck size={20} />
+                </div>
+                <div>
+                  <h4>Acesso Seguro</h4>
+                  <p>Perfis protegidos e autenticação centralizada.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="hero-footer-note">
+            <span className="voyage-demo-badge">Versão Web Desktop</span>
+            <span>Experiência corporativa otimizada</span>
+          </div>
         </div>
 
-        {/* Feedback visual de erro/sucesso */}
-        {mensagem && (
-          <div
-            style={{
-              padding: '10px 14px',
-              margin: '0 20px 16px',
-              borderRadius: '8px',
-              fontSize: '13px',
-              textAlign: 'center',
-              backgroundColor: mensagem.tipo === 'erro' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)',
-              color: mensagem.tipo === 'erro' ? '#ef4444' : '#22c55e',
-              border: `1px solid ${mensagem.tipo === 'erro' ? '#ef4444' : '#22c55e'}`,
-            }}
-          >
-            {mensagem.texto}
-          </div>
-        )}
-
-        {/* Formulário Monobloco de Login */}
-        <form className="formulario-login" onSubmit={handleSubmit}>
-          {/* Campo E-mail */}
-          <div className="campo-grupo">
-            <div className="linha-input">
-              <svg
-                className="icone-campo"
-                viewBox="0 0 24 24"
-                fill="#ffffff"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-              </svg>
-              <div className="conteudo-input">
-                <span className="label-campo">E-mail</span>
-                <input
-                  type="email"
-                  className="input-texto"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder=""
-                  required
-                  disabled={carregando}
-                />
+        {/* Lado Direito: Formulário de Autenticação */}
+        <div className="login-card-container">
+          <div className="login-card">
+            <div className="card-header">
+              <div className="mobile-brand-row">
+                <Compass className="mobile-brand-icon" size={24} />
+                <span className="mobile-brand-name">Voyage</span>
               </div>
+              <h2 className="card-title">Acesse sua conta</h2>
+              <p className="card-subtitle">Insira suas credenciais para continuar no sistema</p>
             </div>
-            <div className="linha-divisoria"></div>
-          </div>
 
-          {/* Campo Senha */}
-          <div className="campo-grupo">
-            <div className="linha-input">
-              <svg
-                className="icone-campo"
-                viewBox="0 0 24 24"
-                fill="#ffffff"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
-              </svg>
-              <div className="conteudo-input">
-                <span className="label-campo">Senha</span>
-                <input
-                  type="password"
-                  className="input-texto"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  placeholder=""
-                  required
-                  disabled={carregando}
-                />
+            {/* Alerta de Feedback */}
+            {mensagem && (
+              <div className={`mensagem-alerta ${mensagem.tipo}`}>
+                <span>{mensagem.texto}</span>
               </div>
+            )}
+
+            <form className="login-form" onSubmit={handleSubmit}>
+              <div className="input-group">
+                <label className="input-label" htmlFor="email-input">E-mail</label>
+                <div className="input-field-wrapper">
+                  <Mail className="input-leading-icon" size={18} />
+                  <input
+                    id="email-input"
+                    type="email"
+                    className="custom-input"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="seu.email@exemplo.com"
+                    required
+                    disabled={carregando}
+                    autoComplete="email"
+                  />
+                </div>
+              </div>
+
+              <div className="input-group">
+                <div className="input-label-row">
+                  <label className="input-label" htmlFor="password-input">Senha</label>
+                </div>
+                <div className="input-field-wrapper">
+                  <Lock className="input-leading-icon" size={18} />
+                  <input
+                    id="password-input"
+                    type={mostrarSenha ? 'text' : 'password'}
+                    className="custom-input"
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)}
+                    placeholder="••••••••••"
+                    required
+                    disabled={carregando}
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    className="btn-toggle-password"
+                    onClick={() => setMostrarSenha(!mostrarSenha)}
+                    tabIndex={-1}
+                    aria-label={mostrarSenha ? 'Ocultar senha' : 'Exibir senha'}
+                  >
+                    {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" className="btn-primary-login" disabled={carregando}>
+                {carregando ? (
+                  <span>Autenticando...</span>
+                ) : (
+                  <>
+                    <span>Entrar no Sistema</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="card-footer">
+              <span className="footer-text">Não tem uma conta ainda?</span>
+              <Link to="/cadastro" className="footer-link">
+                Cadastre-se gratuitamente
+              </Link>
             </div>
-            <div className="linha-divisoria"></div>
           </div>
-
-          {/* Botão Entrar */}
-          <div className="secao-botao">
-            <button type="submit" className="botao-entrar" disabled={carregando}>
-              {carregando ? 'Entrando...' : 'Entrar'}
-            </button>
-          </div>
-
-          {/* Link para Cadastro */}
-          <div className="rodape-link">
-            <span>Ainda não tem conta? </span>
-            <Link to="/cadastro" className="link-cadastro">
-              Cadastre-se
-            </Link>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   )

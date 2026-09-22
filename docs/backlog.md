@@ -1,31 +1,31 @@
 # Backlog do Projeto Voyage (Frontend)
 
-Este arquivo é mantido por agentes de IA e desenvolvedores para registrar o estado de implementação de features e telas no frontend.
+Este arquivo é mantido por agentes de IA e desenvolvedores para registrar o estado de implementação de features, componentes e telas no frontend.
 
 ---
 
-## 1. Módulo: User / Autenticação (Etapa 1: Front-end e Design)
+## 1. Módulo: User / Autenticação
 
 ### [IMPLEMENTADO] Tela de Cadastro / Criação de Perfil
-- **Arquivos:** `src/Cadastro.jsx`, `src/Cadastro.css`
+- **Arquivos:** [`src/pages/User/Cadastro.jsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/User/Cadastro.jsx), [`src/pages/User/Cadastro.css`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/User/Cadastro.css)
 - **Rota:** `/cadastro`
 - **ID da Tela:** `#tela-cadastro`
 - **Padrão visual e funcionalidade:**
-  - Segue estritamente `docs/User.md` e a identidade visual do Voyage.
+  - Segue estritamente [`docs/User.md`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/docs/User.md) e a identidade visual do Voyage.
   - Seletor de tipo de conta: **Cliente** vs **Empresário** (`owner`).
   - Para tipo **Empresário (Owner / Companhia)**:
     - Exige obrigatoriamente: **CNPJ**, **Categoria da Empresa** e **Localização / Endereço**.
     - Cadastra o usuário no backend e insere automaticamente os dados da empresa via `companyService`.
-  - Design monobloco com tema escuro (`#070a14`), borda estilo dispositivo mobile.
+  - Design com tema escuro (`#070a14`), bordas arredondadas e contraste otimizado.
   - Cabeçalho com título "Foto de Perfil".
   - Avatar circular com clique para selecionar foto local e preview em tela.
   - Campos com linha inferior: Nome Fantasia / Razão, E-mail corporativo, CNPJ, Categoria, Localização, Telefone, Senha.
   - Botão verde arredondado "Criar".
   - Link de navegação para a rota de login (`/login`).
-- **Isolamento CSS:** Todas as regras no CSS estão restritas ao seletor `#tela-cadastro`.
+- **Isolamento CSS:** Regras restritas ao container `#tela-cadastro`.
 
 ### [IMPLEMENTADO] Tela de Login
-- **Arquivos:** `src/Login.jsx`, `src/Login.css`
+- **Arquivos:** [`src/pages/User/Login.jsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/User/Login.jsx), [`src/pages/User/Login.css`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/User/Login.css)
 - **Rota:** `/login`
 - **ID da Tela:** `#tela-login`
 - **Padrão visual:**
@@ -34,10 +34,10 @@ Este arquivo é mantido por agentes de IA e desenvolvedores para registrar o est
   - Campos borderless com linha inferior: E-mail, Senha.
   - Botão verde arredondado "Entrar".
   - Link de navegação para a rota de cadastro (`/cadastro`).
-- **Isolamento CSS:** Todas as regras no CSS estão restritas ao seletor `#tela-login`.
+- **Isolamento CSS:** Regras restritas ao container `#tela-login`.
 
 ### [IMPLEMENTADO] Tela de Edição de Perfil
-- **Arquivos:** `src/EditarPerfil.jsx`, `src/EditarPerfil.css`
+- **Arquivos:** [`src/pages/User/EditarPerfil.jsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/User/EditarPerfil.jsx), [`src/pages/User/EditarPerfil.css`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/User/EditarPerfil.css)
 - **Rota:** `/editar-perfil` (e `/perfil/editar`)
 - **ID da Tela:** `#tela-editar-perfil`
 - **Padrão visual:**
@@ -46,53 +46,84 @@ Este arquivo é mantido por agentes de IA e desenvolvedores para registrar o est
   - Avatar circular com foto cadastrada e overlay de câmera para alterar imagem.
   - Campos preenchidos previamente com os dados do usuário.
   - Botão verde arredondado "Salvar".
-- **Isolamento CSS:** Todas as regras no CSS estão restritas ao seletor `#tela-editar-perfil`.
+- **Isolamento CSS:** Regras restritas ao container `#tela-editar-perfil`.
 
 ---
 
 ## 2. Módulo: Endereço e Mapa (Address & Map)
 
 ### [IMPLEMENTADO] Tela de Endereço e Mapa Interativo
-- **Arquivos:** `src/pages/AddressMap/AddressMap.tsx`, `src/pages/AddressMap/AddressMap.css`
+- **Arquivos:** [`src/pages/AddressMap/AddressMap.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/AddressMap/AddressMap.tsx), [`src/pages/AddressMap/AddressMap.css`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/AddressMap/AddressMap.css)
 - **Rota:** `/address` / `/map`
 - **ID da Tela:** `#address-map-container`
-- **Funcionalidades:**
-  - Integração com `maplibre-gl`.
+- **Funcionalidades e Correções:**
+  - Integração completa com `maplibre-gl`.
   - Busca de endereço, fixação de pontos e seleção manual de localização.
+  - **Correção de CSS:** `@keyframes fadeIn` renomeado para `map-fade-in` para eliminar colisão global de animações.
 
 ---
 
 ## 3. Módulo: Pagamento e Assinatura (Payment / Voyage+)
 
 ### [IMPLEMENTADO] Telas de Pagamento e Assinatura (3 Planos, Cartões & PIX)
-- **Arquivos:** `src/pages/payment/Payment.jsx`, `src/pages/payment/Payment.css`
+- **Arquivos:** [`src/pages/payment/Payment.jsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/payment/Payment.jsx), [`src/pages/payment/Payment.css`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/payment/Payment.css)
 - **Rota:** `/payment`
 - **ID da Tela:** `#payment-root`
-- **Funcionalidades:**
+- **Funcionalidades e Correções:**
   - **3 Planos de Assinatura:** Seleção interativa entre **Básico (Gratuito)**, **Intermediário (R$ 14,90/mês)** e **Plus (Voyage+ R$ 29,90/mês)** com badges, lista de recursos e cálculo dinâmico de botões.
   - **Métodos de pagamento:** Cartão de Crédito, Débito e PIX Instantâneo.
-  - **Gestão & Cadastro de Cartões:** Máscara de digitação automática em tempo real para número (`0000 0000 0000 0000`), validade (`MM/AA`) e CVC. Detecção inteligente de bandeira (Visa, Mastercard, Elo, Amex) com preview dinâmico no cartão virtual e persistência na lista de cartões salvos.
-  - **PIX Fictício Interativo:** Geração de QR Code vetorial de alta definição com ícone centralizado, chave Copia e Cola dinâmica com o plano escolhido, timer regressivo visual de 30 minutos e confirmação simulada.
+  - **Gestão & Cadastro de Cartões:** Máscara de digitação automática em tempo real para número (`0000 0000 0000 0000`), validade (`MM/AA`) e CVC. Detecção inteligente de bandeira com preview dinâmico no cartão virtual.
+  - **PIX Fictício Interativo:** Geração de QR Code vetorial com ícone centralizado, chave Copia e Cola dinâmica com o plano escolhido, timer regressivo visual de 30 minutos e confirmação simulada.
+  - **Correção de Vazamento CSS:** Removidas as regras sobre `body > #root` e `#root` da media query desktop (`@media (min-width: 768px)`), centralizando `#payment-root` de forma limpa e isolada sem contaminar as demais rotas da aplicação.
 
 ---
 
 ## 4. Módulo: Empresa / Parceiro (Company)
 
 ### [IMPLEMENTADO] Tela de Gestão da Empresa (`Company`)
-- **Arquivos:** `src/pages/Company.jsx`, `src/pages/Company.css`
+- **Arquivos:** [`src/pages/Company/Company.jsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/Company/Company.jsx), [`src/pages/Company/Company.css`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/Company/Company.css)
 - **Rota:** `/company`
 - **ID da Tela:** `#company-page`
-- **Funcionalidades:**
-  - Componente monobloco com navegação por abas (`kpis`, `profile`, `team`, `billing`, `security`).
-  - Cabeçalho executivo com logotipo Voyage, badge de "Empresa Verificada", avaliação (`4.8/5 ★`).
+- **Funcionalidades e Correções:**
+  - Navegação por abas (`kpis`, `profile`, `team`, `billing`, `security`).
+  - Cabeçalho executivo com logotipo Voyage, badge de "Empresa Verificada", avaliação (`4.8/5 ★`) e botão integrado para abertura da nova Aba Lateral (Sidebar).
   - Painel de KPIs operacionais e visualizações.
   - Formulário de perfil corporativo (Razão social, nome fantasia, CNPJ, categoria, telefone, places, descrição).
   - Gestão de equipe com níveis de permissão.
-  - Assinatura & Planos corporativos e histórico de faturas.
+  - Assinatura corporativa e histórico de faturas demonstrativo.
   - Auditoria de segurança e logs de acesso.
+  - **Correção de Seletores Desktop:** Corrigidos os seletores de `@media (min-width: 768px)` para coincidir com os nomes reais do JSX (`.company-tabs-nav`, `.company-tab-content`, `.kpi-grid`, `.kpi-card`).
+  - **Isolamento de Animação:** Renomeado `@keyframes fadeIn` para `company-fade-in`.
+  - **Eliminação de Estilos Inline:** Substituído o `style={{ ... }}` do banner do proprietário pelas classes `.company-owner-banner`, `.company-owner-text` e `.company-owner-badge`.
 
 ---
 
-## 5. Configuração Base, Rotas e Estilos Globais
-- **Arquivos:** `src/globals.css`, `src/App.jsx`, `src/main.tsx`
-- **Roteamento:** `react-router-dom` centralizando todas as telas implementadas (`/login`, `/cadastro`, `/editar-perfil`, `/company`, `/payment`, `/address`).
+## 5. Módulo: Navegação Global e Aba Lateral (Sidebar)
+
+### [IMPLEMENTADO] Componente de Aba Lateral (Sidebar)
+- **Arquivos:** [`src/components/Sidebar/Sidebar.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Sidebar/Sidebar.tsx), [`src/components/Sidebar/Sidebar.css`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Sidebar/Sidebar.css)
+- **Base Visual:** Fiel à referência `Captura de tela 2026-09-11 201449.png`.
+- **Linguagem:** TypeScript (`.tsx`) com CSS puro.
+- **Estrutura e Recursos:**
+  - **Header:** Logotipo institucional Voyage estilizado.
+  - **Card de Perfil/Empresa:** Avatar circular (foto ou silhueta), nome ("Pará Lanches" ou dinâmico da empresa/usuário), categoria ("Lanchonete") e badge "Verificado" com ícone de verificação.
+  - **Menu de Navegação com Ícones Vetoriais:**
+    - Resumo (`/company` / aba KPIs)
+    - Catálogo/Produtos
+    - Ofertas e Promoções
+    - Avaliações
+    - Desempenho
+    - Mensagens
+    - Editar Perfil (`/editar-perfil`)
+    - Assinatura (`/payment`)
+    - Mapa & Endereços (`/address`)
+  - **Footer:** Botão de voltar `(↩)` e botão roxo estilizado "Sair" com logout da sessão (`userService.logout()`) e redirecionamento.
+  - **Comportamento Interativo:** Gaveta deslizante suave com backdrop translúcido blur (`backdrop-filter`).
+
+---
+
+## 6. Configuração Base, Design Tokens e Rotas
+
+- **Arquivos:** [`src/globals.css`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/globals.css), [`src/App.jsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/App.jsx), [`src/main.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/main.tsx)
+- **Design Tokens Globais:** Adicionado o bloco `:root` em `globals.css` com todas as variáveis semânticas de cores (`--voyage-bg-main`, `--voyage-accent-primary`, `--voyage-accent-secondary`), espaçamentos, raios e sombras.
+- **Roteamento:** `react-router-dom` com proteção de rotas via `ProtectedRoute`.

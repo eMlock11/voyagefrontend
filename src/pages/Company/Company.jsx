@@ -3,10 +3,35 @@ import { useNavigate } from 'react-router-dom';
 import './Company.css';
 import { companyService } from '../../services/companyService';
 import { userService } from '../../services/userService';
+import { Sidebar } from '../../components/Sidebar/Sidebar';
+import {
+  Compass,
+  Menu,
+  Bell,
+  Settings,
+  BarChart3,
+  Building,
+  Users,
+  CreditCard,
+  ShieldCheck,
+  CheckCircle2,
+  Star,
+  MapPin,
+  TrendingUp,
+  ExternalLink,
+  LogOut,
+  Save,
+  PlusCircle,
+  Eye,
+  Phone,
+  FileText
+} from 'lucide-react';
 
 function Company() {
   const navigate = useNavigate();
-  // Estado para controlar a aba selecionada (Opção A)
+  // Estado para controlar a aba lateral (Sidebar)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Estado para controlar a aba selecionada
   const [activeTab, setActiveTab] = useState('kpis');
 
   const currentUser = userService.getCurrentUser();
@@ -19,12 +44,6 @@ function Company() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null); // { type: 'success' | 'error' | 'info', text: string }
-
-  // Estados da barra de busca de empresas (visível apenas para consulta geral)
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
 
   // Estado local para os dados do perfil corporativo da própria empresa
   const [formData, setFormData] = useState({
@@ -49,12 +68,10 @@ function Company() {
       places: comp.places || '',
       sobre: comp.about || comp.sobre || ''
     });
-    setShowDropdown(false);
   };
 
-  // 1. Efeito para buscar exclusivamente os dados da própria empresa do owner no banco ao iniciar o componente
+  // 1. Efeito para buscar os dados da empresa do owner no banco
   useEffect(() => {
-    // Se o usuário não for empresário (owner), bloqueia acesso ou redireciona
     if (!isOwner) {
       setStatusMessage({
         type: 'error',
@@ -68,7 +85,6 @@ function Company() {
       try {
         const storedCompany = localStorage.getItem('user_company');
 
-        // Se há empresa recém-criada no storage deste owner, aplica imediatamente
         if (storedCompany) {
           try {
             const parsed = JSON.parse(storedCompany);
@@ -84,7 +100,6 @@ function Company() {
 
         const companies = await companyService.getCompanies();
         if (Array.isArray(companies) && companies.length > 0) {
-          // Busca estritamente a empresa correspondente ao dono logado
           const myCompany = companies.find(
             (c) =>
               c.name?.toLowerCase().trim() === currentUser?.name?.toLowerCase().trim() ||
@@ -94,7 +109,6 @@ function Company() {
           if (myCompany) {
             applyCompanyData(myCompany);
           } else {
-            // Caso seja um novo owner sem empresa encontrada ainda
             setFormData((prev) => ({
               ...prev,
               nomeFantasia: currentUser?.name || '',
@@ -118,7 +132,7 @@ function Company() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 2. Função para salvar (apenas o dono autenticado tem permissão)
+  // 2. Função para salvar
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isOwner) {
@@ -142,12 +156,10 @@ function Company() {
 
     try {
       if (companyId) {
-        // Atualização (PUT)
         const updated = await companyService.updateCompany(companyId, payload);
         localStorage.setItem('user_company', JSON.stringify({ ...formData, id: companyId, ...updated }));
         setStatusMessage({ type: 'success', text: 'Dados da sua empresa atualizados com sucesso!' });
       } else {
-        // Inserção (POST)
         const created = await companyService.createCompany(payload);
         if (created && created.id) {
           setCompanyId(created.id);
@@ -163,550 +175,621 @@ function Company() {
     }
   };
 
-
   return (
     <div id="company-page">
+      {/* Sidebar Integrada */}
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        companyName={formData.nomeFantasia || currentUser?.name || 'Pará Lanches'}
+        category={formData.categoria || 'Lanchonete'}
+        isVerified={true}
+        activeItem={activeTab === 'kpis' ? 'resumo' : activeTab}
+        onSelectItem={(itemKey) => {
+          if (itemKey === 'resumo' || itemKey === 'desempenho') setActiveTab('kpis');
+          if (itemKey === 'catalogo') setActiveTab('profile');
+        }}
+      />
+
       <div className="company-container">
-        
-        {/* 1. Header Bar com Marca Voyage e Ações */}
+        {/* Header Desktop Widescreen */}
         <header className="company-header-bar">
-          <div className="company-logo-area">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M4 4L12 20L20 4L15 4L12 11L9 4L4 4Z" fill="#5c4df2" />
-            </svg>
-            <span className="company-logo-text">Voyage<span>.</span></span>
+          <div className="company-header-left">
+            <button
+              className="header-icon-btn menu-toggle"
+              onClick={() => setIsSidebarOpen(true)}
+              title="Abrir Menu de Navegação"
+              aria-label="Abrir Menu Lateral"
+            >
+              <Menu size={22} />
+            </button>
+            <div className="company-logo-area">
+              <Compass className="company-brand-icon" size={26} />
+              <span className="company-logo-text">Voyage<span>.</span></span>
+            </div>
+            <div className="header-divider"></div>
+            <span className="header-module-name">Painel Corporativo</span>
           </div>
 
           <div className="company-header-actions">
+            <button 
+              className="btn-quick-map"
+              onClick={() => navigate('/map')}
+              title="Abrir Mapa"
+            >
+              <MapPin size={16} />
+              <span>Ver no Mapa</span>
+            </button>
             <button className="header-icon-btn" title="Notificações" aria-label="Notificações">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
+              <Bell size={19} />
             </button>
             <button className="header-icon-btn" title="Configurações" aria-label="Configurações">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-              </svg>
+              <Settings size={19} />
+            </button>
+            <button
+              className="btn-header-logout"
+              onClick={() => {
+                userService.logout();
+                navigate('/login');
+              }}
+              title="Sair da Conta"
+            >
+              <LogOut size={16} />
+              <span>Sair</span>
             </button>
           </div>
         </header>
 
-        {/* Banner de Identificação do Dono */}
-        <div style={{ padding: '8px 16px', background: 'rgba(92, 77, 242, 0.1)', border: '1px solid rgba(92, 77, 242, 0.3)', borderRadius: '10px', margin: '0 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', color: '#c4c8df' }}>
-            Painel exclusivo do Proprietário: <strong style={{ color: '#ffffff' }}>{currentUser?.name || 'Sua Empresa'}</strong>
-          </span>
-          <span style={{ fontSize: '11px', background: '#5c4df2', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
-            CNPJ: {formData.cnpj || 'Não informado'}
-          </span>
+        {/* Banner do Proprietário */}
+        <div className="company-owner-banner">
+          <div className="owner-banner-info">
+            <span className="owner-badge-tag">Proprietário Autenticado</span>
+            <span className="company-owner-text">
+              Logado como: <strong>{currentUser?.name || 'Sua Empresa'}</strong>
+            </span>
+          </div>
+          <div className="owner-banner-meta">
+            <span className="company-owner-badge">
+              CNPJ: {formData.cnpj || 'Não cadastrado'}
+            </span>
+            <span className="voyage-demo-badge">Painel Demo</span>
+          </div>
         </div>
 
-        {/* 2. Hero da Organização / Foto / Título e Selo Verificado */}
+        {/* Hero do Estabelecimento */}
         <section className="company-hero">
-          <div className="avatar-wrapper">
-            <div className="company-avatar">
-              <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.5">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
+          <div className="hero-left-col">
+            <div className="avatar-wrapper">
+              <div className="company-avatar">
+                <Building size={42} />
+              </div>
             </div>
-            <div className="avatar-badge-edit" title="Alterar Logotipo">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
+
+            <div className="company-title-area">
+              <div className="company-name-row">
+                <h1 className="company-name">{formData.nomeFantasia || 'Seu Estabelecimento'}</h1>
+                <span className="verified-badge" title="Empresa Verificada">
+                  <CheckCircle2 size={20} />
+                </span>
+              </div>
+              <p className="company-subtitle">{formData.razaoSocial || 'Razão Social não informada'}</p>
+              
+              <div className="company-meta-tags">
+                <span className="meta-tag category">{formData.categoria}</span>
+                <div className="meta-rating">
+                  <Star size={15} className="star-icon" />
+                  <span>4.8 / 5.0</span>
+                </div>
+                <span className="meta-tag id">
+                  {loading ? 'Carregando...' : companyId ? `ID: #${companyId}` : 'Nova Empresa'}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="company-title-area">
-            <h1 className="company-name">{formData.nomeFantasia}</h1>
-            <span className="verified-badge" title="Empresa Verificada">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              </svg>
-            </span>
-          </div>
-
-          <p className="company-subtitle">{formData.razaoSocial}</p>
-
-          <div className="company-meta-tags">
-            <span className="meta-tag">{formData.categoria}</span>
-            <div className="meta-rating">
-              <span className="star">★</span>
-              <span>4.8/5</span>
-            </div>
-            <span className="meta-tag">
-              {loading ? 'Carregando...' : companyId ? `ID: #${companyId}` : 'Nova Empresa'}
-            </span>
+          <div className="hero-right-actions">
+            <button 
+              className="hero-action-btn primary"
+              onClick={() => setActiveTab('profile')}
+            >
+              <Building size={16} />
+              <span>Editar Empresa</span>
+            </button>
+            <button 
+              className="hero-action-btn secondary"
+              onClick={() => navigate('/payment')}
+            >
+              <CreditCard size={16} />
+              <span>Planos & Assinatura</span>
+            </button>
           </div>
         </section>
 
-        {/* 3. Navegação em Abas no Padrão Voyage (Sushifan / Tabajara) */}
+        {/* Barra de Abas */}
         <nav className="company-tabs-nav" aria-label="Navegação do Módulo Empresa">
           <button
             className={`tab-btn ${activeTab === 'kpis' ? 'active' : ''}`}
             onClick={() => setActiveTab('kpis')}
           >
-            Visão Geral & KPIs
+            <BarChart3 size={18} />
+            <span>Visão Geral & Métricas</span>
           </button>
           <button
             className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
             onClick={() => setActiveTab('profile')}
           >
-            Perfil Corporativo
+            <Building size={18} />
+            <span>Perfil Corporativo</span>
           </button>
           <button
             className={`tab-btn ${activeTab === 'team' ? 'active' : ''}`}
             onClick={() => setActiveTab('team')}
           >
-            Equipe & Acessos
+            <Users size={18} />
+            <span>Equipe & Acessos</span>
           </button>
           <button
             className={`tab-btn ${activeTab === 'billing' ? 'active' : ''}`}
             onClick={() => setActiveTab('billing')}
           >
-            Assinatura & Plano
+            <CreditCard size={18} />
+            <span>Assinatura & Plano</span>
           </button>
           <button
             className={`tab-btn ${activeTab === 'security' ? 'active' : ''}`}
             onClick={() => setActiveTab('security')}
           >
-            Segurança
+            <ShieldCheck size={18} />
+            <span>Segurança & Logs</span>
           </button>
         </nav>
 
-        {/* 4. Conteúdo Dinâmico por Aba */}
-        <main className="company-tab-content">
-          
-          {/* ABA 1: VISÃO GERAL & KPIS */}
-          {activeTab === 'kpis' && (
-            <>
-              <div className="company-card">
-                <div className="card-header">
-                  <span className="card-title">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="20" x2="18" y2="10" />
-                      <line x1="12" y1="20" x2="12" y2="4" />
-                      <line x1="6" y1="20" x2="6" y2="14" />
-                    </svg>
-                    Painel Executivo da Empresa
-                  </span>
-                  <span className="card-action-link">Este mês</span>
-                </div>
-
-                <div className="kpi-grid">
-                  <div className="kpi-box">
-                    <span className="kpi-label">Volume de Operações</span>
-                    <span className="kpi-value">R$ 48.250</span>
-                    <span className="kpi-growth positive">▲ +12.4% vs mês ant.</span>
-                  </div>
-
-                  <div className="kpi-box">
-                    <span className="kpi-label">Clientes Atendidos</span>
-                    <span className="kpi-value">1.420</span>
-                    <span className="kpi-growth positive">▲ +8.1% vs mês ant.</span>
-                  </div>
-
-                  <div className="kpi-box">
-                    <span className="kpi-label">Visualizações no Guia</span>
-                    <span className="kpi-value">9.840</span>
-                    <span className="kpi-growth positive">▲ +23.0% este mês</span>
-                  </div>
-
-                  <div className="kpi-box">
-                    <span className="kpi-label">Avaliação Geral</span>
-                    <span className="kpi-value">4.8 / 5</span>
-                    <span className="kpi-label">455 avaliações</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="company-card">
-                <div className="card-header">
-                  <span className="card-title">Status da Conta Corporativa</span>
-                </div>
-                <p style={{ fontSize: '13px', color: '#9fa8c7', lineHeight: '1.5' }}>
-                  Sua empresa possui todos os dados cadastrais atualizados e está visível para milhares de clientes na rede Voyage.
-                </p>
-                <button className="primary-btn" onClick={() => setActiveTab('profile')}>
-                  Editar Informações Cadastrais
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* ABA 2: PERFIL CORPORATIVO */}
-          {activeTab === 'profile' && (
-            <div className="company-card">
-              <div className="card-header">
-                <span className="card-title">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  Dados Cadastrais da Organização
-                </span>
-              </div>
-
-              {statusMessage && (
-                <div className={`status-banner ${statusMessage.type}`}>
-                  {statusMessage.type === 'success' && <span>✓</span>}
-                  {statusMessage.type === 'error' && <span>⚠</span>}
-                  {statusMessage.type === 'info' && <span>ℹ</span>}
-                  <span>{statusMessage.text}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div className="form-group">
-                  <label className="form-label">Nome Fantasia</label>
-                  <div className="form-input-wrapper">
-                    <span className="form-input-icon">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                      </svg>
+        {/* Layout Desktop de 2 Colunas: Conteúdo Principal + Snapshot Lateral */}
+        <div className="company-dashboard-layout">
+          {/* Coluna Principal Dinâmica */}
+          <main className="company-tab-content">
+            
+            {/* ABA 1: VISÃO GERAL & KPIS */}
+            {activeTab === 'kpis' && (
+              <div className="tab-pane-content">
+                <div className="company-card">
+                  <div className="card-header">
+                    <span className="card-title">
+                      <BarChart3 size={20} className="card-title-icon" />
+                      Métricas de Desempenho no Catálogo
                     </span>
-                    <input
-                      className="form-input"
-                      type="text"
-                      name="nomeFantasia"
-                      value={formData.nomeFantasia}
-                      onChange={handleInputChange}
-                      placeholder="Nome de exibição para clientes"
-                      required
-                    />
+                    <span className="card-action-link">Últimos 30 dias</span>
+                  </div>
+
+                  {/* 4 KPIs em Grid Desktop */}
+                  <div className="kpi-grid">
+                    <div className="kpi-box">
+                      <span className="kpi-label">Volume Estimado</span>
+                      <span className="kpi-value">R$ 48.250</span>
+                      <span className="kpi-growth positive">
+                        <TrendingUp size={14} />
+                        +12.4% vs mês ant.
+                      </span>
+                    </div>
+
+                    <div className="kpi-box">
+                      <span className="kpi-label">Clientes Atendidos</span>
+                      <span className="kpi-value">1.420</span>
+                      <span className="kpi-growth positive">
+                        <TrendingUp size={14} />
+                        +8.1% vs mês ant.
+                      </span>
+                    </div>
+
+                    <div className="kpi-box">
+                      <span className="kpi-label">Visualizações no Guia</span>
+                      <span className="kpi-value">9.840</span>
+                      <span className="kpi-growth positive">
+                        <Eye size={14} />
+                        +23.0% este mês
+                      </span>
+                    </div>
+
+                    <div className="kpi-box">
+                      <span className="kpi-label">Avaliação do Estabelecimento</span>
+                      <span className="kpi-value">4.8 / 5.0</span>
+                      <span className="kpi-growth">
+                        <Star size={14} />
+                        455 avaliações
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Razão Social</label>
-                  <div className="form-input-wrapper">
-                    <span className="form-input-icon">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                      </svg>
+                <div className="company-card">
+                  <div className="card-header">
+                    <span className="card-title">
+                      <MapPin size={20} className="card-title-icon" />
+                      Presença no Mapa & Visibilidade
                     </span>
-                    <input
-                      className="form-input"
-                      type="text"
-                      name="razaoSocial"
-                      value={formData.razaoSocial}
-                      onChange={handleInputChange}
-                      placeholder="Razão Social registrada"
-                    />
+                  </div>
+                  <p className="card-description">
+                    Seu estabelecimento está indexado na base do Voyage e acessível nas buscas por categoria e raio de proximidade.
+                  </p>
+                  <div className="kpi-actions-row">
+                    <button className="primary-btn" onClick={() => setActiveTab('profile')}>
+                      <Building size={16} />
+                      <span>Atualizar Dados Cadastrais</span>
+                    </button>
+                    <button className="secondary-btn" onClick={() => navigate('/map')}>
+                      <ExternalLink size={16} />
+                      <span>Ver Visualização no Mapa</span>
+                    </button>
                   </div>
                 </div>
+              </div>
+            )}
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">CNPJ</label>
-                    <div className="form-input-wrapper">
-                      <input
-                        className="form-input"
-                        type="text"
-                        name="cnpj"
-                        value={formData.cnpj}
+            {/* ABA 2: PERFIL CORPORATIVO */}
+            {activeTab === 'profile' && (
+              <div className="tab-pane-content">
+                <div className="company-card">
+                  <div className="card-header">
+                    <span className="card-title">
+                      <Building size={20} className="card-title-icon" />
+                      Dados Cadastrais da Organização
+                    </span>
+                  </div>
+
+                  {statusMessage && (
+                    <div className={`status-banner ${statusMessage.type}`}>
+                      <span>{statusMessage.text}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmit} className="company-profile-form">
+                    <div className="form-row-2">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="company-name-input">Nome Fantasia *</label>
+                        <div className="form-input-wrapper">
+                          <Building className="input-icon" size={18} />
+                          <input
+                            id="company-name-input"
+                            className="form-input"
+                            type="text"
+                            name="nomeFantasia"
+                            value={formData.nomeFantasia}
+                            onChange={handleInputChange}
+                            placeholder="Nome para exibição pública"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="company-razao-input">Razão Social</label>
+                        <div className="form-input-wrapper">
+                          <FileText className="input-icon" size={18} />
+                          <input
+                            id="company-razao-input"
+                            className="form-input"
+                            type="text"
+                            name="razaoSocial"
+                            value={formData.razaoSocial}
+                            onChange={handleInputChange}
+                            placeholder="Razão Social registrada"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="form-row-2">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="company-cnpj-input">CNPJ *</label>
+                        <div className="form-input-wrapper">
+                          <FileText className="input-icon" size={18} />
+                          <input
+                            id="company-cnpj-input"
+                            className="form-input"
+                            type="text"
+                            name="cnpj"
+                            value={formData.cnpj}
+                            onChange={handleInputChange}
+                            placeholder="00.000.000/0000-00"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="company-cat-select">Categoria *</label>
+                        <div className="form-input-wrapper">
+                          <select
+                            id="company-cat-select"
+                            className="form-input form-select"
+                            name="categoria"
+                            value={formData.categoria}
+                            onChange={handleInputChange}
+                          >
+                            <option value="Lanchonete">Lanchonete</option>
+                            <option value="Restaurante">Restaurante</option>
+                            <option value="Pizzaria">Pizzaria</option>
+                            <option value="Churrascaria">Churrascaria</option>
+                            <option value="Supermercado">Supermercado</option>
+                            <option value="Farmácia">Farmácia</option>
+                            <option value="Serviços">Serviços</option>
+                            <option value="Hospital">Hospital</option>
+                            <option value="Bar">Bar</option>
+                            <option value="Outros">Outros</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="form-row-2">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="company-phone-input">Telefone Comercial</label>
+                        <div className="form-input-wrapper">
+                          <Phone className="input-icon" size={18} />
+                          <input
+                            id="company-phone-input"
+                            className="form-input"
+                            type="text"
+                            name="telefone"
+                            value={formData.telefone}
+                            onChange={handleInputChange}
+                            placeholder="(00) 0000-0000"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="company-places-input">Endereço Principal *</label>
+                        <div className="form-input-wrapper">
+                          <MapPin className="input-icon" size={18} />
+                          <input
+                            id="company-places-input"
+                            className="form-input"
+                            type="text"
+                            name="places"
+                            value={formData.places}
+                            onChange={handleInputChange}
+                            placeholder="Rua, número, bairro e cidade"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label" htmlFor="company-about-input">Descrição / Sobre a Empresa</label>
+                      <textarea
+                        id="company-about-input"
+                        className="form-textarea"
+                        name="sobre"
+                        value={formData.sobre}
                         onChange={handleInputChange}
-                        placeholder="00.000.000/0000-00"
-                        required
+                        placeholder="Descreva seu estabelecimento, diferenciais, horário de funcionamento..."
+                        rows={4}
                       />
                     </div>
-                  </div>
 
-                  <div className="form-group">
-                    <label className="form-label">Categoria</label>
-                    <div className="form-input-wrapper">
-                      <select
-                        className="form-input"
-                        name="categoria"
-                        value={formData.categoria}
-                        onChange={handleInputChange}
-                        style={{ backgroundColor: '#131731', color: '#ffffff' }}
-                      >
-                        <option value="Lanchonete">Lanchonete</option>
-                        <option value="Restaurante">Restaurante</option>
-                        <option value="Pizzaria">Pizzaria</option>
-                        <option value="Churrascaria">Churrascaria</option>
-                        <option value="Supermercado">Supermercado</option>
-                        <option value="Farmácia">Farmácia</option>
-                        <option value="Serviços">Serviços</option>
-                        <option value="Hospital">Hospital</option>
-                        <option value="Bar">Bar</option>
-                        <option value="Outros">Outros</option>
-                      </select>
+                    <div className="form-submit-row">
+                      <button type="submit" className="primary-btn" disabled={saving}>
+                        {saving ? (
+                          <span>Salvando dados...</span>
+                        ) : (
+                          <>
+                            <Save size={18} />
+                            <span>{companyId ? 'Salvar Alterações' : 'Cadastrar Empresa'}</span>
+                          </>
+                        )}
+                      </button>
                     </div>
-                  </div>
+                  </form>
                 </div>
+              </div>
+            )}
 
-                <div className="form-group">
-                  <label className="form-label">Telefone / WhatsApp Comercial</label>
-                  <div className="form-input-wrapper">
-                    <span className="form-input-icon">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                      </svg>
+            {/* ABA 3: EQUIPE & ACESSOS */}
+            {activeTab === 'team' && (
+              <div className="tab-pane-content">
+                <div className="company-card">
+                  <div className="card-header">
+                    <span className="card-title">
+                      <Users size={20} className="card-title-icon" />
+                      Gestão de Equipe & Permissões
                     </span>
-                    <input
-                      className="form-input"
-                      type="text"
-                      name="telefone"
-                      value={formData.telefone}
-                      onChange={handleInputChange}
-                      placeholder="(00) 0000-0000"
-                    />
+                    <button className="secondary-btn small">
+                      <PlusCircle size={15} />
+                      <span>Convidar Membro</span>
+                    </button>
+                  </div>
+
+                  <p className="card-description">
+                    Controle quem pode gerenciar produtos, visualizar faturamento e responder clientes da sua organização.
+                  </p>
+
+                  <div className="team-list">
+                    <div className="team-item">
+                      <div className="team-member-info">
+                        <div className="team-avatar">
+                          {currentUser?.name
+                            ? currentUser.name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
+                            : 'EU'}
+                        </div>
+                        <div>
+                          <div className="team-name">{currentUser?.name || 'Você'}</div>
+                          <div className="team-role">{currentUser?.email || 'proprietario@empresa.com'}</div>
+                        </div>
+                      </div>
+                      <span className="badge-role admin">Proprietário</span>
+                    </div>
+
+                    <div className="team-item">
+                      <div className="team-member-info">
+                        <div className="team-avatar">LC</div>
+                        <div>
+                          <div className="team-name">Luana Cardoso</div>
+                          <div className="team-role">luana.cardoso@email.com</div>
+                        </div>
+                      </div>
+                      <span className="badge-role manager">Gerente</span>
+                    </div>
+
+                    <div className="team-item">
+                      <div className="team-member-info">
+                        <div className="team-avatar">MS</div>
+                        <div>
+                          <div className="team-name">Marcos Souza</div>
+                          <div className="team-role">marcos.op@email.com</div>
+                        </div>
+                      </div>
+                      <span className="badge-role operator">Operacional</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ABA 4: ASSINATURA & PLANO */}
+            {activeTab === 'billing' && (
+              <div className="tab-pane-content">
+                <div className="plan-card">
+                  <div className="plan-header-row">
+                    <div>
+                      <span className="plan-badge">Plano Atual Ativo</span>
+                      <h2 className="plan-title">Voyage Business PRO</h2>
+                    </div>
+                    <div className="plan-price-block">
+                      <span className="plan-price">R$ 149,90</span>
+                      <span className="plan-period">/ mês</span>
+                    </div>
+                  </div>
+
+                  <ul className="plan-features-list">
+                    <li className="plan-feature-item">
+                      <CheckCircle2 size={16} className="feature-check-icon" />
+                      Destaque semanal nas buscas do catálogo e mapa
+                    </li>
+                    <li className="plan-feature-item">
+                      <CheckCircle2 size={16} className="feature-check-icon" />
+                      Até 5 colaboradores com perfis dedicados
+                    </li>
+                    <li className="plan-feature-item">
+                      <CheckCircle2 size={16} className="feature-check-icon" />
+                      Painel com métricas avançadas e exportação
+                    </li>
+                    <li className="plan-feature-item">
+                      <CheckCircle2 size={16} className="feature-check-icon" />
+                      Selo oficial de "Empresa Verificada"
+                    </li>
+                  </ul>
+
+                  <div className="plan-actions-row">
+                    <button className="primary-btn" onClick={() => navigate('/payment')}>
+                      <CreditCard size={18} />
+                      <span>Gerenciar Planos & Pagamentos</span>
+                    </button>
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Endereço Principal (Places)</label>
-                  <div className="form-input-wrapper">
-                    <span className="form-input-icon">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                        <circle cx="12" cy="10" r="3" />
-                      </svg>
+                <div className="company-card">
+                  <div className="card-header">
+                    <span className="card-title">Histórico de Faturas</span>
+                  </div>
+                  <div className="invoice-list">
+                    <div className="invoice-row">
+                      <span className="invoice-period">Competência 08/2026</span>
+                      <span className="invoice-status paid">Pago (R$ 149,90)</span>
+                    </div>
+                    <div className="invoice-row">
+                      <span className="invoice-period">Competência 07/2026</span>
+                      <span className="invoice-status paid">Pago (R$ 149,90)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ABA 5: SEGURANÇA */}
+            {activeTab === 'security' && (
+              <div className="tab-pane-content">
+                <div className="company-card">
+                  <div className="card-header">
+                    <span className="card-title">
+                      <ShieldCheck size={20} className="card-title-icon" />
+                      Políticas de Segurança & Logs
                     </span>
-                    <input
-                      className="form-input"
-                      type="text"
-                      name="places"
-                      value={formData.places}
-                      onChange={handleInputChange}
-                      placeholder="Endereço da unidade principal"
-                      required
-                    />
+                  </div>
+
+                  <div className="security-box">
+                    <div>
+                      <div className="security-title">Autenticação em Duas Etapas (2FA)</div>
+                      <div className="security-desc">Camada extra de proteção para o login corporativo</div>
+                    </div>
+                    <span className="security-status-badge">ATIVO</span>
+                  </div>
+
+                  <span className="section-subheading">Logs Recentes de Auditoria</span>
+                  <div className="audit-log-list">
+                    <div className="audit-log-item">
+                      <div>
+                        <div className="audit-desc">Alteração de horário de funcionamento</div>
+                        <div className="audit-author">Por: Luana Cardoso (Gerente)</div>
+                      </div>
+                      <div className="audit-date">Hoje, 14:32</div>
+                    </div>
+
+                    <div className="audit-log-item">
+                      <div>
+                        <div className="audit-desc">Acesso com novo dispositivo corporativo</div>
+                        <div className="audit-author">Por: {currentUser?.name || 'Dono'}</div>
+                      </div>
+                      <div className="audit-date">Ontem, 09:15</div>
+                    </div>
                   </div>
                 </div>
+              </div>
+            )}
 
-                <div className="form-group">
-                  <label className="form-label">Sobre a Empresa</label>
-                  <textarea
-                    className="form-textarea"
-                    name="sobre"
-                    value={formData.sobre}
-                    onChange={handleInputChange}
-                    placeholder="Breve descrição da sua empresa..."
-                  />
+          </main>
+
+          {/* Coluna Lateral: Resumo / Snapshot da Empresa (Desktop) */}
+          <aside className="company-sidebar-snapshot">
+            <div className="snapshot-card">
+              <div className="snapshot-header">
+                <span className="snapshot-title">Resumo do Estabelecimento</span>
+                <span className="voyage-demo-badge">Ativo</span>
+              </div>
+
+              <div className="snapshot-body">
+                <div className="snapshot-item">
+                  <span className="snapshot-label">Categoria</span>
+                  <span className="snapshot-val">{formData.categoria}</span>
                 </div>
+                <div className="snapshot-item">
+                  <span className="snapshot-label">Localização</span>
+                  <span className="snapshot-val">{formData.places || 'Não informada'}</span>
+                </div>
+                <div className="snapshot-item">
+                  <span className="snapshot-label">Telefone</span>
+                  <span className="snapshot-val">{formData.telefone || 'Não informado'}</span>
+                </div>
+                <div className="snapshot-item">
+                  <span className="snapshot-label">Status do Perfil</span>
+                  <span className="snapshot-val text-success">Verificado ✓</span>
+                </div>
+              </div>
 
-                <button type="submit" className="primary-btn" disabled={saving}>
-                  {saving ? (
-                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                      <span className="loading-spinner"></span>
-                      Salvando no Banco...
-                    </span>
-                  ) : (
-                    companyId ? 'Atualizar Empresa' : 'Cadastrar Empresa'
-                  )}
+              <div className="snapshot-actions">
+                <button className="snapshot-btn" onClick={() => navigate('/map')}>
+                  <MapPin size={16} />
+                  <span>Explorar no Mapa</span>
                 </button>
-              </form>
-            </div>
-          )}
-
-          {/* ABA 3: EQUIPE & NÍVEIS DE ACESSO */}
-          {activeTab === 'team' && (
-            <div className="company-card">
-              <div className="card-header">
-                <span className="card-title">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
-                  Gestão de Equipe & Permissões
-                </span>
-              </div>
-
-              <p style={{ fontSize: '13px', color: '#9fa8c7' }}>
-                Controle quem pode gerenciar produtos, visualizar faturamento e responder clientes da sua organização.
-              </p>
-
-              <div className="team-list">
-                <div className="team-item">
-                  <div className="team-member-info">
-                    <div className="team-avatar">
-                      {currentUser?.name
-                        ? currentUser.name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
-                        : 'EU'}
-                    </div>
-                    <div>
-                      <div className="team-name">{currentUser?.name || 'Você'} (Proprietário)</div>
-                      <div className="team-role">{currentUser?.email || 'proprietario@empresa.com'}</div>
-                    </div>
-                  </div>
-                  <span className="badge-role admin">Proprietário</span>
-                </div>
-
-                <div className="team-item">
-                  <div className="team-member-info">
-                    <div className="team-avatar">LC</div>
-                    <div>
-                      <div className="team-name">Luana Cardoso</div>
-                      <div className="team-role">luana.cardoso@email.com</div>
-                    </div>
-                  </div>
-                  <span className="badge-role manager">Gerente</span>
-                </div>
-
-                <div className="team-item">
-                  <div className="team-member-info">
-                    <div className="team-avatar">MS</div>
-                    <div>
-                      <div className="team-name">Marcos Souza</div>
-                      <div className="team-role">marcos.op@email.com</div>
-                    </div>
-                  </div>
-                  <span className="badge-role operator">Operacional</span>
-                </div>
-              </div>
-
-              <button className="primary-btn">
-                + Convidar Novo Colaborador
-              </button>
-            </div>
-          )}
-
-          {/* ABA 4: ASSINATURA & PLANO */}
-          {activeTab === 'billing' && (
-            <>
-              <div className="plan-card">
-                <span className="plan-badge">Plano Atual Ativo</span>
-                <h2 className="plan-title">Voyage Business PRO</h2>
-                <div className="plan-price">R$ 149,90 <span>/ mês</span></div>
-
-                <ul className="plan-features-list">
-                  <li className="plan-feature-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Destaque semanal nas buscas do catálogo
-                  </li>
-                  <li className="plan-feature-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Até 5 colaboradores com perfis dedicados
-                  </li>
-                  <li className="plan-feature-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Painel com métricas e exportação de relatórios
-                  </li>
-                  <li className="plan-feature-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Selo oficial de "Empresa Verificada"
-                  </li>
-                </ul>
-
-                <button className="primary-btn" style={{ marginTop: '10px' }}>
-                  Fazer Upgrade para ENTERPRISE
+                <button className="snapshot-btn" onClick={() => navigate('/payment')}>
+                  <CreditCard size={16} />
+                  <span>Gerenciar Assinatura</span>
                 </button>
-              </div>
-
-              <div className="company-card">
-                <div className="card-header">
-                  <span className="card-title">Faturas Recentes</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '8px 0', borderBottom: '1px solid #1a2040' }}>
-                    <span>Competência 08/2026</span>
-                    <span style={{ color: '#4ade80', fontWeight: 600 }}>Pago (R$ 149,90)</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '8px 0', borderBottom: '1px solid #1a2040' }}>
-                    <span>Competência 07/2026</span>
-                    <span style={{ color: '#4ade80', fontWeight: 600 }}>Pago (R$ 149,90)</span>
-                  </div>
-                </div>
-                <button className="secondary-btn">
-                  Gerenciar Meios de Pagamento
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* ABA 5: SEGURANÇA & AUDITORIA */}
-          {activeTab === 'security' && (
-            <div className="company-card">
-              <div className="card-header">
-                <span className="card-title">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                  Políticas de Segurança & Logs
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', backgroundColor: '#171d3d', borderRadius: '8px' }}>
-                  <div>
-                    <div style={{ fontSize: '14px', fontWeight: 600 }}>Autenticação em 2 Etapas (2FA)</div>
-                    <div style={{ fontSize: '12px', color: '#9fa8c7' }}>Exigir 2FA para todos os membros da equipe</div>
-                  </div>
-                  <span style={{ color: '#4ade80', fontSize: '12px', fontWeight: 700 }}>ATIVO</span>
-                </div>
-
-                <span className="card-title" style={{ marginTop: '10px' }}>Logs Recentes de Auditoria</span>
-                <div className="audit-log-list">
-                  <div className="audit-log-item">
-                    <div>
-                      <div className="audit-desc">Alteração de horário de funcionamento</div>
-                      <div className="audit-author">Por: Luana Cardoso (Gerente)</div>
-                    </div>
-                    <div className="audit-date">Hoje, 14:32</div>
-                  </div>
-
-                  <div className="audit-log-item">
-                    <div>
-                      <div className="audit-desc">Acesso com novo dispositivo corporativo</div>
-                      <div className="audit-author">Por: João Junior (Dono)</div>
-                    </div>
-                    <div className="audit-date">Ontem, 09:15</div>
-                  </div>
-
-                  <div className="audit-log-item">
-                    <div>
-                      <div className="audit-desc">Pagamento da assinatura confirmado</div>
-                      <div className="audit-author">Sistema Automático</div>
-                    </div>
-                    <div className="audit-date">10/09/2026</div>
-                  </div>
-                </div>
               </div>
             </div>
-          )}
-
-        </main>
-
-        {/* 5. Rodapé de Saída no Padrão do Menu Lateral */}
-        <footer className="company-footer">
-          <button
-            className="header-icon-btn"
-            title="Ir para o Mapa"
-            aria-label="Voltar ao Mapa"
-            onClick={() => navigate('/map')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 14 4 9l5-5" />
-              <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11" />
-            </svg>
-          </button>
-          <button
-            className="logout-btn"
-            onClick={() => {
-              userService.logout();
-              navigate('/login');
-            }}
-          >
-            Sair
-          </button>
-        </footer>
+          </aside>
+        </div>
 
       </div>
     </div>
