@@ -153,7 +153,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             className={`sidebar-nav-item ${activeItem === 'desempenho' ? 'active' : ''}`}
-            onClick={() => handleItemClick('desempenho', '/company')}
+            onClick={() => handleItemClick('desempenho', '/company?tab=desempenho')}
           >
             <span className="sidebar-nav-icon">
               <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -1027,3 +1027,462 @@
 .snapshot-btn:hover {
   background: var(--voyage-bg-surface-hover);
 }
+
+/* ==========================================================================
+   5. Performance Analytics & Charts Styles (Dias, Semanas, Meses, Semestrais)
+   ========================================================================== */
+
+.performance-analytics-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.analytics-header-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--voyage-bg-card);
+  border: 1px solid var(--voyage-border-card);
+  border-radius: var(--voyage-radius-lg);
+  padding: 20px 24px;
+}
+
+@media (min-width: 768px) {
+  .analytics-header-card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.analytics-title-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.analytics-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--voyage-radius-md);
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--voyage-accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.analytics-main-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.analytics-subtitle {
+  font-size: 13px;
+  color: var(--voyage-text-secondary);
+  margin: 2px 0 0 0;
+}
+
+/* Seletor de Período (Pills) */
+.period-selector-pills {
+  display: flex;
+  align-items: center;
+  background: var(--voyage-bg-surface);
+  border: 1px solid var(--voyage-border-subtle);
+  border-radius: var(--voyage-radius-full, 9999px);
+  padding: 4px;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.period-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--voyage-text-secondary);
+  background: transparent;
+  border-radius: var(--voyage-radius-full, 9999px);
+  white-space: nowrap;
+  transition: all var(--voyage-transition-fast);
+  cursor: pointer;
+}
+
+.period-pill-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.period-pill-btn.active {
+  color: #ffffff;
+  background: var(--voyage-accent-primary);
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+}
+
+/* KPI Cards com Interatividade de Métrica */
+.analytics-kpis .clickable-kpi {
+  cursor: pointer;
+  position: relative;
+  transition: transform var(--voyage-transition-fast), border-color var(--voyage-transition-fast), box-shadow var(--voyage-transition-fast);
+}
+
+.analytics-kpis .clickable-kpi:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+}
+
+.analytics-kpis .clickable-kpi.selected-metric {
+  border-color: var(--voyage-accent-primary);
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.1) 0%, var(--voyage-bg-surface) 100%);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
+}
+
+.kpi-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metric-icon-bubble {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metric-icon-bubble.revenue {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--voyage-status-success);
+}
+
+.metric-icon-bubble.customers {
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--voyage-accent-secondary);
+}
+
+.metric-icon-bubble.views {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--voyage-accent-primary);
+}
+
+.metric-icon-bubble.conversion {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--voyage-status-warning);
+}
+
+/* Gráfico Principal Card */
+.chart-container-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chart-header {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.chart-granularity-indicator {
+  display: block;
+  font-size: 12px;
+  color: var(--voyage-text-muted);
+  margin-top: 4px;
+}
+
+.chart-granularity-indicator strong {
+  color: var(--voyage-accent-secondary);
+}
+
+.metric-toggle-group {
+  display: flex;
+  background: var(--voyage-bg-surface);
+  border: 1px solid var(--voyage-border-subtle);
+  border-radius: var(--voyage-radius-sm);
+  padding: 3px;
+  gap: 2px;
+}
+
+.metric-toggle-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--voyage-text-muted);
+  background: transparent;
+  border-radius: 6px;
+  transition: all var(--voyage-transition-fast);
+  cursor: pointer;
+}
+
+.metric-toggle-btn:hover {
+  color: #ffffff;
+}
+
+.metric-toggle-btn.active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* SVG Chart Wrapper */
+.svg-chart-wrapper {
+  position: relative;
+  width: 100%;
+  padding-bottom: 30px;
+}
+
+.analytics-svg-element {
+  width: 100%;
+  height: 220px;
+  overflow: visible;
+}
+
+.chart-line-path {
+  filter: drop-shadow(0 4px 10px rgba(99, 102, 241, 0.45));
+}
+
+.chart-x-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding: 0 35px;
+}
+
+.chart-x-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform var(--voyage-transition-fast);
+}
+
+.chart-x-item.highlight .x-main {
+  color: var(--voyage-accent-primary);
+  font-weight: 700;
+}
+
+.x-main {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--voyage-text-secondary);
+}
+
+.x-sub {
+  font-size: 10px;
+  color: var(--voyage-text-muted);
+}
+
+/* Tooltip Flutuante no Gráfico */
+.chart-floating-tooltip {
+  position: absolute;
+  transform: translate(-50%, -120%);
+  background: rgba(14, 18, 34, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--voyage-accent-primary);
+  border-radius: var(--voyage-radius-sm);
+  padding: 8px 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 12px rgba(99, 102, 241, 0.3);
+  pointer-events: none;
+  z-index: 20;
+  white-space: nowrap;
+  animation: company-fade-in 0.15s ease-out;
+}
+
+.tooltip-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--voyage-text-muted);
+  margin-bottom: 4px;
+}
+
+.tooltip-metric {
+  font-size: 13px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tooltip-metric .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--voyage-accent-primary);
+}
+
+/* Grid Secundário: Barras e Distribuição */
+.analytics-dual-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 900px) {
+  .analytics-dual-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Gráfico de Barras */
+.bar-chart-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 8px;
+  height: 200px;
+  padding: 16px 8px 0;
+}
+
+.bar-chart-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  flex: 1;
+  cursor: pointer;
+  transition: transform var(--voyage-transition-fast);
+}
+
+.bar-chart-column:hover,
+.bar-chart-column.active {
+  transform: translateY(-2px);
+}
+
+.bar-val-top {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--voyage-text-muted);
+  margin-bottom: 6px;
+  opacity: 0;
+  transition: opacity var(--voyage-transition-fast);
+  white-space: nowrap;
+}
+
+.bar-chart-column:hover .bar-val-top,
+.bar-chart-column.active .bar-val-top {
+  opacity: 1;
+  color: #ffffff;
+}
+
+.bar-track {
+  width: 100%;
+  max-width: 32px;
+  flex: 1;
+  background: var(--voyage-bg-surface);
+  border-radius: 6px 6px 0 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #6366f1 0%, #4338ca 100%);
+  border-radius: 6px 6px 0 0;
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;
+}
+
+.bar-chart-column:hover .bar-fill,
+.bar-chart-column.active .bar-fill {
+  background: linear-gradient(180deg, #818cf8 0%, #6366f1 100%);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+}
+
+.bar-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--voyage-text-secondary);
+  margin-top: 8px;
+}
+
+/* Distribuição por Canais */
+.channel-distribution-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.channel-dist-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.channel-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.channel-name-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.channel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.channel-label {
+  color: var(--voyage-text-primary);
+  font-weight: 500;
+}
+
+.channel-pct {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.channel-progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--voyage-bg-surface);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.channel-progress-bar {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.performance-tip-box {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--voyage-radius-md);
+  padding: 12px 16px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--voyage-text-secondary);
+}
+
+.performance-tip-box strong {
+  color: #ffffff;
+}
+
+.tip-badge {
+  display: inline-block;
+  background: var(--voyage-accent-primary);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}

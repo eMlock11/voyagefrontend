@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import PerformanceCharts from './PerformanceCharts';
 import './Company.css';
 import { companyService } from '../../services/companyService';
 import { userService } from '../../services/userService';
@@ -29,10 +30,25 @@ import {
 
 function Company() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   // Estado para controlar a aba lateral (Sidebar)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  // Estado para controlar a aba selecionada
-  const [activeTab, setActiveTab] = useState('kpis');
+  // Estado para controlar a aba selecionada (suporta ?tab=desempenho na URL)
+  const initialTab = searchParams.get('tab') || 'kpis';
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Sincronizar activeTab quando o parâmetro da URL mudar
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    setSearchParams({ tab: newTab });
+  };
 
   const currentUser = userService.getCurrentUser();
   const isOwner = currentUser?.type === 'owner';
@@ -185,10 +201,11 @@ function Company() {
         companyName={formData.nomeFantasia || currentUser?.name || 'Pará Lanches'}
         category={formData.categoria || 'Lanchonete'}
         isVerified={true}
-        activeItem={activeTab === 'kpis' ? 'resumo' : activeTab}
+        activeItem={activeTab === 'kpis' ? 'resumo' : activeTab === 'desempenho' ? 'desempenho' : activeTab}
         onSelectItem={(itemKey) => {
-          if (itemKey === 'resumo' || itemKey === 'desempenho') setActiveTab('kpis');
-          if (itemKey === 'catalogo') setActiveTab('profile');
+          if (itemKey === 'resumo') handleTabChange('kpis');
+          if (itemKey === 'desempenho') handleTabChange('desempenho');
+          if (itemKey === 'catalogo') handleTabChange('profile');
         }}
       />
 
@@ -310,35 +327,42 @@ function Company() {
         <nav className="company-tabs-nav" aria-label="Navegação do Módulo Empresa">
           <button
             className={`tab-btn ${activeTab === 'kpis' ? 'active' : ''}`}
-            onClick={() => setActiveTab('kpis')}
+            onClick={() => handleTabChange('kpis')}
           >
             <BarChart3 size={18} />
             <span>Visão Geral & Métricas</span>
           </button>
           <button
+            className={`tab-btn ${activeTab === 'desempenho' ? 'active' : ''}`}
+            onClick={() => handleTabChange('desempenho')}
+          >
+            <TrendingUp size={18} />
+            <span>Desempenho & Gráficos</span>
+          </button>
+          <button
             className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
-            onClick={() => setActiveTab('profile')}
+            onClick={() => handleTabChange('profile')}
           >
             <Building size={18} />
             <span>Perfil Corporativo</span>
           </button>
           <button
             className={`tab-btn ${activeTab === 'team' ? 'active' : ''}`}
-            onClick={() => setActiveTab('team')}
+            onClick={() => handleTabChange('team')}
           >
             <Users size={18} />
             <span>Equipe & Acessos</span>
           </button>
           <button
             className={`tab-btn ${activeTab === 'billing' ? 'active' : ''}`}
-            onClick={() => setActiveTab('billing')}
+            onClick={() => handleTabChange('billing')}
           >
             <CreditCard size={18} />
             <span>Assinatura & Plano</span>
           </button>
           <button
             className={`tab-btn ${activeTab === 'security' ? 'active' : ''}`}
-            onClick={() => setActiveTab('security')}
+            onClick={() => handleTabChange('security')}
           >
             <ShieldCheck size={18} />
             <span>Segurança & Logs</span>
@@ -349,6 +373,13 @@ function Company() {
         <div className="company-dashboard-layout">
           {/* Coluna Principal Dinâmica */}
           <main className="company-tab-content">
+
+            {/* ABA 0: DESEMPENHO COM GRÁFICOS (DIAS, SEMANAS, MESES E SEMESTRAIS) */}
+            {activeTab === 'desempenho' && (
+              <div className="tab-pane-content">
+                <PerformanceCharts />
+              </div>
+            )}
             
             {/* ABA 1: VISÃO GERAL & KPIS */}
             {activeTab === 'kpis' && (
