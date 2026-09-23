@@ -645,7 +645,7 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #ffffff;
+  color: var(--voyage-text-primary);
   font-size: 14px;
 }
 

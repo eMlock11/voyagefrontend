@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './UserDashboard.css';
 import { userService } from '../../services/userService';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
+import { ThemeToggle } from '../../components/ThemeToggle';
 import {
   Compass,
   Menu,
@@ -86,9 +87,10 @@ export default function UserDashboard() {
             <button className="header-icon-btn" title="Notificações" aria-label="Notificações">
               <Bell size={19} />
             </button>
+            <ThemeToggle className="header-icon-btn" />
             <button
               className="header-icon-btn"
-              onClick={() => navigate('/editar-perfil')}
+              onClick={() => navigate('/configuracoes')}
               title="Configurações da Conta"
               aria-label="Configurações"
             >

@@ -4,6 +4,7 @@ import './AdminDashboard.css';
 import { userService } from '../../services/userService';
 import { companyService } from '../../services/companyService';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
+import { ThemeToggle } from '../../components/ThemeToggle';
 import {
   ShieldAlert,
   Compass,
@@ -89,9 +90,10 @@ export default function AdminDashboard() {
             <button className="header-icon-btn" title="Notificações" aria-label="Notificações">
               <Bell size={19} />
             </button>
+            <ThemeToggle className="header-icon-btn" />
             <button
               className="header-icon-btn"
-              onClick={() => navigate('/editar-perfil')}
+              onClick={() => navigate('/configuracoes')}
               title="Configurações"
               aria-label="Configurações"
             >

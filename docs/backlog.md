@@ -127,3 +127,39 @@ Este arquivo é mantido por agentes de IA e desenvolvedores para registrar o est
 - **Arquivos:** [`src/globals.css`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/globals.css), [`src/App.jsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/App.jsx), [`src/main.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/main.tsx)
 - **Design Tokens Globais:** Adicionado o bloco `:root` em `globals.css` com todas as variáveis semânticas de cores (`--voyage-bg-main`, `--voyage-accent-primary`, `--voyage-accent-secondary`), espaçamentos, raios e sombras.
 - **Roteamento:** `react-router-dom` com proteção de rotas via `ProtectedRoute`.
+
+---
+
+## 7. Módulo: Configurações do Sistema e Aplicativo
+
+### [IMPLEMENTADO] Tela e Modal Dedicada de Configurações
+- **Arquivos:** [`src/pages/Configuracoes/Configuracoes.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/Configuracoes/Configuracoes.tsx), [`src/pages/Configuracoes/Configuracoes.css`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/Configuracoes/Configuracoes.css)
+- **Rota:** `/configuracoes`
+- **Funcionalidades e Recursos:**
+  - Navegação por abas:
+    1. **Conta & Perfil:** Visualização de dados do usuário autenticado, badge de perfil e links de edição.
+    2. **Preferências & Mapa:** Escolha de tema (escuro/claro/sistema), raio de busca padrão no mapa (2km a 25km), GPS automático, notificações do app com persistência no `localStorage`.
+    3. **Segurança & Senha:** Formulário para atualização de senha com validações, gerenciador de sessões ativas e botão de desconexão.
+    4. **Dados da Empresa (para `owner` e `admin`):** Visibilidade no mapa/catálogo e atalhos diretos para o painel corporativo e faturamento/planos.
+  - **Integração de Acesso:** Botão de engrenagem (`<Settings />`) em `Company.jsx`, `UserDashboard.jsx` e `AdminDashboard.jsx`, além do novo item de menu na `Sidebar.tsx`.
+
+---
+
+## 8. Módulo: Design System & shadcn/ui (Dark / Light Mode)
+
+### [IMPLEMENTADO] Sistema de Tema shadcn/ui (Dark / Light / System)
+- **Arquivos:**
+  - [`tailwind.config.js`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/tailwind.config.js), [`postcss.config.js`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/postcss.config.js)
+  - [`src/lib/utils.ts`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/lib/utils.ts) (utilitário `cn` com `clsx` e `tailwind-merge`)
+  - [`src/components/ThemeProvider.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/ThemeProvider.tsx)
+  - [`src/components/ThemeToggle.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/ThemeToggle.tsx)
+  - [`src/globals.css`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/globals.css)
+- **Funcionalidades e Recursos:**
+  - Suporte completo ao padrão oficial do **shadcn/ui** com Tailwind CSS v3 e diretivas `@tailwind`.
+  - Design tokens semânticos HSL no `:root` (Light Mode) e na classe `.dark` (Dark Mode), sincronizados com as variáveis do Voyage.
+  - Contexto `ThemeProvider` com persistência em `localStorage` (`voyage-theme`) e detecção automática de preferência do sistema operacional (`prefers-color-scheme`).
+  - Componente `ThemeToggle` inserido nos cabeçalhos (`Company`, `UserDashboard`, `AdminDashboard`), na barra lateral (`Sidebar`) e integrado ao seletor de tema em [`/configuracoes`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/Configuracoes/Configuracoes.tsx).
+  - **Tratamento de Contraste e Legibilidade (Light Mode):** Regras de adaptação em `globals.css` garantindo que títulos, textos secundários, inputs, formulários, selects, cards e botões tenham contraste nítido (`#0f172a` e `#334155`), bordas visíveis e backgrounds brancos adequados sobre superfícies claras, eliminando textos apagados.
+
+
+
