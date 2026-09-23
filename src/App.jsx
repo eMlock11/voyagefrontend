@@ -3,7 +3,7 @@ import Cadastro from './pages/User/Cadastro';
 import Login from './pages/User/Login';
 import EditarPerfil from './pages/User/EditarPerfil';
 import Company from './pages/Company/Company';
-import Payment from './pages/payment/Payment';
+import Payment from './pages/Payment/Payment';
 import AddressMap from './pages/AddressMap/AddressMap';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -19,8 +19,8 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/company" element={<Company />} />
           <Route path="/editar-perfil" element={<EditarPerfil />} />
-          <Route path="/perfil/editar" element={<EditarPerfil />} />
-          <Route path="/address" element={<AddressMap />} />
+
+
           <Route path="/map" element={<AddressMap />} />
           <Route path="/payment" element={<Payment />} />
         </Route>

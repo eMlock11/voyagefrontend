@@ -9,8 +9,11 @@ export async function apiFetch(endpoint, options = {}) {
   
   const token = localStorage.getItem('token');
 
+  const isFormData = options.body instanceof FormData;
+
   const headers = {
-    'Content-Type': 'application/json',
+    // Não definir Content-Type para FormData — o browser seta automaticamente com boundary
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers || {}),
   };
 
@@ -26,11 +29,13 @@ export async function apiFetch(endpoint, options = {}) {
 
   const response = await fetch(url, config);
 
-  // Se receber 401 Unauthorized em uma rota protegida, limpa a sessão
+  // Se receber 401 Unauthorized em uma rota protegida, limpa a sessão e redireciona
   if (response.status === 401 && token) {
     console.warn('Sessão expirada ou não autorizada. Removendo credenciais.');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    window.location.href = '/login';
+    return null;
   }
 
   const data = await response.json().catch(() => null);

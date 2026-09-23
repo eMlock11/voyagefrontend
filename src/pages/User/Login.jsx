@@ -28,13 +28,6 @@ function Login() {
         password: senha,
       })
 
-      if (res.token) {
-        localStorage.setItem('token', res.token)
-      }
-      if (res.user) {
-        localStorage.setItem('user', JSON.stringify(res.user))
-      }
-
       setMensagem({ tipo: 'sucesso', texto: 'Login efetuado com sucesso! Redirecionando...' })
       setTimeout(() => {
         const userType = res.user?.type

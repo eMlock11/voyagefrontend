@@ -206,7 +206,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             className={`sidebar-nav-item ${activeItem === 'mapa' ? 'active' : ''}`}
-            onClick={() => handleItemClick('mapa', '/address')}
+            onClick={() => handleItemClick('mapa', '/map')}
           >
             <span className="sidebar-nav-icon">
               <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

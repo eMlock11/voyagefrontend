@@ -45,6 +45,8 @@ function EditarPerfil() {
   const handleFotoChange = (e) => {
     const file = e.target.files[0]
     if (file) {
+      // Liberar Object URL anterior para evitar memory leak
+      if (foto) URL.revokeObjectURL(foto)
       setFoto(URL.createObjectURL(file))
     }
   }

@@ -35,5 +35,14 @@ export const companyService = {
    */
   async updateCompany(id, companyData) {
     return await api.put(`/company/${id}`, companyData);
+  },
+
+  /**
+   * Remove uma empresa do banco de dados.
+   * Inclui automaticamente o Bearer token do localStorage.
+   * @param {number|string} id
+   */
+  async deleteCompany(id) {
+    return await api.delete(`/company/${id}`);
   }
 };

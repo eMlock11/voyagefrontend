@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -9,26 +9,10 @@ import {
   VOYAGE_CATEGORIES,
   getCategoryFromOSMTags
 } from '../../services/mapService';
+import type { POIItem } from '../../services/mapService';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl);
-
-interface POI {
-  id: number | string;
-  name: string;
-  category: string;
-  categoryId?: string;
-  categoryGroup?: string | null;
-  categoryIcon?: string;
-  categoryColor?: string;
-  subText?: string;
-  coordinates: [number, number]; // [lng, lat]
-  evaluate: number;
-  place: string;
-  number?: string;
-  phone?: string;
-  opening_hours?: string;
-}
 
 const AddressMap: React.FC = () => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -43,9 +27,9 @@ const AddressMap: React.FC = () => {
   const [selectedGroup, setSelectedGroup] = useState<string>('todos');
   const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [pois, setPois] = useState<POI[]>([]);
+  const [pois, setPois] = useState<POIItem[]>([]);
   const [loadingPois, setLoadingPois] = useState<boolean>(false);
-  const [clickedPoi, setClickedPoi] = useState<POI | null>(null);
+  const [clickedPoi, setClickedPoi] = useState<POIItem | null>(null);
   const [showRadiusMenu, setShowRadiusMenu] = useState<boolean>(false);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
@@ -61,7 +45,7 @@ const AddressMap: React.FC = () => {
   }, [selectedGroup]);
 
   // Buscar POIs via mapService (com cache em memória integrado)
-  const fetchPOIs = async () => {
+  const fetchPOIs = useCallback(async () => {
     if (!mapRef.current) return;
     setLoadingPois(true);
 
@@ -93,7 +77,7 @@ const AddressMap: React.FC = () => {
     } finally {
       setLoadingPois(false);
     }
-  };
+  }, [centerPos, radiusKm, selectedCategory, selectedGroup]);
 
   // Busca textual direta para estabelecimentos (ex: "Savegnago", "Motel", "Oficina")
   const handleSearchSubmit = async (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -126,7 +110,7 @@ const AddressMap: React.FC = () => {
   // Carregar POIs ao mudar o centro, raio, grupo ou categoria
   useEffect(() => {
     fetchPOIs();
-  }, [centerPos, radiusKm, selectedGroup, selectedCategory]);
+  }, [fetchPOIs]);
 
   // Inicializar o Mapa Libre
   useEffect(() => {
@@ -228,7 +212,7 @@ const AddressMap: React.FC = () => {
         const matched = getCategoryFromOSMTags(props);
         const [lng, lat] = [e.lngLat.lng, e.lngLat.lat];
 
-        const poi: POI = {
+        const poi: POIItem = {
           id: `osm-${Date.now()}`,
           name: name,
           category: matched?.label || props.class || 'Local',
@@ -248,7 +232,7 @@ const AddressMap: React.FC = () => {
 
       // Se clicou em um ponto sem identificador
       const { lng, lat } = e.lngLat;
-      const genericPoi: POI = {
+      const genericPoi: POIItem = {
         id: `custom-${Date.now()}`,
         name: `Ponto Marcado`,
         category: 'Ponto no Mapa',
