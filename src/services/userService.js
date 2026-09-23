@@ -112,9 +112,36 @@ export const userService = {
   },
 
   /**
+   * Atualiza as informações do plano/assinatura do usuário logado no localStorage
+   * @param {Object} planData { planId, planName, planStatus, planPrice, planPeriod }
+   */
+  updateCurrentUserPlan(planData) {
+    const userStr = localStorage.getItem('user');
+    try {
+      const user = userStr ? JSON.parse(userStr) : {};
+      const updatedUser = {
+        ...user,
+        plan: planData.planName || user.plan || 'Gratuito',
+        planId: planData.planId || user.planId || 'basic',
+        planStatus: planData.planStatus || 'active',
+        planPrice: planData.planPrice,
+        planPeriod: planData.planPeriod,
+        subscriptionDate: new Date().toISOString()
+      };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('userPlanUpdated', { detail: updatedUser }));
+      return updatedUser;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
    * Verifica se o usuário está autenticado
    */
   isAuthenticated() {
     return !!localStorage.getItem('token');
   }
 };
+

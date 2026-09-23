@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 import { userService } from '@/services/userService';
@@ -25,12 +25,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectItem,
 }) => {
   const navigate = useNavigate();
-  const currentUser = userService.getCurrentUser();
+  const [currentUser, setCurrentUser] = useState(() => userService.getCurrentUser());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setCurrentUser(userService.getCurrentUser());
+    };
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('userPlanUpdated', handleUpdate);
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('userPlanUpdated', handleUpdate);
+    };
+  }, []);
+
   const userType = currentUser?.type || 'client'; // 'client' | 'owner' | 'admin'
+  const userPlan = currentUser?.plan || 'Gratuito';
 
   const displayName = companyName || currentUser?.name || (userType === 'owner' ? 'Minha Empresa' : 'Usuário Voyage');
-  const displayCategory = category || (userType === 'owner' ? 'Lanchonete' : userType === 'admin' ? 'Administrador do Sistema' : 'Membro Voyage');
-  const showVerified = isVerified !== undefined ? isVerified : (userType === 'owner' || userType === 'admin');
+  const displayCategory = category || (userType === 'owner' ? 'Lanchonete' : userType === 'admin' ? 'Administrador do Sistema' : (currentUser?.plan ? `Plano ${currentUser.plan}` : 'Membro Voyage'));
+  const showVerified = isVerified !== undefined ? isVerified : (userType === 'owner' || userType === 'admin' || currentUser?.planId === 'plus');
+
 
   const handleLogout = () => {
     userService.logout();
@@ -89,8 +104,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* 2. Cartão de Perfil / Empresa */}
         <div className="sidebar-profile-card">
           <div className="sidebar-avatar">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={displayName} className="sidebar-avatar-img" />
+            {currentUser?.avatar || currentUser?.foto || avatarUrl ? (
+              <img src={currentUser?.avatar || currentUser?.foto || avatarUrl} alt={displayName} className="sidebar-avatar-img" />
             ) : (
               <svg className="sidebar-avatar-silhouette" viewBox="0 0 24 24">
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
@@ -221,7 +236,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <line x1="1" y1="10" x2="23" y2="10" />
               </svg>
             </span>
-            <span>{userType === 'owner' ? 'Plano Business PRO' : 'Assinatura (Voyage+)'}</span>
+            <span>
+              {userType === 'owner' 
+                ? 'Plano Business PRO' 
+                : currentUser?.plan 
+                ? `Assinatura (${currentUser.plan})` 
+                : 'Assinatura (Voyage+)'}
+            </span>
           </button>
         </nav>
 

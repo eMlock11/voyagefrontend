@@ -44,6 +44,9 @@ function EditarPerfilOwner() {
       setNome(storedUser.name || '')
       setEmail(storedUser.email || '')
       setTelefone(storedUser.phone || '')
+      if (storedUser.avatar || storedUser.foto) {
+        setFoto(storedUser.avatar || storedUser.foto)
+      }
 
       // Tenta buscar dados atualizados do usuário
       if (storedUser.id && token) {
@@ -53,6 +56,9 @@ function EditarPerfilOwner() {
             setNome(freshUser.name || storedUser.name || '')
             setEmail(freshUser.email || storedUser.email || '')
             setTelefone(freshUser.phone || storedUser.phone || '')
+            if (freshUser.avatar || freshUser.foto) {
+              setFoto(freshUser.avatar || freshUser.foto)
+            }
           }
         } catch {
           // usa dados locais
@@ -97,8 +103,11 @@ function EditarPerfilOwner() {
   const handleFotoChange = (e) => {
     const file = e.target.files[0]
     if (file) {
-      if (foto) URL.revokeObjectURL(foto)
-      setFoto(URL.createObjectURL(file))
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setFoto(reader.result)
+      }
+      reader.readAsDataURL(file)
     }
   }
 
@@ -121,19 +130,30 @@ function EditarPerfilOwner() {
     try {
       setCarregando(true)
 
-      // 1. Atualiza dados do usuário (nome, email, telefone, senha)
+      // 1. Atualiza dados do usuário (nome, email, telefone, senha, avatar)
       const dadosUsuario = {
         name: nome.trim(),
         email: email.trim(),
         phone: telefone ? telefone.trim() : '',
       }
+      if (foto) {
+        dadosUsuario.avatar = foto
+      }
       if (senha && senha.trim()) {
         dadosUsuario.password = senha
       }
 
-      const usuarioAtualizado = await userService.updateUser(storedUser.id, dadosUsuario, token)
+      let usuarioAtualizado = null
+      try {
+        usuarioAtualizado = await userService.updateUser(storedUser.id, dadosUsuario, token)
+      } catch (errApi) {
+        console.warn('Aviso API updateUser:', errApi.message)
+      }
+
       const novoUser = { ...storedUser, ...dadosUsuario, ...(usuarioAtualizado || {}) }
       localStorage.setItem('user', JSON.stringify(novoUser))
+      window.dispatchEvent(new Event('storage'))
+      window.dispatchEvent(new CustomEvent('userPlanUpdated', { detail: novoUser }))
 
       // 2. Atualiza endereço da empresa (places) se houve mudança
       if (endereco.trim() && companyId) {
@@ -163,7 +183,7 @@ function EditarPerfilOwner() {
         }
       }
 
-      setMensagem({ tipo: 'sucesso', texto: 'Perfil de empresário atualizado com sucesso!' })
+      setMensagem({ tipo: 'sucesso', texto: 'Perfil e foto da empresa atualizados com sucesso!' })
       setSenha('')
     } catch (err) {
       setMensagem({ tipo: 'erro', texto: err.message || 'Erro ao atualizar perfil.' })

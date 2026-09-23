@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './UserDashboard.css';
 import { userService } from '../../services/userService';
@@ -23,12 +23,27 @@ import {
 export default function UserDashboard() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const currentUser = userService.getCurrentUser();
+  const [currentUser, setCurrentUser] = useState(() => userService.getCurrentUser());
+
+  useEffect(() => {
+    const handlePlanUpdate = () => {
+      setCurrentUser(userService.getCurrentUser());
+    };
+
+    window.addEventListener('storage', handlePlanUpdate);
+    window.addEventListener('userPlanUpdated', handlePlanUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handlePlanUpdate);
+      window.removeEventListener('userPlanUpdated', handlePlanUpdate);
+    };
+  }, []);
 
   const handleLogout = () => {
     userService.logout();
     navigate('/login');
   };
+
 
   return (
     <div id="user-dashboard-page">
@@ -94,14 +109,24 @@ export default function UserDashboard() {
         <section className="user-hero-card">
           <div className="user-hero-info">
             <div className="user-avatar-large">
-              {currentUser?.name
-                ? currentUser.name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
-                : 'U'}
+              {currentUser?.avatar || currentUser?.foto ? (
+                <img
+                  src={currentUser.avatar || currentUser.foto}
+                  alt={currentUser.name || 'Foto de perfil'}
+                  className="user-avatar-img-custom"
+                />
+              ) : currentUser?.name ? (
+                currentUser.name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
+              ) : (
+                'U'
+              )}
             </div>
             <div>
               <h1 className="user-greeting">
                 Olá, {currentUser?.name || 'Viajante'}!
-                <span className="user-badge-role">Usuário</span>
+                <span className={`user-badge-role ${currentUser?.planId || 'basic'}`}>
+                  {currentUser?.plan ? currentUser.plan : (currentUser?.type === 'owner' ? 'Comerciante' : 'Usuário')}
+                </span>
               </h1>
               <p className="user-email-text">{currentUser?.email || 'usuario@voyage.com'}</p>
             </div>
@@ -154,15 +179,28 @@ export default function UserDashboard() {
             <span className="stat-label">Média 4.9 ★ dada</span>
           </div>
 
-          <div className="stat-card">
+          <div 
+            className="stat-card plan-stat-card"
+            onClick={() => navigate('/payment')}
+            style={{ cursor: 'pointer' }}
+            title="Clique para gerenciar ou alterar seu plano"
+          >
             <div className="stat-card-header">
-              <div className="stat-icon-wrapper">
+              <div className={`stat-icon-wrapper ${currentUser?.planId === 'plus' ? 'plus-icon' : ''}`}>
                 <Sparkles size={22} />
               </div>
               <span className="stat-label">Plano Voyage</span>
             </div>
-            <div className="stat-value" style={{ fontSize: '20px', color: '#a5b4fc' }}>Gratuito</div>
-            <span className="stat-label">Desbloqueie o Voyage+</span>
+            <div className="stat-value" style={{ fontSize: '20px', color: currentUser?.planId === 'plus' ? '#c084fc' : currentUser?.planId === 'intermediary' ? '#60a5fa' : '#a5b4fc' }}>
+              {currentUser?.plan || 'Gratuito'}
+            </div>
+            <span className="stat-label">
+              {currentUser?.planId === 'plus' 
+                ? 'VIP Completo • Ativo' 
+                : currentUser?.planId === 'intermediary' 
+                ? 'Intermediário • Ativo' 
+                : 'Desbloqueie o Voyage+'}
+            </span>
           </div>
         </section>
 
@@ -237,17 +275,43 @@ export default function UserDashboard() {
 
           {/* Lateral: Promoção Voyage+ & Atividade */}
           <div className="flex flex-col gap-5">
-            <div className="voyage-plus-promo">
-              <span className="promo-tag">Experiência Completa</span>
-              <h3 className="promo-title">Experimente o Voyage+</h3>
-              <p className="promo-desc">
-                Tenha navegação sem anúncios, rotas inteligentes em tempo real e cupons de desconto exclusivos nos melhores estabelecimentos.
-              </p>
-              <button className="btn-promo" onClick={() => navigate('/payment')}>
-                <Sparkles size={16} />
-                <span>Conhecer Planos Voyage+</span>
-              </button>
-            </div>
+            {currentUser?.planId === 'plus' ? (
+              <div className="voyage-plus-promo" style={{ background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(30, 27, 75, 0.8) 100%)', borderColor: 'rgba(168, 85, 247, 0.4)' }}>
+                <span className="promo-tag" style={{ background: '#a855f7', color: '#ffffff' }}>VIP Ativo</span>
+                <h3 className="promo-title">Você é Membro Voyage+</h3>
+                <p className="promo-desc">
+                  Seu plano VIP está 100% ativo! Aproveite cupons de desconto ilimitados, sem anúncios e suporte 24/7.
+                </p>
+                <button className="btn-promo" onClick={() => navigate('/payment')}>
+                  <Sparkles size={16} />
+                  <span>Gerenciar Assinatura</span>
+                </button>
+              </div>
+            ) : currentUser?.planId === 'intermediary' ? (
+              <div className="voyage-plus-promo" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(30, 27, 75, 0.8) 100%)', borderColor: 'rgba(59, 130, 246, 0.4)' }}>
+                <span className="promo-tag" style={{ background: '#3b82f6', color: '#ffffff' }}>Plano Intermediário</span>
+                <h3 className="promo-title">Migre para o Voyage+ VIP</h3>
+                <p className="promo-desc">
+                  Desbloqueie cupons ilimitados e o selo VIP exclusivo com suporte prioritário a qualquer momento.
+                </p>
+                <button className="btn-promo" onClick={() => navigate('/payment')}>
+                  <Sparkles size={16} />
+                  <span>Fazer Upgrade para Voyage+</span>
+                </button>
+              </div>
+            ) : (
+              <div className="voyage-plus-promo">
+                <span className="promo-tag">Experiência Completa</span>
+                <h3 className="promo-title">Experimente o Voyage+</h3>
+                <p className="promo-desc">
+                  Tenha navegação sem anúncios, rotas inteligentes em tempo real e cupons de desconto exclusivos nos melhores estabelecimentos.
+                </p>
+                <button className="btn-promo" onClick={() => navigate('/payment')}>
+                  <Sparkles size={16} />
+                  <span>Conhecer Planos Voyage+</span>
+                </button>
+              </div>
+            )}
 
             <div className="dashboard-panel">
               <div className="panel-header">

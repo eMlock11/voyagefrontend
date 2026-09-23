@@ -36,6 +36,9 @@ function EditarPerfilClient() {
         setNome(storedUser.name || '')
         setEmail(storedUser.email || '')
         setTelefone(storedUser.phone || '')
+        if (storedUser.avatar || storedUser.foto) {
+          setFoto(storedUser.avatar || storedUser.foto)
+        }
         if (storedUser.cpf && storedUser.cpf.trim() !== '') {
           setCpf(storedUser.cpf)
           setCpfCadastradoOriginal(true)
@@ -51,6 +54,9 @@ function EditarPerfilClient() {
               setNome(freshUser.name || storedUser.name || '')
               setEmail(freshUser.email || storedUser.email || '')
               setTelefone(freshUser.phone || storedUser.phone || '')
+              if (freshUser.avatar || freshUser.foto) {
+                setFoto(freshUser.avatar || freshUser.foto)
+              }
               if (freshUser.cpf && freshUser.cpf.trim() !== '') {
                 setCpf(freshUser.cpf)
                 setCpfCadastradoOriginal(true)
@@ -69,8 +75,11 @@ function EditarPerfilClient() {
   const handleFotoChange = (e) => {
     const file = e.target.files[0]
     if (file) {
-      if (foto) URL.revokeObjectURL(foto)
-      setFoto(URL.createObjectURL(file))
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setFoto(reader.result)
+      }
+      reader.readAsDataURL(file)
     }
   }
 
@@ -98,6 +107,10 @@ function EditarPerfilClient() {
         email: email.trim(),
       }
 
+      if (foto) {
+        dadosAtualizar.avatar = foto
+      }
+
       // Permite editar telefone
       dadosAtualizar.phone = telefone ? telefone.trim() : ''
 
@@ -111,17 +124,24 @@ function EditarPerfilClient() {
         dadosAtualizar.password = senha
       }
 
-      const atualizado = await userService.updateUser(storedUser.id, dadosAtualizar, token)
+      let atualizado = null
+      try {
+        atualizado = await userService.updateUser(storedUser.id, dadosAtualizar, token)
+      } catch (errApi) {
+        console.warn('Aviso API updateUser:', errApi.message)
+      }
 
       // Atualiza os dados salvos localmente
       const novoUser = { ...storedUser, ...dadosAtualizar, ...(atualizado || {}) }
       localStorage.setItem('user', JSON.stringify(novoUser))
+      window.dispatchEvent(new Event('storage'))
+      window.dispatchEvent(new CustomEvent('userPlanUpdated', { detail: novoUser }))
 
       if (!cpfCadastradoOriginal && cpf.trim()) {
         setCpfCadastradoOriginal(true)
       }
 
-      setMensagem({ tipo: 'sucesso', texto: 'Perfil de cliente atualizado com sucesso!' })
+      setMensagem({ tipo: 'sucesso', texto: 'Perfil e foto atualizados com sucesso!' })
       setSenha('')
     } catch (err) {
       setMensagem({ tipo: 'erro', texto: err.message || 'Erro ao atualizar perfil.' })

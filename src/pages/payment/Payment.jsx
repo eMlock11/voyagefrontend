@@ -15,6 +15,7 @@ import {
   Sparkles,
   CheckCircle2
 } from 'lucide-react';
+import { userService } from '../../services/userService';
 import './Payment.css';
 
 // Definição dos 3 Planos Voyage
@@ -80,8 +81,15 @@ export default function Payment() {
   // Estados de navegação do fluxo: 'subscription' | 'methods' | 'cards' | 'card-form' | 'pix'
   const [step, setStep] = useState('subscription');
 
+  const currentUser = userService.getCurrentUser();
+
   // Plano selecionado ('basic' | 'intermediary' | 'plus')
-  const [selectedPlanId, setSelectedPlanId] = useState('plus');
+  const [selectedPlanId, setSelectedPlanId] = useState(() => {
+    if (currentUser?.planId) return currentUser.planId;
+    if (currentUser?.plan?.toLowerCase().includes('plus') || currentUser?.plan?.toLowerCase().includes('voyage+')) return 'plus';
+    if (currentUser?.plan?.toLowerCase().includes('inter')) return 'intermediary';
+    return 'plus';
+  });
 
   // Estado da forma de pagamento selecionada: 'credit' | 'debit' | 'pix'
   const [selectedMethod, setSelectedMethod] = useState('credit');
@@ -120,6 +128,18 @@ export default function Payment() {
 
   // Plano atualmente selecionado
   const currentPlan = PLANS.find((p) => p.id === selectedPlanId) || PLANS[1];
+
+  // Função para salvar a assinatura realizada no perfil do usuário
+  const applySubscription = (planObj) => {
+    userService.updateCurrentUserPlan({
+      planId: planObj.id,
+      planName: planObj.name,
+      planStatus: 'active',
+      planPrice: planObj.price,
+      planPeriod: planObj.period,
+    });
+  };
+
 
   // Chave PIX Fictícia realista
   const pixKeyCopy = `00020126580014br.gov.bcb.pix0136voyage-pagamentos-${currentPlan.pixCodeSuffix}-20265204000053039865405${currentPlan.amount.toFixed(2)}5802BR5913Voyage Brasil6009Sao Paulo62070503***6304`;
@@ -356,6 +376,7 @@ export default function Payment() {
                   className="btn-primary-action"
                   onClick={() => {
                     if (currentPlan.amount === 0) {
+                      applySubscription(currentPlan);
                       alert('Plano Básico gratuito ativado com sucesso no seu perfil!');
                     } else {
                       setStep('methods');
@@ -471,6 +492,7 @@ export default function Payment() {
                 className="btn-primary-action"
                 onClick={() => {
                   const selectedCard = savedCards.find((c) => c.id === selectedCardId);
+                  applySubscription(currentPlan);
                   alert(`Assinatura do ${currentPlan.name} confirmada no cartão ${selectedCard?.brand} final ${selectedCard?.number.slice(-4)}!`);
                   setStep('subscription');
                 }}
@@ -632,6 +654,7 @@ export default function Payment() {
                 className={`btn-primary-action ${pixPaid ? 'paid' : ''}`}
                 onClick={() => {
                   setPixPaid(true);
+                  applySubscription(currentPlan);
                   setTimeout(() => {
                     alert(`Pagamento PIX do ${currentPlan.name} recebido com sucesso!`);
                     setStep('subscription');

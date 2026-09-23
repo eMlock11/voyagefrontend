@@ -11,6 +11,15 @@ import {
 } from '../../services/mapService';
 import type { POIItem } from '../../services/mapService';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
+import {
+  SlidersHorizontal,
+  X,
+  Check,
+  Sparkles,
+  Layers,
+  Search,
+  Filter
+} from 'lucide-react';
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl);
 
@@ -31,12 +40,14 @@ const AddressMap: React.FC = () => {
   const [loadingPois, setLoadingPois] = useState<boolean>(false);
   const [clickedPoi, setClickedPoi] = useState<POIItem | null>(null);
   const [showRadiusMenu, setShowRadiusMenu] = useState<boolean>(false);
+  const [showCategoryModal, setShowCategoryModal] = useState<boolean>(false);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
   // Estados de Localização
   const [showLocationPrompt, setShowLocationPrompt] = useState<boolean>(true);
   const [isSettingManualLocation, setIsSettingManualLocation] = useState<boolean>(false);
   const [isRouteLoading, setIsRouteLoading] = useState<boolean>(false);
+
 
   // Lista de subcategorias baseadas no grupo selecionado
   const subCategoriesOfGroup = useMemo(() => {
@@ -473,7 +484,7 @@ const AddressMap: React.FC = () => {
         </div>
       )}
 
-      {/* Header com Busca e Seletor de Raio */}
+      {/* Header com Busca, Filtro de Categorias e Seletor de Raio */}
       <div className="search-header">
         <div className="search-input-wrapper">
           <input
@@ -488,6 +499,35 @@ const AddressMap: React.FC = () => {
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </div>
+
+        {/* Botão de Abrir Filtro de Categorias */}
+        <button
+          className={`category-filter-toggle-btn ${selectedCategory || selectedGroup !== 'todos' ? 'active' : ''}`}
+          onClick={() => setShowCategoryModal(true)}
+          title="Filtrar por Categoria"
+        >
+          <SlidersHorizontal size={15} />
+          <span>
+            {selectedCategory
+              ? `${selectedCategory.icon} ${selectedCategory.label}`
+              : selectedGroup !== 'todos'
+              ? `${CATEGORY_GROUPS.find((g) => g.id === selectedGroup)?.icon || '📁'} ${CATEGORY_GROUPS.find((g) => g.id === selectedGroup)?.label || 'Filtro'}`
+              : 'Categorias'}
+          </span>
+          {(selectedCategory || selectedGroup !== 'todos') && (
+            <span
+              className="filter-clear-badge"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedGroup('todos');
+                setSelectedCategory(null);
+              }}
+              title="Limpar filtro"
+            >
+              ✕
+            </span>
+          )}
+        </button>
 
         <div className="radius-badge-container">
           <button className="radius-badge" onClick={() => setShowRadiusMenu(!showRadiusMenu)}>
@@ -521,6 +561,116 @@ const AddressMap: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modal / Drawer Elegante de Filtro por Categoria */}
+      {showCategoryModal && (
+        <div className="category-modal-overlay" onClick={() => setShowCategoryModal(false)}>
+          <div className="category-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="category-modal-header">
+              <div className="category-modal-title-group">
+                <div className="category-modal-icon-badge">
+                  <Filter size={18} />
+                </div>
+                <div>
+                  <h3>Filtrar por Categoria</h3>
+                  <p>Selecione um segmento para exibir no mapa</p>
+                </div>
+              </div>
+              <button className="category-modal-close" onClick={() => setShowCategoryModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Abas de Grupos Principais dentro do Modal */}
+            <div className="category-modal-group-tabs">
+              {CATEGORY_GROUPS.map((group) => {
+                const isGroupActive = selectedGroup === group.id && !selectedCategory;
+                return (
+                  <button
+                    key={group.id}
+                    className={`category-modal-tab ${selectedGroup === group.id ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedGroup(group.id);
+                      setSelectedCategory(null);
+                    }}
+                  >
+                    <span>{group.icon}</span>
+                    <span>{group.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Grade de Subcategorias */}
+            <div className="category-modal-grid-content">
+              {/* Opção Exibir Todos */}
+              <button
+                className={`category-item-card all-card ${selectedGroup === 'todos' && !selectedCategory ? 'selected' : ''}`}
+                onClick={() => {
+                  setSelectedGroup('todos');
+                  setSelectedCategory(null);
+                  setShowCategoryModal(false);
+                }}
+              >
+                <div className="category-item-icon" style={{ backgroundColor: '#6343F2' }}>🌟</div>
+                <div className="category-item-info">
+                  <strong>Todos os Comércios</strong>
+                  <span>Sem filtro de categoria</span>
+                </div>
+                {selectedGroup === 'todos' && !selectedCategory && <Check size={18} className="check-icon" />}
+              </button>
+
+              {/* Lista das Categorias Específicas */}
+              {(selectedGroup === 'todos'
+                ? VOYAGE_CATEGORIES
+                : VOYAGE_CATEGORIES.filter((c) => c.group === selectedGroup)
+              ).map((cat) => {
+                const isSelected = selectedCategory?.id === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    className={`category-item-card ${isSelected ? 'selected' : ''}`}
+                    onClick={() => {
+                      setSelectedCategory(cat);
+                      setSelectedGroup(cat.group);
+                      setShowCategoryModal(false);
+                    }}
+                  >
+                    <div className="category-item-icon" style={{ backgroundColor: cat.color || '#6343F2' }}>
+                      {cat.icon}
+                    </div>
+                    <div className="category-item-info">
+                      <strong>{cat.label}</strong>
+                      <span>{CATEGORY_GROUPS.find((g) => g.id === cat.group)?.label || 'Geral'}</span>
+                    </div>
+                    {isSelected && <Check size={18} className="check-icon" />}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Rodapé do Modal */}
+            <div className="category-modal-footer">
+              <button
+                className="btn-reset-filters"
+                onClick={() => {
+                  setSelectedGroup('todos');
+                  setSelectedCategory(null);
+                  setShowCategoryModal(false);
+                }}
+              >
+                Limpar Filtro (Ver Todos)
+              </button>
+              <button
+                className="btn-apply-filters"
+                onClick={() => setShowCategoryModal(false)}
+              >
+                Aplicar e Ver no Mapa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Botão de Centralizar (Me ache) */}
       <button
@@ -613,7 +763,7 @@ const AddressMap: React.FC = () => {
           {CATEGORY_GROUPS.map((g) => (
             <button
               key={g.id}
-              className={`category-button ${selectedGroup === g.id ? 'active' : ''}`}
+              className={`category-button ${selectedGroup === g.id && selectedCategory === null ? 'active' : ''}`}
               onClick={() => {
                 setSelectedGroup(g.id);
                 setSelectedCategory(null);
