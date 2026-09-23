@@ -5,6 +5,7 @@ import './Company.css';
 import { companyService } from '../../services/companyService';
 import { userService } from '../../services/userService';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
+import { ThemeToggle } from '../../components/ThemeToggle';
 import {
   Compass,
   Menu,
@@ -104,13 +105,22 @@ function Company() {
         if (storedCompany) {
           try {
             const parsed = JSON.parse(storedCompany);
-            if (parsed && (parsed.id || parsed.name)) {
+            // Só aplica a empresa do storage se pertencer ao usuário logado atual
+            const belongsToUser =
+              (parsed.userId && currentUser?.id && parsed.userId === currentUser.id) ||
+              (parsed.cnpj && currentUser?.cnpj && parsed.cnpj === currentUser.cnpj) ||
+              (parsed.name?.toLowerCase().trim() === currentUser?.name?.toLowerCase().trim());
+
+            if (parsed && belongsToUser && (parsed.id || parsed.name)) {
               applyCompanyData(parsed);
               setLoading(false);
               return;
+            } else {
+              // Se a empresa no storage for de outro usuário, descarta do storage
+              localStorage.removeItem('user_company');
             }
           } catch {
-            // Segue fluxo de busca
+            localStorage.removeItem('user_company');
           }
         }
 
@@ -118,12 +128,14 @@ function Company() {
         if (Array.isArray(companies) && companies.length > 0) {
           const myCompany = companies.find(
             (c) =>
-              c.name?.toLowerCase().trim() === currentUser?.name?.toLowerCase().trim() ||
-              (currentUser?.cnpj && c.cnpj === currentUser.cnpj)
+              (c.userId && currentUser?.id && c.userId === currentUser.id) ||
+              (currentUser?.cnpj && c.cnpj === currentUser.cnpj) ||
+              c.name?.toLowerCase().trim() === currentUser?.name?.toLowerCase().trim()
           );
 
           if (myCompany) {
             applyCompanyData(myCompany);
+            localStorage.setItem('user_company', JSON.stringify(myCompany));
           } else {
             setFormData((prev) => ({
               ...prev,
@@ -131,6 +143,12 @@ function Company() {
               razaoSocial: currentUser?.name || '',
             }));
           }
+        } else {
+          setFormData((prev) => ({
+            ...prev,
+            nomeFantasia: currentUser?.name || '',
+            razaoSocial: currentUser?.name || '',
+          }));
         }
       } catch (err) {
         console.warn('Aviso ao carregar dados da empresa:', err.message);
@@ -241,7 +259,13 @@ function Company() {
             <button className="header-icon-btn" title="Notificações" aria-label="Notificações">
               <Bell size={19} />
             </button>
-            <button className="header-icon-btn" title="Configurações" aria-label="Configurações">
+            <ThemeToggle className="header-icon-btn" />
+            <button
+              className="header-icon-btn"
+              onClick={() => navigate('/configuracoes')}
+              title="Configurações"
+              aria-label="Configurações"
+            >
               <Settings size={19} />
             </button>
             <button

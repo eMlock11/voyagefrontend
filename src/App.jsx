@@ -7,15 +7,18 @@ import AdminDashboard from './pages/Admin/AdminDashboard';
 import Company from './pages/Company/Company';
 import Payment from './pages/Payment/Payment';
 import AddressMap from './pages/AddressMap/AddressMap';
+import Configuracoes from './pages/Configuracoes/Configuracoes';
 import ProtectedRoute from './components/ProtectedRoute';
+import { ThemeProvider } from './components/ThemeProvider';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Rotas Públicas */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/cadastro" element={<Cadastro />} />
+    <ThemeProvider defaultTheme="dark" storageKey="voyage-theme">
+      <BrowserRouter>
+        <Routes>
+          {/* Rotas Públicas */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/cadastro" element={<Cadastro />} />
 
         {/* 1. Rotas do Cliente / Usuário Comum */}
         <Route element={<ProtectedRoute allowedRoles={['client']} />}>
@@ -37,6 +40,7 @@ function App() {
           <Route path="/map" element={<AddressMap />} />
           <Route path="/editar-perfil" element={<EditarPerfil />} />
           <Route path="/payment" element={<Payment />} />
+          <Route path="/configuracoes" element={<Configuracoes />} />
         </Route>
 
         {/* Redirecionamento Padrão */}
@@ -44,6 +48,7 @@ function App() {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
+  </ThemeProvider>
   );
 }
 

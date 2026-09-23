@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 import { userService } from '@/services/userService';
+import { ThemeToggle } from '../ThemeToggle';
 
 export interface SidebarProps {
   isOpen: boolean;
@@ -223,6 +224,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
             <span>{userType === 'owner' ? 'Plano Business PRO' : 'Assinatura (Voyage+)'}</span>
           </button>
+
+          <button
+            className={`sidebar-nav-item ${activeItem === 'configuracoes' ? 'active' : ''}`}
+            onClick={() => handleItemClick('configuracoes', '/configuracoes')}
+          >
+            <span className="sidebar-nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </span>
+            <span>Configurações</span>
+          </button>
         </nav>
 
         {/* 4. Rodapé com Botão Voltar e Sair */}
@@ -238,6 +252,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <path d="M20 20v-7a4 4 0 0 0-4-4H4" />
             </svg>
           </button>
+
+          <ThemeToggle className="sidebar-back-btn" />
 
           <button
             className="sidebar-logout-btn"

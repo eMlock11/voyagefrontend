@@ -90,6 +90,8 @@ export const userService = {
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('user_company');
+    localStorage.removeItem('user_profile_data');
   },
 
   /**
