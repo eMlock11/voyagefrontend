@@ -80,15 +80,15 @@ export default function Payment() {
   const navigate = useNavigate();
   // Estados de navegação do fluxo: 'subscription' | 'methods' | 'cards' | 'card-form' | 'pix'
   const [step, setStep] = useState('subscription');
+  const initialUser = userService.getCurrentUser();
 
-  const currentUser = userService.getCurrentUser();
-
-  // Plano selecionado ('basic' | 'intermediary' | 'plus')
+  // Plano selecionado ('basic' | 'intermediary' | 'plus' | null)
   const [selectedPlanId, setSelectedPlanId] = useState(() => {
-    if (currentUser?.planId) return currentUser.planId;
-    if (currentUser?.plan?.toLowerCase().includes('plus') || currentUser?.plan?.toLowerCase().includes('voyage+')) return 'plus';
-    if (currentUser?.plan?.toLowerCase().includes('inter')) return 'intermediary';
-    return 'plus';
+    if (initialUser?.planId) return initialUser.planId;
+    if (initialUser?.plan?.toLowerCase().includes('plus') || initialUser?.plan?.toLowerCase().includes('voyage+')) return 'plus';
+    if (initialUser?.plan?.toLowerCase().includes('inter')) return 'intermediary';
+    if (initialUser?.plan?.toLowerCase().includes('básico') || initialUser?.plan?.toLowerCase().includes('basic')) return 'basic';
+    return 'intermediary'; // Sugere o mais popular para contratação inicial
   });
 
   // Estado da forma de pagamento selecionada: 'credit' | 'debit' | 'pix'
@@ -126,18 +126,23 @@ export default function Payment() {
     return () => clearInterval(timer);
   }, [step, pixTimeLeft]);
 
+  const [currentUser, setCurrentUser] = useState(() => userService.getCurrentUser());
+
   // Plano atualmente selecionado
   const currentPlan = PLANS.find((p) => p.id === selectedPlanId) || PLANS[1];
 
   // Função para salvar a assinatura realizada no perfil do usuário
   const applySubscription = (planObj) => {
-    userService.updateCurrentUserPlan({
+    const updated = userService.updateCurrentUserPlan({
       planId: planObj.id,
       planName: planObj.name,
       planStatus: 'active',
       planPrice: planObj.price,
       planPeriod: planObj.period,
     });
+    if (updated) {
+      setCurrentUser(updated);
+    }
   };
 
 
@@ -304,6 +309,33 @@ export default function Payment() {
           {/* 1. SELEÇÃO DE 3 PLANOS EM GRID COMPARATIVO DESKTOP */}
           {step === 'subscription' && (
             <div className="subscription-view">
+              {/* Banner de Status do Plano do Usuário */}
+              <div style={{
+                marginBottom: '24px',
+                padding: '14px 20px',
+                borderRadius: '12px',
+                background: (!currentUser?.plan || currentUser?.plan === 'Nenhum' || currentUser?.planStatus === 'inactive')
+                  ? 'rgba(239, 68, 68, 0.1)'
+                  : 'rgba(99, 102, 241, 0.1)',
+                border: (!currentUser?.plan || currentUser?.plan === 'Nenhum' || currentUser?.planStatus === 'inactive')
+                  ? '1px solid rgba(239, 68, 68, 0.25)'
+                  : '1px solid rgba(99, 102, 241, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Sparkles size={18} color="var(--voyage-accent-primary, #6366f1)" />
+                  <span style={{ fontSize: '14px', color: 'var(--voyage-text-primary, #ffffff)' }}>
+                    Plano atual da conta: <strong>{currentUser?.plan && currentUser.plan !== 'Nenhum' ? currentUser.plan : 'Nenhum plano contratado'}</strong>
+                    {currentUser?.planStatus === 'active' && <span style={{ marginLeft: '8px', color: '#10b981', fontSize: '12px' }}>● Ativo</span>}
+                  </span>
+                </div>
+                <span className="voyage-demo-badge" style={{ margin: 0 }}>Modo Teste: Pagamento Habilitado</span>
+              </div>
+
               <div className="plans-selector-grid">
                 {PLANS.map((plan) => {
                   const isSelected = selectedPlanId === plan.id;

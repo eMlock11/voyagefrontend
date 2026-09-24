@@ -160,6 +160,8 @@ Este arquivo é mantido por agentes de IA e desenvolvedores para registrar o est
   - Contexto `ThemeProvider` com persistência em `localStorage` (`voyage-theme`) e detecção automática de preferência do sistema operacional (`prefers-color-scheme`).
   - Componente `ThemeToggle` inserido nos cabeçalhos (`Company`, `UserDashboard`, `AdminDashboard`), na barra lateral (`Sidebar`) e integrado ao seletor de tema em [`/configuracoes`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/Configuracoes/Configuracoes.tsx).
   - **Tratamento de Contraste e Legibilidade (Light Mode):** Regras de adaptação em `globals.css` garantindo que títulos, textos secundários, inputs, formulários, selects, cards e botões tenham contraste nítido (`#0f172a` e `#334155`), bordas visíveis e backgrounds brancos adequados sobre superfícies claras, eliminando textos apagados.
+  - **Modo de Teste de Assinatura:** Contas recém-criadas iniciam sem plano ativo (`plan: 'Nenhum'`), e a tela [`/payment`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/Payment/Payment.jsx) exibe banner informativo com simulação de contratação (Cartão de Crédito/Débito e PIX) habilitada para testes imediatos.
+
 
 
 

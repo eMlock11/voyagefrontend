@@ -33,7 +33,14 @@ export const userService = {
       localStorage.setItem('token', data.token);
     }
     if (data && data.user) {
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Nova conta criada inicia sem plano ativo para fins de teste
+      const userWithoutPlan = {
+        ...data.user,
+        plan: 'Nenhum',
+        planId: null,
+        planStatus: 'inactive',
+      };
+      localStorage.setItem('user', JSON.stringify(userWithoutPlan));
     }
     return data;
   },
