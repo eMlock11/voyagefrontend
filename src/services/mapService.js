@@ -216,8 +216,42 @@ export const mapService = {
     const catKey = category?.id || group || 'todos';
     const cacheKey = `${centerKey}_${radiusKey}_${catKey}`;
 
+    // Estabelecimentos Parceiros Fixos e Cadastrados (Ex: Supermercado Ratti)
+    const FEATURED_PARTNERS = [
+      {
+        id: 'ratti-sc-01',
+        name: 'Supermercado Ratti',
+        category: 'Supermercado',
+        categoryId: 'supermercado',
+        categoryGroup: 'compras',
+        categoryIcon: '🏬',
+        categoryColor: '#059669',
+        coordinates: [-47.9042, -22.0298],
+        evaluate: 4.9,
+        place: 'Avenida República do Líbano',
+        number: '361 - Jardim Cruzeiro do Sul',
+        phone: '(16) 99641-1440',
+        opening_hours: 'Seg - Sáb: 07:30 às 20:00 • Dom: 07:30 às 13:00'
+      }
+    ];
+
+    const filterPartners = () => {
+      return FEATURED_PARTNERS.filter((partner) => {
+        if (category?.id && partner.categoryId !== category.id) return false;
+        if (group && group !== 'todos' && partner.categoryGroup !== group) return false;
+        return true;
+      });
+    };
+
     if (poiCache.has(cacheKey)) {
-      return poiCache.get(cacheKey);
+      const cached = poiCache.get(cacheKey);
+      const partners = filterPartners();
+      const ids = new Set(cached.map((p) => p.id));
+      const merged = [...cached];
+      partners.forEach((p) => {
+        if (!ids.has(p.id)) merged.unshift(p);
+      });
+      return merged;
     }
 
     const queryString = buildOverpassQuery({ center, radiusKm, bounds, category, group });
@@ -244,6 +278,15 @@ export const mapService = {
             parsed = parsed.filter((p) => p.categoryGroup === group);
           }
 
+          // Incluir estabelecimentos parceiros cadastrados (como Supermercado Ratti)
+          const partners = filterPartners();
+          const existingIds = new Set(parsed.map((p) => p.id));
+          partners.forEach((p) => {
+            if (!existingIds.has(p.id)) {
+              parsed.unshift(p);
+            }
+          });
+
           // Salvar em cache
           if (poiCache.size >= CACHE_MAX_ENTRIES) {
             const firstKey = poiCache.keys().next().value;
@@ -260,7 +303,7 @@ export const mapService = {
     }
 
     console.warn('[mapService] Todos os mirrors Overpass falharam ou deram timeout:', lastError);
-    return [];
+    return filterPartners();
   },
 
   /**
@@ -268,6 +311,26 @@ export const mapService = {
    */
   async searchByName(query, center) {
     if (!query || !query.trim()) return [];
+
+    const lowerQuery = query.toLowerCase().trim();
+    const partnerMatches = [];
+    if (lowerQuery.includes('ratti') || lowerQuery.includes('supermercado ratti') || lowerQuery.includes('feira')) {
+      partnerMatches.push({
+        id: 'ratti-sc-01',
+        name: 'Supermercado Ratti',
+        category: 'Supermercado',
+        categoryId: 'supermercado',
+        categoryGroup: 'compras',
+        categoryIcon: '🏬',
+        categoryColor: '#059669',
+        coordinates: [-47.9042, -22.0298],
+        evaluate: 4.9,
+        place: 'Avenida República do Líbano',
+        number: '361 - Jardim Cruzeiro do Sul',
+        phone: '(16) 99641-1440',
+        opening_hours: 'Seg - Sáb: 07:30 às 20:00 • Dom: 07:30 às 13:00'
+      });
+    }
 
     const [lng, lat] = center || [-47.8908, -22.0174];
     const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
@@ -283,10 +346,10 @@ export const mapService = {
     });
     clearTimeout(timeoutId);
 
-    if (!res.ok) return [];
+    if (!res.ok) return partnerMatches;
 
     const results = await res.json();
-    return results.map((r) => {
+    const parsedResults = results.map((r) => {
       const coord = [parseFloat(r.lon), parseFloat(r.lat)];
       const addr = r.address || {};
       const street = addr.road || addr.suburb || addr.city || r.display_name.split(',')[0];
@@ -306,6 +369,8 @@ export const mapService = {
         number: houseNumber
       };
     });
+
+    return [...partnerMatches, ...parsedResults];
   },
 
   /**

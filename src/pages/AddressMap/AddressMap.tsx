@@ -10,6 +10,7 @@ import {
   getCategoryFromOSMTags
 } from '../../services/mapService';
 import type { POIItem } from '../../services/mapService';
+import { getCommercialDetails } from '../../services/commercialCatalogService';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
 import {
   SlidersHorizontal,
@@ -18,8 +19,22 @@ import {
   Sparkles,
   Layers,
   Search,
-  Filter
+  Filter,
+  Flame,
+  Tag,
+  Clock,
+  Sparkle,
+  ChevronRight,
+  Info,
+  Navigation,
+  Compass,
+  Phone,
+  MessageCircle,
+  Share2
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl);
 
@@ -705,35 +720,213 @@ const AddressMap: React.FC = () => {
         </div>
       )}
 
-      {/* Modal do POI (Estabelecimento Selecionado) */}
-      {clickedPoi && (
-        <div className="poi-detail-card">
-          <div className="poi-detail-header">
-            <h3>{clickedPoi.name}</h3>
-            <button className="close-card-btn" onClick={() => setClickedPoi(null)}>✕</button>
-          </div>
-          <p className="poi-category-badge" style={{ color: clickedPoi.categoryColor || '#6343f2' }}>
-            {clickedPoi.categoryIcon} {clickedPoi.category}
-          </p>
-          <p className="poi-address">📍 {clickedPoi.place}{clickedPoi.number ? `, ${clickedPoi.number}` : ''}</p>
-          {clickedPoi.phone && <p className="poi-info-extra">📞 {clickedPoi.phone}</p>}
-          {clickedPoi.opening_hours && <p className="poi-info-extra">⏰ {clickedPoi.opening_hours}</p>}
-          <div className="poi-rating">⭐ <strong>{clickedPoi.evaluate.toFixed(1)}</strong> / 5.0</div>
+      {/* Modal do POI (Estabelecimento Selecionado com Detalhes Comerciais & shadcn UI) */}
+      {clickedPoi && (() => {
+        const commercial = getCommercialDetails(clickedPoi);
 
-          <div className="poi-actions-row">
-            <button className="draw-route-btn" onClick={handleDrawRoute} disabled={isRouteLoading}>
-              {isRouteLoading ? 'Traçando...' : '🛣️ Traçar Caminho'}
-            </button>
-            <button className="set-center-btn" onClick={() => {
-              setCenterPos(clickedPoi.coordinates);
-              if (mapRef.current) mapRef.current.flyTo({ center: clickedPoi.coordinates, zoom: 15.5 });
-              setClickedPoi(null);
-            }}>
-              Fixar Raio Aqui
-            </button>
+        return (
+          <div className="poi-detail-card expanded-commercial border border-border/80 shadow-2xl backdrop-blur-xl">
+            {/* Header com Visual de Cartão */}
+            <div className="poi-detail-header pb-2 border-b border-border/40">
+              <div className="poi-title-group">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-foreground tracking-tight">{clickedPoi.name}</h3>
+                  <Badge variant="brand" className="text-[10px] px-2 py-0">
+                    {clickedPoi.categoryIcon} {clickedPoi.category}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                  <span className="flex items-center gap-1 font-medium truncate max-w-[200px]">
+                    📍 {clickedPoi.place}{clickedPoi.number ? `, ${clickedPoi.number}` : ''}
+                  </span>
+                  <span className="flex items-center gap-1 text-amber-500 font-bold bg-amber-500/10 dark:bg-amber-500/20 px-1.5 py-0.5 rounded-md">
+                    ⭐ {clickedPoi.evaluate.toFixed(1)}
+                  </span>
+                </div>
+              </div>
+              <button
+                className="close-card-btn text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-muted"
+                onClick={() => setClickedPoi(null)}
+                aria-label="Fechar"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Abas de Navegação shadcn: Catálogo / Sobre */}
+            <Tabs defaultValue="catalogo" className="w-full mt-2">
+              <TabsList className="grid grid-cols-2 w-full h-9 bg-muted/50 p-1">
+                <TabsTrigger value="catalogo" className="text-xs">
+                  {commercial?.badge ? commercial.badge.split(' ')[0] + ' Cardápio & Preços' : '🛍️ Ofertas & Preços'}
+                </TabsTrigger>
+                <TabsTrigger value="sobre" className="text-xs">
+                  ℹ️ Detalhes & Contato
+                </TabsTrigger>
+              </TabsList>
+
+              {/* ABA 1: CATÁLOGO & PREÇOS */}
+              <TabsContent value="catalogo" className="m-0 pt-2">
+                {commercial && (
+                  <div className="poi-commercial-container bg-muted/30 border border-border/50 rounded-xl p-2.5">
+                    <div className="commercial-header-tag flex justify-between items-center pb-2 mb-2 border-b border-border/40">
+                      <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                        {commercial.badge}
+                      </span>
+                      {commercial.lastUpdate && (
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <Clock size={11} /> {commercial.lastUpdate}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="commercial-scroll-body max-h-[190px] overflow-y-auto pr-1">
+                      {/* Seções agrupadas (Ex: Bares / Pizzarias / Feirão Ratti) */}
+                      {commercial.sections && commercial.sections.map((sec: any, idx: number) => (
+                        <div key={idx} className="commercial-group mb-2.5">
+                          <h4 className="text-[11px] font-bold uppercase tracking-wider text-primary mb-1.5">{sec.name}</h4>
+                          <div className="commercial-items-list flex flex-col gap-1.5">
+                            {sec.items.map((item: any, iIdx: number) => (
+                              <div key={iIdx} className="commercial-item-row flex justify-between items-start p-2 rounded-lg bg-card border border-border/40 hover:border-primary/40 transition-all">
+                                <div className="commercial-item-info flex-1 pr-2">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-xs font-semibold text-foreground">{item.name}</span>
+                                    {item.tag && (
+                                      <Badge variant="destructive" className="text-[9px] px-1.5 py-0 h-4">
+                                        {item.tag}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  {item.desc && <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{item.desc}</p>}
+                                </div>
+                                <div className="commercial-item-price-box flex flex-col items-end justify-center min-w-[65px]">
+                                  {item.oldPrice && <span className="text-[10px] text-muted-foreground line-through">{item.oldPrice}</span>}
+                                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{item.price}</span>
+                                  {item.unit && <span className="text-[9px] text-muted-foreground">{item.unit}</span>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Lista Direta (Ex: Postos de Combustível, Mercados) */}
+                      {commercial.items && (
+                        <div className="commercial-items-list direct flex flex-col gap-1.5">
+                          {commercial.items.map((item: any, iIdx: number) => (
+                            <div key={iIdx} className={`commercial-item-row flex justify-between items-start p-2 rounded-lg bg-card border border-border/40 hover:border-primary/40 transition-all ${item.highlight ? 'bg-primary/5 border-primary/30' : ''}`}>
+                              <div className="commercial-item-info flex-1 pr-2">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="text-xs font-semibold text-foreground">{item.name}</span>
+                                  {item.tag && (
+                                    <Badge variant="destructive" className="text-[9px] px-1.5 py-0 h-4">
+                                      {item.tag}
+                                    </Badge>
+                                  )}
+                                </div>
+                                {item.desc && <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{item.desc}</p>}
+                              </div>
+                              <div className="commercial-item-price-box flex flex-col items-end justify-center min-w-[65px]">
+                                {item.oldPrice && <span className="text-[10px] text-muted-foreground line-through">{item.oldPrice}</span>}
+                                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{item.price}</span>
+                                {item.unit && <span className="text-[9px] text-muted-foreground">{item.unit}</span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* ABA 2: SOBRE, HORÁRIOS & CONTATO */}
+              <TabsContent value="sobre" className="m-0 pt-2">
+                <div className="bg-muted/30 border border-border/50 rounded-xl p-3 flex flex-col gap-2.5 max-h-[220px] overflow-y-auto">
+                  <div className="flex items-start gap-2 text-xs text-foreground">
+                    <span className="text-base">📍</span>
+                    <div>
+                      <strong className="block text-foreground font-semibold">Endereço</strong>
+                      <span className="text-muted-foreground">{clickedPoi.place}{clickedPoi.number ? `, ${clickedPoi.number}` : ''}</span>
+                    </div>
+                  </div>
+
+                  {clickedPoi.opening_hours && (
+                    <div className="flex items-start gap-2 text-xs text-foreground">
+                      <span className="text-base">⏰</span>
+                      <div>
+                        <strong className="block text-foreground font-semibold">Horário de Funcionamento</strong>
+                        <span className="text-muted-foreground">{clickedPoi.opening_hours}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {clickedPoi.phone && (
+                    <div className="flex items-start gap-2 text-xs text-foreground">
+                      <span className="text-base">📞</span>
+                      <div>
+                        <strong className="block text-foreground font-semibold">Telefone</strong>
+                        <span className="text-muted-foreground">{clickedPoi.phone}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {commercial?.features && commercial.features.length > 0 && (
+                    <div className="pt-2 border-t border-border/40">
+                      <strong className="block text-[11px] text-muted-foreground mb-1 uppercase font-semibold">Diferenciais & Facilidades</strong>
+                      <div className="flex flex-wrap gap-1">
+                        {commercial.features.map((feat: string, fIdx: number) => (
+                          <Badge key={fIdx} variant="secondary" className="text-[10px] py-0">
+                            ✓ {feat}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            {/* WhatsApp Direto se disponível */}
+            {commercial?.whatsapp && (
+              <a
+                href={`https://wa.me/5516996411440?text=Olá! Vi o estabelecimento no Voyage e gostaria de informações`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2.5 flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-semibold hover:bg-emerald-500/20 transition-colors"
+              >
+                <MessageCircle size={15} /> Pedir pelo WhatsApp: <strong>{commercial.whatsapp}</strong>
+              </a>
+            )}
+
+            {/* Botões de Ação com shadcn Button */}
+            <div className="poi-actions-row flex gap-2 mt-3">
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-1"
+                onClick={handleDrawRoute}
+                disabled={isRouteLoading}
+                isLoading={isRouteLoading}
+              >
+                <Navigation size={14} className="mr-1" />
+                {isRouteLoading ? 'Traçando...' : 'Traçar Rota'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => {
+                  setCenterPos(clickedPoi.coordinates);
+                  if (mapRef.current) mapRef.current.flyTo({ center: clickedPoi.coordinates, zoom: 15.5 });
+                  setClickedPoi(null);
+                }}
+              >
+                <Compass size={14} className="mr-1 text-primary" /> Fixar Raio
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Barra Inferior com Grupos Principais e Subcategorias Deslizáveis */}
       <div className="footer-category-wrapper">
