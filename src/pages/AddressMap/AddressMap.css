@@ -588,7 +588,245 @@
 .poi-actions-row {
   display: flex;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 12px;
+}
+
+#address-map-container .poi-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#address-map-container .poi-quick-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #4a5568;
+  margin-bottom: 8px;
+}
+
+#address-map-container .poi-meta-address {
+  font-weight: 500;
+  color: #4a5568;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+
+#address-map-container .poi-meta-rating {
+  color: #d97706;
+  font-size: 13px;
+}
+
+#address-map-container .poi-extra-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+#address-map-container .poi-pill-meta {
+  font-size: 11px;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* SEÇÃO COMERCIAL */
+#address-map-container .poi-commercial-container {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-top: 4px;
+  margin-bottom: 6px;
+}
+
+#address-map-container .commercial-header-tag {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+#address-map-container .commercial-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#address-map-container .commercial-update {
+  font-size: 10px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+#address-map-container .commercial-scroll-body {
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+#address-map-container .commercial-scroll-body::-webkit-scrollbar {
+  width: 4px;
+}
+#address-map-container .commercial-scroll-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+#address-map-container .commercial-group {
+  margin-bottom: 10px;
+}
+
+#address-map-container .commercial-group-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  color: #6343F2;
+  margin: 0 0 6px 0;
+}
+
+#address-map-container .commercial-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#address-map-container .commercial-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 6px 8px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+#address-map-container .commercial-item-row:hover {
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+#address-map-container .commercial-item-row.highlight-row {
+  background: #fdf4ff;
+  border-color: #f0abfc;
+}
+
+#address-map-container .commercial-item-info {
+  flex: 1;
+  padding-right: 8px;
+}
+
+#address-map-container .commercial-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+#address-map-container .commercial-item-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+#address-map-container .commercial-item-tag {
+  font-size: 9px;
+  font-weight: 700;
+  background: #fee2e2;
+  color: #ef4444;
+  padding: 1px 5px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+#address-map-container .commercial-item-desc {
+  font-size: 11px;
+  color: #64748b;
+  margin: 2px 0 0 0;
+  line-height: 1.25;
+}
+
+#address-map-container .commercial-item-price-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 65px;
+}
+
+#address-map-container .commercial-old-price {
+  font-size: 10px;
+  color: #94a3b8;
+  text-decoration: line-through;
+  line-height: 1;
+}
+
+#address-map-container .commercial-price {
+  font-size: 13px;
+  font-weight: 800;
+  color: #10b981;
+  line-height: 1.2;
+}
+
+#address-map-container .commercial-unit {
+  font-size: 9px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+#address-map-container .commercial-whatsapp-box {
+  margin-top: 8px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: center;
+}
+
+#address-map-container .commercial-whatsapp-link {
+  color: #047857;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  display: block;
+}
+
+#address-map-container .commercial-whatsapp-link:hover {
+  text-decoration: underline;
+}
+
+#address-map-container .commercial-features-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+#address-map-container .feature-chip {
+  font-size: 10px;
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-weight: 500;
 }
 
 #address-map-container .draw-route-btn {
@@ -597,8 +835,8 @@
   /* Azul rotas */
   color: white;
   border: none;
-  padding: 8px;
-  border-radius: 6px;
+  padding: 10px;
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -619,11 +857,16 @@
   background: #6343F2;
   color: white;
   border: none;
-  padding: 8px;
-  border-radius: 6px;
+  padding: 10px;
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+#address-map-container .set-center-btn:hover {
+  background: #5031db;
 }
 
 /* Categorias do Rodapé */

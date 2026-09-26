@@ -20,6 +20,9 @@ import {
   Clock,
   Compass as ExploreIcon
 } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -55,277 +58,328 @@ export default function UserDashboard() {
         activeItem="resumo"
       />
 
-      <div className="user-dashboard-container">
+      <div className="user-dashboard-container p-4 md:p-8 max-w-7xl mx-auto space-y-6">
         {/* Header Bar */}
-        <header className="user-header-bar">
-          <div className="user-header-left">
-            <button
-              className="header-icon-btn"
+        <header className="flex items-center justify-between p-4 rounded-2xl bg-card/60 backdrop-blur-md border border-border/50 shadow-sm">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setIsSidebarOpen(true)}
               title="Abrir Menu de Navegação"
-              aria-label="Abrir Menu Lateral"
             >
-              <Menu size={22} />
-            </button>
-            <div className="user-logo-area">
-              <Compass className="user-brand-icon" size={26} />
-              <span className="user-logo-text">Voyage<span>.</span></span>
+              <Menu size={20} />
+            </Button>
+            <div className="flex items-center gap-2">
+              <Compass className="text-primary" size={26} />
+              <span className="text-xl font-black tracking-tight text-foreground">Voyage<span className="text-primary">.</span></span>
             </div>
-            <div className="header-divider"></div>
-            <span className="header-module-name">Meu Resumo</span>
+            <div className="hidden md:block w-px h-6 bg-border mx-2"></div>
+            <span className="hidden md:inline-block text-xs font-semibold text-muted-foreground uppercase tracking-wider">Meu Resumo</span>
           </div>
 
-          <div className="user-header-actions">
-            <button
-              className="btn-quick-map"
+          <div className="flex items-center gap-2">
+            <Button
+              variant="default"
+              size="sm"
               onClick={() => navigate('/map')}
-              title="Explorar Mapa"
+              className="gap-1.5"
             >
-              <MapPin size={16} />
-              <span>Explorar Mapa</span>
-            </button>
-            <button className="header-icon-btn" title="Notificações" aria-label="Notificações">
-              <Bell size={19} />
-            </button>
-            <ThemeToggle className="header-icon-btn" />
-            <button
-              className="header-icon-btn"
+              <MapPin size={15} />
+              <span className="hidden sm:inline">Explorar Mapa</span>
+            </Button>
+            <ThemeToggle className="h-9 w-9 rounded-xl border border-input bg-background/60 hover:bg-accent flex items-center justify-center" />
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => navigate('/configuracoes')}
               title="Configurações da Conta"
-              aria-label="Configurações"
             >
-              <Settings size={19} />
-            </button>
-            <button
-              className="btn-header-logout"
+              <Settings size={18} />
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
               onClick={handleLogout}
-              title="Sair da Conta"
+              className="gap-1.5"
             >
-              <LogOut size={16} />
-              <span>Sair</span>
-            </button>
+              <LogOut size={15} />
+              <span className="hidden sm:inline">Sair</span>
+            </Button>
           </div>
         </header>
 
-        {/* Hero do Usuário / Boas-vindas */}
-        <section className="user-hero-card">
-          <div className="user-hero-info">
-            <div className="user-avatar-large">
-              {currentUser?.avatar || currentUser?.foto ? (
-                <img
-                  src={currentUser.avatar || currentUser.foto}
-                  alt={currentUser.name || 'Foto de perfil'}
-                  className="user-avatar-img-custom"
-                />
-              ) : currentUser?.name ? (
-                currentUser.name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
-              ) : (
-                'U'
-              )}
+        {/* Hero do Usuário / Boas-vindas (Harmônico com Modo Claro e Escuro) */}
+        <div className="relative overflow-hidden rounded-3xl bg-card border border-border/80 p-6 md:p-8 shadow-sm dark:bg-gradient-to-r dark:from-indigo-950/50 dark:via-purple-950/40 dark:to-slate-950/50 dark:border-indigo-500/20 backdrop-blur-md">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-md border-2 border-white/20 overflow-hidden">
+                {currentUser?.avatar || currentUser?.foto ? (
+                  <img
+                    src={currentUser.avatar || currentUser.foto}
+                    alt={currentUser.name || 'Foto de perfil'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : currentUser?.name ? (
+                  currentUser.name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
+                ) : (
+                  'U'
+                )}
+              </div>
+              <div>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="text-2xl font-black tracking-tight text-foreground">
+                    Olá, {currentUser?.name || 'Viajante'}!
+                  </h1>
+                  <Badge variant="brand" className="text-xs">
+                    {currentUser?.plan ? currentUser.plan : (currentUser?.type === 'owner' ? 'Comerciante' : 'Usuário')}
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground text-sm mt-1">{currentUser?.email || 'usuario@voyage.com'}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="user-greeting">
-                Olá, {currentUser?.name || 'Viajante'}!
-                <span className={`user-badge-role ${currentUser?.planId || 'basic'}`}>
-                  {currentUser?.plan ? currentUser.plan : (currentUser?.type === 'owner' ? 'Comerciante' : 'Usuário')}
-                </span>
-              </h1>
-              <p className="user-email-text">{currentUser?.email || 'usuario@voyage.com'}</p>
-            </div>
-          </div>
 
-          <div className="user-hero-actions">
-            <button className="btn-hero-action primary" onClick={() => navigate('/map')}>
-              <MapPin size={16} />
-              <span>Abrir Mapa Interativo</span>
-            </button>
-            <button className="btn-hero-action secondary" onClick={() => navigate('/editar-perfil')}>
-              <User size={16} />
-              <span>Editar Perfil</span>
-            </button>
+            <div className="flex items-center gap-2.5">
+              <Button variant="default" size="sm" onClick={() => navigate('/map')} className="gap-1.5">
+                <MapPin size={15} /> Abrir Mapa Interativo
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => navigate('/editar-perfil')} className="gap-1.5">
+                <User size={15} /> Editar Perfil
+              </Button>
+            </div>
           </div>
-        </section>
+        </div>
 
         {/* Cards de Métricas do Usuário */}
-        <section className="user-grid-section">
-          <div className="stat-card">
-            <div className="stat-card-header">
-              <div className="stat-icon-wrapper">
-                <Navigation size={22} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="hover:border-primary/40 transition-all duration-200">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Rotas Criadas</CardTitle>
+              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+                <Navigation size={18} />
               </div>
-              <span className="stat-label">Rotas Criadas</span>
-            </div>
-            <div className="stat-value">12</div>
-            <span className="stat-label">Última rota hoje</span>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-black tracking-tight">12</div>
+              <p className="text-xs text-muted-foreground mt-1">Última rota hoje</p>
+            </CardContent>
+          </Card>
 
-          <div className="stat-card">
-            <div className="stat-card-header">
-              <div className="stat-icon-wrapper">
-                <Heart size={22} />
+          <Card className="hover:border-primary/40 transition-all duration-200">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Favoritos</CardTitle>
+              <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center">
+                <Heart size={18} />
               </div>
-              <span className="stat-label">Favoritos</span>
-            </div>
-            <div className="stat-value">8</div>
-            <span className="stat-label">Locais salvos</span>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-black tracking-tight">8</div>
+              <p className="text-xs text-muted-foreground mt-1">Locais salvos para visitar</p>
+            </CardContent>
+          </Card>
 
-          <div className="stat-card">
-            <div className="stat-card-header">
-              <div className="stat-icon-wrapper">
-                <Star size={22} />
+          <Card className="hover:border-primary/40 transition-all duration-200">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Avaliações</CardTitle>
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                <Star size={18} />
               </div>
-              <span className="stat-label">Avaliações</span>
-            </div>
-            <div className="stat-value">5</div>
-            <span className="stat-label">Média 4.9 ★ dada</span>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-black tracking-tight">5</div>
+              <p className="text-xs text-muted-foreground mt-1">Média 4.9 ⭐ dada</p>
+            </CardContent>
+          </Card>
 
-          <div 
-            className="stat-card plan-stat-card"
+          <Card 
+            className="hover:border-purple-500/50 cursor-pointer transition-all duration-200 bg-gradient-to-br from-card to-purple-500/5"
             onClick={() => navigate('/payment')}
-            style={{ cursor: 'pointer' }}
-            title="Clique para gerenciar ou alterar seu plano"
           >
-            <div className="stat-card-header">
-              <div className={`stat-icon-wrapper ${currentUser?.planId === 'plus' ? 'plus-icon' : ''}`}>
-                <Sparkles size={22} />
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Plano Voyage</CardTitle>
+              <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center">
+                <Sparkles size={18} />
               </div>
-              <span className="stat-label">Plano Voyage</span>
-            </div>
-            <div className="stat-value" style={{ fontSize: '20px', color: currentUser?.planId === 'plus' ? '#c084fc' : currentUser?.planId === 'intermediary' ? '#60a5fa' : '#a5b4fc' }}>
-              {currentUser?.plan || 'Gratuito'}
-            </div>
-            <span className="stat-label">
-              {currentUser?.planId === 'plus' 
-                ? 'VIP Completo • Ativo' 
-                : currentUser?.planId === 'intermediary' 
-                ? 'Intermediário • Ativo' 
-                : 'Desbloqueie o Voyage+'}
-            </span>
-          </div>
-        </section>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-black tracking-tight text-purple-600 dark:text-purple-400">
+                {currentUser?.plan || 'Gratuito'}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {currentUser?.planId === 'plus' 
+                  ? 'VIP Completo • Ativo' 
+                  : currentUser?.planId === 'intermediary' 
+                  ? 'Intermediário • Ativo' 
+                  : 'Clique para desbloquear o Voyage+'}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
-        {/* Grid de 2 Colunas */}
-        <div className="user-dashboard-columns">
+        {/* Grid de 2 Colunas com shadcn Card (Fundo Branco no Light Mode, Dark elegante no Dark Mode) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Painel de Locais Favoritos / Recentes */}
-          <div className="dashboard-panel">
-            <div className="panel-header">
-              <h2 className="panel-title">
-                <Heart size={20} className="text-red-400" />
+          <Card className="lg:col-span-2 border border-border/60 shadow-sm bg-card text-card-foreground">
+            <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-border/40">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Heart size={18} className="text-rose-500 fill-rose-500/20" />
                 Lugares Salvos & Recentes
-              </h2>
-              <button
-                className="text-indigo-400 hover:text-indigo-300 text-sm flex items-center gap-1"
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-primary hover:text-primary gap-1 h-8"
                 onClick={() => navigate('/map')}
               >
                 <span>Ver no Mapa</span>
-                <ExternalLink size={14} />
-              </button>
-            </div>
+                <ExternalLink size={13} />
+              </Button>
+            </CardHeader>
 
-            <div className="places-list">
-              <div className="place-item">
-                <div className="place-info">
-                  <div className="place-icon-bubble">
-                    <ExploreIcon size={20} />
+            <CardContent className="pt-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between p-3.5 rounded-xl border border-border/40 bg-muted/20 hover:bg-muted/40 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                    <ExploreIcon size={18} />
                   </div>
                   <div>
-                    <h3 className="place-name">Pará Lanches</h3>
-                    <p className="place-cat">Lanchonete • 1.2 km de você</p>
+                    <h3 className="text-sm font-semibold text-foreground">Pará Lanches</h3>
+                    <p className="text-xs text-muted-foreground">Lanchonete • 1.2 km de você</p>
                   </div>
                 </div>
-                <div className="place-badge-rating">
-                  <Star size={14} fill="#facc15" />
-                  <span>4.8</span>
-                </div>
+                <Badge variant="warning" className="gap-1 font-bold text-xs py-0.5">
+                  <Star size={12} fill="currentColor" />
+                  4.8
+                </Badge>
               </div>
 
-              <div className="place-item">
-                <div className="place-info">
-                  <div className="place-icon-bubble">
-                    <ExploreIcon size={20} />
+              <div className="flex items-center justify-between p-3.5 rounded-xl border border-border/40 bg-muted/20 hover:bg-muted/40 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                    <ExploreIcon size={18} />
                   </div>
                   <div>
-                    <h3 className="place-name">Pizzaria Bella Napoli</h3>
-                    <p className="place-cat">Pizzaria • 2.5 km de você</p>
+                    <h3 className="text-sm font-semibold text-foreground">Pizzaria Bella Napoli</h3>
+                    <p className="text-xs text-muted-foreground">Pizzaria • 2.5 km de você</p>
                   </div>
                 </div>
-                <div className="place-badge-rating">
-                  <Star size={14} fill="#facc15" />
-                  <span>4.9</span>
-                </div>
+                <Badge variant="warning" className="gap-1 font-bold text-xs py-0.5">
+                  <Star size={12} fill="currentColor" />
+                  4.9
+                </Badge>
               </div>
 
-              <div className="place-item">
-                <div className="place-info">
-                  <div className="place-icon-bubble">
-                    <ExploreIcon size={20} />
+              <div className="flex items-center justify-between p-3.5 rounded-xl border border-border/40 bg-muted/20 hover:bg-muted/40 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                    <ExploreIcon size={18} />
                   </div>
                   <div>
-                    <h3 className="place-name">Drogaria São Paulo</h3>
-                    <p className="place-cat">Farmácia • 800 m de você</p>
+                    <h3 className="text-sm font-semibold text-foreground">Drogaria São Paulo</h3>
+                    <p className="text-xs text-muted-foreground">Farmácia • 800 m de você</p>
                   </div>
                 </div>
-                <div className="place-badge-rating">
-                  <Star size={14} fill="#facc15" />
-                  <span>4.7</span>
-                </div>
+                <Badge variant="warning" className="gap-1 font-bold text-xs py-0.5">
+                  <Star size={12} fill="currentColor" />
+                  4.7
+                </Badge>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* Lateral: Promoção Voyage+ & Atividade */}
-          <div className="flex flex-col gap-5">
+          {/* Lateral: Card do Plano Voyage+ & Atividade */}
+          <div className="flex flex-col gap-4">
             {currentUser?.planId === 'plus' ? (
-              <div className="voyage-plus-promo" style={{ background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(30, 27, 75, 0.8) 100%)', borderColor: 'rgba(168, 85, 247, 0.4)' }}>
-                <span className="promo-tag" style={{ background: '#a855f7', color: '#ffffff' }}>VIP Ativo</span>
-                <h3 className="promo-title">Você é Membro Voyage+</h3>
-                <p className="promo-desc">
-                  Seu plano VIP está 100% ativo! Aproveite cupons de desconto ilimitados, sem anúncios e suporte 24/7.
-                </p>
-                <button className="btn-promo" onClick={() => navigate('/payment')}>
-                  <Sparkles size={16} />
-                  <span>Gerenciar Assinatura</span>
-                </button>
-              </div>
+              <Card className="border border-purple-500/30 bg-card text-card-foreground shadow-sm overflow-hidden relative">
+                <div className="h-1.5 w-full bg-gradient-to-r from-purple-500 to-indigo-500"></div>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="brand" className="text-[10px]">VIP Ativo</Badge>
+                    <Sparkles size={16} className="text-purple-500" />
+                  </div>
+                  <CardTitle className="text-base text-foreground mt-2">Você é Membro Voyage+</CardTitle>
+                  <CardDescription className="text-xs leading-relaxed">
+                    Seu plano VIP está 100% ativo! Aproveite cupons de desconto ilimitados, sem anúncios e suporte 24/7.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500"
+                    onClick={() => navigate('/payment')}
+                  >
+                    <Sparkles size={14} className="mr-1.5" />
+                    Gerenciar Assinatura
+                  </Button>
+                </CardContent>
+              </Card>
             ) : currentUser?.planId === 'intermediary' ? (
-              <div className="voyage-plus-promo" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(30, 27, 75, 0.8) 100%)', borderColor: 'rgba(59, 130, 246, 0.4)' }}>
-                <span className="promo-tag" style={{ background: '#3b82f6', color: '#ffffff' }}>Plano Intermediário</span>
-                <h3 className="promo-title">Migre para o Voyage+ VIP</h3>
-                <p className="promo-desc">
-                  Desbloqueie cupons ilimitados e o selo VIP exclusivo com suporte prioritário a qualquer momento.
-                </p>
-                <button className="btn-promo" onClick={() => navigate('/payment')}>
-                  <Sparkles size={16} />
-                  <span>Fazer Upgrade para Voyage+</span>
-                </button>
-              </div>
+              <Card className="border border-blue-500/30 bg-card text-card-foreground shadow-sm overflow-hidden relative">
+                <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary" className="text-[10px]">Plano Intermediário</Badge>
+                    <Sparkles size={16} className="text-blue-500" />
+                  </div>
+                  <CardTitle className="text-base text-foreground mt-2">Migre para o Voyage+ VIP</CardTitle>
+                  <CardDescription className="text-xs leading-relaxed">
+                    Desbloqueie cupons ilimitados e o selo VIP exclusivo com suporte prioritário a qualquer momento.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => navigate('/payment')}
+                  >
+                    <Sparkles size={14} className="mr-1.5" />
+                    Fazer Upgrade para Voyage+
+                  </Button>
+                </CardContent>
+              </Card>
             ) : (
-              <div className="voyage-plus-promo">
-                <span className="promo-tag">Experiência Completa</span>
-                <h3 className="promo-title">Experimente o Voyage+</h3>
-                <p className="promo-desc">
-                  Tenha navegação sem anúncios, rotas inteligentes em tempo real e cupons de desconto exclusivos nos melhores estabelecimentos.
-                </p>
-                <button className="btn-promo" onClick={() => navigate('/payment')}>
-                  <Sparkles size={16} />
-                  <span>Conhecer Planos Voyage+</span>
-                </button>
-              </div>
+              <Card className="border border-border/60 bg-card text-card-foreground shadow-sm overflow-hidden relative">
+                <div className="h-1.5 w-full bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="outline" className="text-[10px]">Experiência Completa</Badge>
+                    <Sparkles size={16} className="text-primary" />
+                  </div>
+                  <CardTitle className="text-base text-foreground mt-2">Experimente o Voyage+</CardTitle>
+                  <CardDescription className="text-xs leading-relaxed">
+                    Navegação sem anúncios, rotas inteligentes em tempo real e cupons de desconto exclusivos.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => navigate('/payment')}
+                  >
+                    <Sparkles size={14} className="mr-1.5" />
+                    Conhecer Planos Voyage+
+                  </Button>
+                </CardContent>
+              </Card>
             )}
 
-            <div className="dashboard-panel">
-              <div className="panel-header">
-                <h3 className="panel-title text-sm">
-                  <Clock size={16} />
+            {/* Atividade Recente */}
+            <Card className="border border-border/60 bg-card text-card-foreground shadow-sm">
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Clock size={14} />
                   Atividade Recente
-                </h3>
-              </div>
-              <p className="text-xs text-gray-400">
-                Você pesquisou <strong>Lanchonetes em Belém</strong> hoje às 15:20.
-              </p>
-            </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-foreground leading-relaxed">
+                  Você pesquisou <strong className="text-primary font-semibold">Lanchonetes em Belém</strong> hoje às 15:20.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
