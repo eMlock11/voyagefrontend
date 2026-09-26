@@ -59,7 +59,7 @@ export interface GeoJSONCircleFeature {
 
 export declare const CATEGORY_GROUPS: CategoryGroup[];
 export declare const VOYAGE_CATEGORIES: VoyageCategory[];
-export declare function getCategoryFromOSMTags(tags?: Record<string, any> | null): VoyageCategory | null;
+export declare function getCategoryFromOSMTags(tags?: Record<string, any> | null, preferredCategory?: VoyageCategory | null): VoyageCategory | null;
 
 export declare const mapService: {
   getPOIs(params: GetPOIsParams): Promise<POIItem[]>;

@@ -162,6 +162,140 @@ Este arquivo é mantido por agentes de IA e desenvolvedores para registrar o est
   - **Tratamento de Contraste e Legibilidade (Light Mode):** Regras de adaptação em `globals.css` garantindo que títulos, textos secundários, inputs, formulários, selects, cards e botões tenham contraste nítido (`#0f172a` e `#334155`), bordas visíveis e backgrounds brancos adequados sobre superfícies claras, eliminando textos apagados.
   - **Modo de Teste de Assinatura:** Contas recém-criadas iniciam sem plano ativo (`plan: 'Nenhum'`), e a tela [`/payment`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/Payment/Payment.jsx) exibe banner informativo com simulação de contratação (Cartão de Crédito/Débito e PIX) habilitada para testes imediatos.
 
+---
 
+## 9. Plano de Correção e Auditoria (Baseado em `analise_voyage.md`)
+
+### [CONCLUÍDO] Etapa 1 — Dados e Sessão (25/09/2026)
+- **F01 (Remoção de senha do storage e sanear sessão):**
+  - Implementada função canônica `sanitizeUser` em `userService.js`.
+  - Em `EditarPerfilClient.jsx` e `EditarPerfilOwner.jsx`: o payload `password` nunca mais é mesclado no objeto persistido em `localStorage`.
+  - `getCurrentUser()` higieniza retroativamente registros legados no navegador caso contenham o campo `password`.
+  - `userService.login` e `register` garantem que credenciais nunca sejam persistidas no estado do usuário.
+- **F02 (XSS em nomes externos no Mapa):**
+  - `AddressMap.tsx`: removido `el.innerHTML` na geração de marcadores de POIs (OSM/Nominatim).
+  - Marcadores agora usam elementos DOM criados programaticamente com nós seguros e `titleEl.textContent` para renderização literal de nomes externos.
+- **F03 & F08 (Persistência confirmada de perfil/senha e fluxo de 401 centralizado):**
+  - Removido o tratamento que silenciava falhas da API com `console.warn` em `EditarPerfilClient.jsx` e `EditarPerfilOwner.jsx`. Sucesso só é exibido após resolução positiva da API; falhas propagam para a interface sem modificar a sessão local.
+  - `Configuracoes.tsx`: formulário de atualização de senha agora dispara requisição assíncrona autenticada e só anuncia sucesso após confirmação do servidor; botão com estado de carregamento e desativação.
+  - `api.js`: resposta 401 agora dispara `clearSession()` de forma centralizada (removendo `token`, `user`, `user_company`, `user_profile_data`), redireciona para `/login` e lança erro tipado `(status: 401)`, interrompendo a cadeia de execução. Normalizador de erro expandido (`erro`, `erroPrincipal`, `solucoesDetalhadas`, `detalhes`).
+  - Bearer token restrito aos endpoints da API do Voyage, prevenindo vazamento de cabeçalho para provedores externos de mapas.
+- **F06 (Vínculo de Empresa estritamente por ID):**
+  - `Company.jsx` e `EditarPerfilOwner.jsx`: eliminada a inferência de propriedade por correspondência de strings de nome de usuário/empresa. A vinculação agora exige estritamente correspondência de `userId` ou `companyId`.
+
+### [CONCLUÍDO] Etapa 2 — Contratos e Demonstrações (25/09/2026)
+- **Remoção de notas inventadas dos payloads reais:**
+  - `Cadastro.jsx`: removido `evaluate: 4.8` do payload de criação de empresa.
+  - `Company.jsx`: removido `evaluate: 4.8` dos payloads de criação e atualização da empresa.
+  - `Company.jsx`: avaliação exibida no Hero agora reflete dados reais (`formData.evaluate`) ou indica "Novo no Voyage" / "Sem avaliações", sem forçar 4.8 fixo.
+- **Cadastro de empresa retomável (`pending_company_registration`):**
+  - `Cadastro.jsx`: se a conta for criada com sucesso mas a conexão com o serviço de estabelecimentos oscilar, os dados da empresa são persistidos como rascunho seguro vinculado ao `userId`.
+  - `Company.jsx`: detecta automaticamente a pendência, pré-preenche o formulário para o usuário apenas revisar/confirmar e limpa o rascunho com sucesso ao salvar no servidor.
+- **Isolamento de Demonstração e Transparência:**
+  - `Payment.jsx`: assinatura de teste explicitamente identificada como `isDemoSubscription: true` e `planStatus: 'demo_active'`.
+  - `Company.jsx`: abas de Faturamento (`billing`) e Equipe (`team`) receberam avisos visuais informando o caráter demonstrativo e ilustrativo das faturas, sem cobranças automáticas.
+- **Preservação de Zero Real e Tratamento de Erros no Admin:**
+  - `AdminDashboard.jsx`: corrigida a expressão `companies.length || '18'` para `(error ? '—' : companies.length)`; zero empresas cadastradas permanece estritamente 0 e não se transforma em 18.
+  - Captura e exibição de erro real de sincronização com a API na tabela de estabelecimentos.
+  - Badges de `(Estimado)`, `(Mock SLA)` e `(Local)` adicionados aos cards não medidos pelo backend para honestidade com o usuário.
+- **Qualidade de Código e Linting:**
+  - `ProtectedRoute.jsx`: adicionado `PropTypes` com tipagem para `allowedRoles`, zerando erros do ESLint.
+  - `AdminDashboard.jsx`: removido import `Clock` não utilizado.
+  - `Payment.jsx`: removidos imports não utilizados (`ShieldCheck`, `Lock`, `CheckCircle2`) e variável `isPopular`.
+  - `Company.jsx`: resolvido warning de dependência no hook `useEffect`.
+  - `npx eslint src`: **0 erros, 0 avisos**.
+
+### [CONCLUÍDO] Etapa 3 — Mapa e Preferências (25/09/2026)
+- **Ciclo de Vida do Mapa e Desacoplamento de Instância (F10):**
+  - `AddressMap.tsx`: Instanciação do MapLibre em `useEffect` desacoplada da alteração de raio. Mudanças no raio (`radiusKm`) e centro (`centerPos`) agora atualizam diretamente a fonte GeoJSON (`radius-circle-source`) sem recriar ou destruir a instância do mapa.
+  - Carregamento inicial de POIs disparado explicitamente no evento `map.on('load')`.
+  - Listeners de eventos (`click`, `moveend`) protegidos contra closures desatualizados com `useRef` sincronizados a cada render (`isSettingManualLocationRef`, `radiusKmRef`, `selectedCategoryRef`, etc.).
+  - Controle de concorrência com `requestSeqRef` para evitar race conditions em requisições assíncronas concorrentes.
+  - Restaurado o controle de atribuição visível (`attributionControl: { compact: true }`) do OpenStreetMap / OpenFreeMap.
+- **Desambiguação e Prioridade de Categorias (F11):**
+  - `mapService.js`: Reordenadas as categorias prioritárias (`pizzaria` antes de `restaurante`, `supermercado` antes de `mercado`).
+  - Desambiguação de tags: `supermercado` vinculado a `shop=supermarket` e `building=supermarket`; `mercado` vinculado a `shop=grocery`, `shop=general` e `shop=farm`.
+  - `getCategoryFromOSMTags`: adicionado suporte a `preferredCategory`, garantindo que quando o usuário filtra por uma categoria específica, ela tem precedência sobre categorias genéricas.
+  - IDs compostos (`osm_${el.type}_${el.id}`) implementados para eliminar colisões entre nodes e ways de mesma numeração no OSM.
+- **Alinhamento de Raio e Tratamento de Erros de Provedor (F12):**
+  - `mapService.js`: Removido o corte artificial em 10.000m na query Overpass (`radiusMeters = Math.min(radiusKm * 1000, 25000)`), alinhando o raio consultado com o círculo desenhado e as opções da interface até 25 km.
+  - Cache de POIs enriquecido com área de bounds completa (`south,west,north,east`) e TTL de 5 minutos (300.000 ms).
+  - Distinção real entre área vazia e indisponibilidade: lançamento de erro estruturado (`OverpassUnavailableError`) e banner visual com botão "Tentar Novamente", sem exibir falso "sem locais".
+- **Integração com Preferências Globais:**
+  - `AddressMap.tsx` agora inicializa o raio a partir de `voyage_search_radius` salvo em [`/configuracoes`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/Configuracoes/Configuracoes.tsx).
+  - Respeita `voyage_auto_gps`: aciona geolocalização do navegador automaticamente sem travar a interface se o usuário optou por GPS automático.
+
+### [CONCLUÍDO] Etapa 4 — Qualidade e Experiência (25/09/2026)
+- **Eliminação de Colisões de Keyframes Globais:**
+  - `AddressMap.css`: renomeado `@keyframes pulse` para `@keyframes map-pulse`.
+  - `Payment.css`: renomeado `@keyframes pulse` para `@keyframes payment-pulse`, e atualizada a classe `.pix-pulse-dot` para `animation: payment-pulse 1.5s infinite;`.
+  - Prevenção garantida contra efeitos colaterais visuais entre rotas de pagamento, mapas e painel.
+- **Acessibilidade e Navegação por Teclado na Sidebar:**
+  - `Sidebar.tsx`: adicionado listener de evento de teclado para a tecla `Escape`, fechando a gaveta lateral imediatamente.
+  - Atributos ARIA aplicados: `aria-hidden={!isOpen}`, `role="dialog"` e `aria-modal={isOpen ? 'true' : undefined}`, garantindo que leitores de tela não processem nós ocultos quando a barra estiver recolhida.
+- **Sincronização Dinâmica de Tema do Sistema (`matchMedia`):**
+  - `ThemeProvider.tsx`: implementado listener dinâmico de evento `change` na media query `(prefers-color-scheme: dark)` quando o tema selecionado for `'system'`.
+  - O tema agora reage instantaneamente a mudanças nas preferências do sistema operacional em tempo real sem exigir recarregamento da página.
+- **Acessibilidade nos Modais do Mapa:**
+  - `AddressMap.tsx`: listener global para tecla `Escape` fechando modal de categorias, drawer de detalhes de POI, menu de raio e prompt de localização.
+  - Modal de Categorias: `role="dialog"`, `aria-modal="true"` e `aria-labelledby="category-modal-title"`.
+  - Prompt de Localização: `role="dialog"`, `aria-modal="true"` e `aria-labelledby="location-prompt-title"`.
+  - Card de Detalhes de POI: `role="region"` e `aria-label` dinâmico com o nome do estabelecimento.
+- **Auditoria de Código e Linter:**
+  - Zeradas todas as pendências de lint em `ProtectedRoute.jsx`, `AdminDashboard.jsx`, `Payment.jsx` e `Company.jsx`.
+  - `npx eslint src`: **0 erros, 0 avisos**.
+  - `npx tsc --noEmit`: **0 erros**.
+  - Suíte completa de 46 testes sintéticos cobrindo as Etapas 1, 2, 3 e 4 com 100% de sucesso.
+
+---
+
+## 10. Módulo: Painel do Comerciante / Estabelecimento (`MerchantPanel`)
+
+### [IMPLEMENTADO] Fase 1 — Fundação & Core Operacional (25/09/2026)
+- **Tipagem Canônica (`src/types/merchant.ts`):**
+  - Interfaces TypeScript estritas para `EstablishmentProfile`, `WeeklyBusinessHours`, `DaySchedule`, `TimeShift`, `PaymentMethodsConfig`, `EstablishmentAmenities` e `MediaItem`.
+- **Camada de Serviço & Adapter (`src/services/merchantService.ts`):**
+  - Gerenciamento de dados estendidos vinculado por `companyId`/`userId`.
+  - Sincronização automática com a API nativa do Voyage (`companyService.updateCompany`), mantendo campos canônicos (`name`, `category`, `places`, `phone`) atualizados no banco sem quebrar contratos da API remota.
+  - Função pura `isEstablishmentOpen(hours)` que calcula em tempo real o status operacional (🟢 Aberto agora / 🔴 Fechado no momento / Próxima abertura) baseado nos turnos e no fuso horário do usuário.
+- **Componentes Modulares em TypeScript (`src/components/Merchant/`):**
+  1. [`MerchantPanel.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Merchant/MerchantPanel.tsx): Orquestrador principal com barra de ações superior, botão de salvar com feedback em tempo real, navegação por abas horizontais no desktop e dropdown responsivo no mobile.
+  2. [`MerchantOverview.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Merchant/MerchantOverview.tsx): Dashboard de resumo com badge de status ao vivo, cálculo automático de completude do perfil (0 a 100%), grid de 6 KPIs de engajamento (visualizações, rotas, WhatsApp, ligações, site e fotos) e gráfico de origem dos clientes (Busca no mapa, GPS, categorias, link direto).
+  3. [`BusinessInfoForm.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Merchant/BusinessInfoForm.tsx): Formulário setorizado em 4 sub-abas (Dados Gerais, Endereço completo, Canais de Contato e Comodidades como Delivery, Wi-Fi, Estacionamento, Acessibilidade PNE e Pet Friendly), com upload de logotipo e capa via FileReader com preview imediato.
+  4. [`BusinessHoursEditor.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Merchant/BusinessHoursEditor.tsx): Editor para os 7 dias da semana, suporte a múltiplos turnos/intervalos (ex: almoço e jantar), alternador "Fechado", botão de cópia rápida para dias úteis (Seg-Sex) e banner de status ao vivo sincronizado.
+  5. [`PaymentMethodsEditor.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Merchant/PaymentMethodsEditor.tsx): Seletor visual de modalidades aceitas (Dinheiro, Pix, Débito, Crédito, Vale Refeição e Alimentação) e seleção de bandeiras aceitas (Visa, Mastercard, Elo, Hipercard, Amex, Alelo, Sodexo/Pluxee, Ticket, VR).
+  6. [`MediaGalleryEditor.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Merchant/MediaGalleryEditor.tsx): Galeria de fotos categorizadas (Ambiente interno, Fachada, Produtos/Pratos, Serviços), suporte a upload múltiplo e marcação de foto principal.
+  7. [`CatalogPlaceholder.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Merchant/CatalogPlaceholder.tsx): Estrutura modular legada substituída pelo `DynamicCatalogManager`.
+- **Integração na Rota `/company` (`src/pages/Company/Company.jsx`):**
+  - Painel do Comerciante integrado como aba primária e hero action, mantendo total retrocompatibilidade com as abas existentes de métricas, equipe, faturamento e segurança.
+
+### [IMPLEMENTADO] Fase 2 — Catálogo Modular e Especializado por Segmento (25/09/2026)
+- **Tipagens Estritas de Catálogo (`src/types/catalog.ts`):**
+  - Modelos de dados para Restaurante (`RestaurantCatalog`, `MenuItem`, `MenuCategory`, `DiningOptions`).
+  - Modelos de dados para Pizzaria (`PizzaCatalog`, `PizzaSize`, `PizzaCrust`, `PizzaFlavor`, `MenuItemAddon`).
+  - Modelos de dados para Supermercado & Varejo (`SupermarketCatalog`, `SupermarketProduct`, `WeeklyOffer`, `DigitalFlyer`, `ProductUnit`).
+  - Agregador unificado `MerchantCatalogData` e tipo discriminado `CatalogVertical`.
+- **Módulos Especializados em TypeScript (`src/components/Merchant/Catalog/`):**
+  1. [`RestaurantMenuManager.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Merchant/Catalog/RestaurantMenuManager.tsx):
+     - Modalidades de atendimento (À la carte, Prato Feito, Buffet Livre, Buffet por KG, Self-Service, Delivery, Retirada, Consumo no Local).
+     - Gestão de categorias com ordenação dinâmica e exclusão em lote de dependências.
+     - Cadastro de pratos com foto, ingredientes em badges, adicionais com acréscimo de valor, preço regular, preço promocional e botão instantâneo de pausar/esgotar prato.
+  2. [`PizzaManager.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Merchant/Catalog/PizzaManager.tsx):
+     - Gestão de tamanhos com definição de fatias, preço base e quantidade máxima de sabores fracionados (ex: meia a meia, até 4 sabores).
+     - Gestão de bordas recheadas (Catupiry, Cheddar, Chocolate, Vulcão) com acréscimo configurável de preço.
+     - Sabores categorizados (Tradicional, Especial, Premium, Doce) com busca rápida, filtro por tipo, ingredientes e fotos.
+     - Gestão de adicionais e coberturas extras.
+  3. [`SupermarketCatalogManager.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Merchant/Catalog/SupermarketCatalogManager.tsx):
+     - Gestão de departamentos (Hortifrúti, Açougue, Laticínios, Padaria, Bebidas, Limpeza).
+     - Cadastro de produtos com marca, descrição, unidades de medida (`un`, `kg`, `g`, `l`, `ml`, `pacote`, `bandeja`), preço regular e promocional.
+     - Módulo de Ofertas da Semana com cálculo automático do `% OFF`, período de validade (início e término) e teto de unidades por cliente.
+     - Gestão de Encartes & Folhetos digitais para consulta interativa dos clientes.
+  4. [`DynamicCatalogManager.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Merchant/Catalog/DynamicCatalogManager.tsx):
+     - Orquestrador inteligente que detecta automaticamente a categoria da empresa (restaurante, pizzaria, mercado) ou permite alternância manual da vertical com um clique.
+     - Integração direta no [`MerchantPanel.tsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/components/Merchant/MerchantPanel.tsx) na aba "Catálogo & Cardápio", sincronizado com o `merchantService.ts`.
+- **Validação e Qualidade:**
+  - `npx tsc --noEmit`: 0 erros de compilação TypeScript em todo o frontend.
+  - `npm run build`: Vite bundle compilado e validado com sucesso (código de saída 0).
+  - Suíte de 14 testes sintéticos da Etapa 1 re-executada com 100% de sucesso.
 
 

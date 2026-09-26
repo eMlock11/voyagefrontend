@@ -15,7 +15,6 @@ import {
   Building,
   Activity,
   CheckCircle,
-  Clock,
   LogOut,
   MapPin,
   FileText
@@ -26,6 +25,7 @@ export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const currentUser = userService.getCurrentUser();
 
@@ -40,9 +40,11 @@ export default function AdminDashboard() {
         const data = await companyService.getCompanies();
         if (Array.isArray(data)) {
           setCompanies(data);
+          setError(null);
         }
       } catch (err) {
         console.warn('Erro ao carregar dados admin:', err);
+        setError(err.message || 'Falha ao conectar com o serviço de estabelecimentos.');
       } finally {
         setLoading(false);
       }
@@ -135,9 +137,11 @@ export default function AdminDashboard() {
               <div className="admin-stat-icon">
                 <Building size={22} />
               </div>
-              <span className="text-xs text-gray-400">Total</span>
+              <span className="text-xs text-gray-400">Total Real</span>
             </div>
-            <div className="admin-stat-val">{loading ? '...' : companies.length || '18'}</div>
+            <div className="admin-stat-val">
+              {loading ? '...' : (error ? '—' : companies.length)}
+            </div>
             <span className="text-xs text-gray-400">Empresas Cadastradas</span>
           </div>
 
@@ -146,7 +150,7 @@ export default function AdminDashboard() {
               <div className="admin-stat-icon">
                 <Users size={22} />
               </div>
-              <span className="text-xs text-gray-400">Ativos</span>
+              <span className="text-[10px] uppercase font-bold text-amber-400/80 bg-amber-500/10 px-1.5 py-0.5 rounded">Estimado</span>
             </div>
             <div className="admin-stat-val">1.240</div>
             <span className="text-xs text-gray-400">Usuários na Plataforma</span>
@@ -157,7 +161,7 @@ export default function AdminDashboard() {
               <div className="admin-stat-icon">
                 <Activity size={22} />
               </div>
-              <span className="text-xs text-gray-400">Online</span>
+              <span className="text-[10px] uppercase font-bold text-emerald-400/80 bg-emerald-500/10 px-1.5 py-0.5 rounded">Mock SLA</span>
             </div>
             <div className="admin-stat-val">99.98%</div>
             <span className="text-xs text-gray-400">SLA dos Serviços GIS</span>
@@ -168,7 +172,7 @@ export default function AdminDashboard() {
               <div className="admin-stat-icon">
                 <CheckCircle size={22} />
               </div>
-              <span className="text-xs text-gray-400">Segurança</span>
+              <span className="text-[10px] uppercase font-bold text-blue-400/80 bg-blue-500/10 px-1.5 py-0.5 rounded">Local</span>
             </div>
             <div className="admin-stat-val">OK</div>
             <span className="text-xs text-gray-400">Zero incidentes</span>
@@ -182,7 +186,9 @@ export default function AdminDashboard() {
               <FileText size={20} className="text-red-400" />
               Empresas na Base de Dados
             </h2>
-            <span className="text-xs text-gray-400">Sincronizado com API</span>
+            <span className={`text-xs ${error ? 'text-rose-400 font-semibold' : 'text-gray-400'}`}>
+              {error ? 'Falha na conexão com a API' : 'Sincronizado com API'}
+            </span>
           </div>
 
           <table className="admin-table">

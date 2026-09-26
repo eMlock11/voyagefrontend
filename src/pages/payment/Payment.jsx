@@ -7,13 +7,10 @@ import {
   X,
   CreditCard,
   QrCode,
-  ShieldCheck,
   Clock,
   Copy,
   Plus,
-  Lock,
-  Sparkles,
-  CheckCircle2
+  Sparkles
 } from 'lucide-react';
 import { userService } from '../../services/userService';
 import './Payment.css';
@@ -131,12 +128,13 @@ export default function Payment() {
   // Plano atualmente selecionado
   const currentPlan = PLANS.find((p) => p.id === selectedPlanId) || PLANS[1];
 
-  // Função para salvar a assinatura realizada no perfil do usuário
+  // Função para salvar a assinatura realizada no perfil do usuário (Ambiente de Demonstração)
   const applySubscription = (planObj) => {
     const updated = userService.updateCurrentUserPlan({
       planId: planObj.id,
       planName: planObj.name,
-      planStatus: 'active',
+      planStatus: 'demo_active',
+      isDemoSubscription: true,
       planPrice: planObj.price,
       planPeriod: planObj.period,
     });
@@ -339,7 +337,6 @@ export default function Payment() {
               <div className="plans-selector-grid">
                 {PLANS.map((plan) => {
                   const isSelected = selectedPlanId === plan.id;
-                  const isPopular = plan.id === 'intermediary' || plan.id === 'plus';
 
                   return (
                     <div

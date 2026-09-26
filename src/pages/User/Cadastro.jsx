@@ -91,24 +91,36 @@ function Cadastro() {
 
       // Se for empresário (owner), cadastra também a empresa vinculada
       if (tipo === 'owner') {
+        const companyPayload = {
+          name: nome.trim(),
+          category: categoria.trim(),
+          cnpj: cnpj.trim(),
+          places: localizacao.trim(),
+        }
+
         try {
-          const companyPayload = {
-            name: nome.trim(),
-            category: categoria.trim(),
-            cnpj: cnpj.trim(),
-            evaluate: 4.8,
-            places: localizacao.trim(),
-          }
           const novaEmpresa = await companyService.createCompany(companyPayload)
           if (novaEmpresa) {
-            localStorage.setItem('user_company', JSON.stringify(novaEmpresa))
+            localStorage.setItem('user_company', JSON.stringify({ ...novaEmpresa, userId: res.user?.id }))
+            localStorage.removeItem('pending_company_registration')
           }
+          setMensagem({ tipo: 'sucesso', texto: 'Conta e empresa cadastradas com sucesso! Redirecionando...' })
         } catch (compErr) {
           console.warn('Aviso ao registrar dados da empresa vinculada:', compErr.message)
+          // Salva dados parciais para que o cadastro seja retomável no Painel da Empresa
+          localStorage.setItem(
+            'pending_company_registration',
+            JSON.stringify({ ...companyPayload, userId: res.user?.id })
+          )
+          setMensagem({
+            tipo: 'aviso',
+            texto: 'Sua conta de usuário foi criada! O registro da empresa ficou pendente e poderá ser finalizado no painel.',
+          })
         }
+      } else {
+        setMensagem({ tipo: 'sucesso', texto: 'Conta criada com sucesso! Redirecionando...' })
       }
 
-      setMensagem({ tipo: 'sucesso', texto: 'Conta criada com sucesso! Redirecionando...' })
       setTimeout(() => {
         const tipoFinal = res.user?.type || tipo
         navigate(tipoFinal === 'owner' ? '/company' : '/map')

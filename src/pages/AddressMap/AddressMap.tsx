@@ -15,9 +15,6 @@ import {
   SlidersHorizontal,
   X,
   Check,
-  Sparkles,
-  Layers,
-  Search,
   Filter
 } from 'lucide-react';
 
@@ -32,22 +29,70 @@ const AddressMap: React.FC = () => {
 
   // Estados
   const [centerPos, setCenterPos] = useState<[number, number]>([-47.8908, -22.0174]); // Padrão: São Carlos / SP
-  const [radiusKm, setRadiusKm] = useState<number | null>(3); // null = Sem limite de raio (Livre)
+  const [radiusKm, setRadiusKm] = useState<number | null>(() => {
+    const saved = localStorage.getItem('voyage_search_radius');
+    if (saved) {
+      const num = Number(saved);
+      if (!isNaN(num) && num > 0) return num;
+    }
+    return 3;
+  }); // null = Sem limite de raio (Livre)
   const [selectedGroup, setSelectedGroup] = useState<string>('todos');
   const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [pois, setPois] = useState<POIItem[]>([]);
   const [loadingPois, setLoadingPois] = useState<boolean>(false);
+  const [mapError, setMapError] = useState<string | null>(null);
   const [clickedPoi, setClickedPoi] = useState<POIItem | null>(null);
   const [showRadiusMenu, setShowRadiusMenu] = useState<boolean>(false);
   const [showCategoryModal, setShowCategoryModal] = useState<boolean>(false);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
   // Estados de Localização
-  const [showLocationPrompt, setShowLocationPrompt] = useState<boolean>(true);
+  const [showLocationPrompt, setShowLocationPrompt] = useState<boolean>(() => {
+    // Se o usuário já ativou auto GPS nas preferências, não precisa do prompt bloqueante
+    return localStorage.getItem('voyage_auto_gps') !== 'true';
+  });
   const [isSettingManualLocation, setIsSettingManualLocation] = useState<boolean>(false);
   const [isRouteLoading, setIsRouteLoading] = useState<boolean>(false);
 
+  // Fechamento de modais e menus suspensos com tecla Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showCategoryModal) {
+          setShowCategoryModal(false);
+        } else if (clickedPoi) {
+          setClickedPoi(null);
+        } else if (showRadiusMenu) {
+          setShowRadiusMenu(false);
+        } else if (showLocationPrompt) {
+          setShowLocationPrompt(false);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showCategoryModal, clickedPoi, showRadiusMenu, showLocationPrompt]);
+
+  // Refs de estado para evitar closures desatualizadas nos listeners do mapa
+  const isSettingManualLocationRef = useRef(isSettingManualLocation);
+  isSettingManualLocationRef.current = isSettingManualLocation;
+
+  const radiusKmRef = useRef(radiusKm);
+  radiusKmRef.current = radiusKm;
+
+  const selectedCategoryRef = useRef(selectedCategory);
+  selectedCategoryRef.current = selectedCategory;
+
+  const selectedGroupRef = useRef(selectedGroup);
+  selectedGroupRef.current = selectedGroup;
+
+  const centerPosRef = useRef(centerPos);
+  centerPosRef.current = centerPos;
+
+  const requestSeqRef = useRef(0);
+  const fetchPOIsRef = useRef<(() => void) | null>(null);
 
   // Lista de subcategorias baseadas no grupo selecionado
   const subCategoriesOfGroup = useMemo(() => {
@@ -55,15 +100,19 @@ const AddressMap: React.FC = () => {
     return VOYAGE_CATEGORIES.filter((c) => c.group === selectedGroup);
   }, [selectedGroup]);
 
-  // Buscar POIs via mapService (com cache em memória integrado)
-  const fetchPOIs = useCallback(async () => {
+  // Buscar POIs via mapService (com controle de concorrência e cache integrado)
+  const fetchPOIs = useCallback(async (customCenter?: [number, number], customRadius?: number | null) => {
     if (!mapRef.current) return;
+    const currentSeq = ++requestSeqRef.current;
     setLoadingPois(true);
+    setMapError(null);
 
     const map = mapRef.current;
+    const activeRadius = customRadius !== undefined ? customRadius : radiusKmRef.current;
+    const activeCenter = customCenter || centerPosRef.current;
     let boundsParam: any = undefined;
 
-    if (!radiusKm || radiusKm <= 0) {
+    if (!activeRadius || activeRadius <= 0) {
       const b = map.getBounds();
       boundsParam = {
         south: b.getSouth(),
@@ -75,20 +124,27 @@ const AddressMap: React.FC = () => {
 
     try {
       const results = await mapService.getPOIs({
-        center: centerPos,
-        radiusKm: radiusKm,
+        center: activeCenter,
+        radiusKm: activeRadius,
         bounds: boundsParam,
-        category: selectedCategory,
-        group: selectedCategory ? null : selectedGroup
+        category: selectedCategoryRef.current,
+        group: selectedCategoryRef.current ? null : selectedGroupRef.current
       });
 
+      if (currentSeq !== requestSeqRef.current) return;
       setPois(results);
-    } catch (err) {
-      console.error('[AddressMap] Erro ao buscar estabelecimentos:', err);
+    } catch (err: any) {
+      if (currentSeq !== requestSeqRef.current) return;
+      console.warn('[AddressMap] Falha ao carregar POIs:', err.message);
+      setMapError('Não foi possível obter locais do mapa no momento.');
     } finally {
-      setLoadingPois(false);
+      if (currentSeq === requestSeqRef.current) {
+        setLoadingPois(false);
+      }
     }
-  }, [centerPos, radiusKm, selectedCategory, selectedGroup]);
+  }, []);
+
+  fetchPOIsRef.current = fetchPOIs;
 
   // Busca textual direta para estabelecimentos (ex: "Savegnago", "Motel", "Oficina")
   const handleSearchSubmit = async (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -118,21 +174,16 @@ const AddressMap: React.FC = () => {
     }
   };
 
-  // Carregar POIs ao mudar o centro, raio, grupo ou categoria
-  useEffect(() => {
-    fetchPOIs();
-  }, [fetchPOIs]);
-
-  // Inicializar o Mapa Libre
+  // Inicializar o Mapa Libre (uma única vez no ciclo de vida)
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
       style: 'https://tiles.openfreemap.org/styles/bright',
-      center: centerPos,
+      center: centerPosRef.current,
       zoom: 15.5,
-      attributionControl: false
+      attributionControl: { compact: true }
     });
 
     mapRef.current = map;
@@ -169,7 +220,7 @@ const AddressMap: React.FC = () => {
       // Camada do Raio (GeoJSON)
       map.addSource('radius-circle-source', {
         type: 'geojson',
-        data: mapService.createGeoJSONCircle(centerPos, radiusKm)
+        data: mapService.createGeoJSONCircle(centerPosRef.current, radiusKmRef.current)
       });
 
       map.addLayer({
@@ -197,13 +248,30 @@ const AddressMap: React.FC = () => {
       const userDotEl = document.createElement('div');
       userDotEl.className = 'user-location-marker';
       userMarkerRef.current = new maplibregl.Marker({ element: userDotEl })
-        .setLngLat(centerPos)
+        .setLngLat(centerPosRef.current)
         .addTo(map);
+
+      // Carregamento inicial explícito de POIs assim que o mapa estiver pronto
+      if (fetchPOIsRef.current) {
+        fetchPOIsRef.current();
+      }
+
+      // Auto GPS se configurado nas preferências
+      if (localStorage.getItem('voyage_auto_gps') === 'true' && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const gpsCoords: [number, number] = [pos.coords.longitude, pos.coords.latitude];
+            setCenterPos(gpsCoords);
+            map.flyTo({ center: gpsCoords, zoom: 15.5 });
+          },
+          () => {}
+        );
+      }
     });
 
-    // Evento de Clique no Mapa
+    // Evento de Clique no Mapa (sempre lê refs para evitar closure desatualizado)
     map.on('click', (e) => {
-      if (isSettingManualLocation) {
+      if (isSettingManualLocationRef.current) {
         const { lng, lat } = e.lngLat;
         setCenterPos([lng, lat]);
         setIsSettingManualLocation(false);
@@ -220,7 +288,7 @@ const AddressMap: React.FC = () => {
       if (namedFeature && namedFeature.properties) {
         const props = namedFeature.properties;
         const name = props.name || props.name_pt || props.name_en;
-        const matched = getCategoryFromOSMTags(props);
+        const matched = getCategoryFromOSMTags(props, selectedCategoryRef.current);
         const [lng, lat] = [e.lngLat.lng, e.lngLat.lat];
 
         const poi: POIItem = {
@@ -267,10 +335,10 @@ const AddressMap: React.FC = () => {
 
     // Debounce no evento de arrastar o mapa no modo "Sem Raio"
     map.on('moveend', () => {
-      if (radiusKm === null) {
+      if (radiusKmRef.current === null) {
         if (moveTimeoutRef.current) clearTimeout(moveTimeoutRef.current);
         moveTimeoutRef.current = setTimeout(() => {
-          fetchPOIs();
+          if (fetchPOIsRef.current) fetchPOIsRef.current();
         }, 400); // Aguarda 400ms após soltar o mapa
       }
     });
@@ -279,7 +347,14 @@ const AddressMap: React.FC = () => {
       if (moveTimeoutRef.current) clearTimeout(moveTimeoutRef.current);
       map.remove();
     };
-  }, [radiusKm]);
+  }, []);
+
+  // Carregar POIs quando centro, raio, grupo ou categoria mudarem
+  useEffect(() => {
+    if (mapRef.current && mapRef.current.isStyleLoaded()) {
+      fetchPOIs(centerPos, radiusKm);
+    }
+  }, [centerPos, radiusKm, selectedCategory, selectedGroup, fetchPOIs]);
 
   // Atualizar Raio e Centro no Mapa quando mudam
   useEffect(() => {
@@ -349,12 +424,22 @@ const AddressMap: React.FC = () => {
       const icon = poi.categoryIcon || '📍';
       const color = poi.categoryColor || '#6343f2';
 
-      el.innerHTML = `
-        <div class="marker-pin" style="border-left: 3px solid ${color};">
-          <div class="marker-icon" style="background-color: ${color};">${icon}</div>
-          <span class="marker-title">${poi.name}</span>
-        </div>
-      `;
+      const pin = document.createElement('div');
+      pin.className = 'marker-pin';
+      pin.style.borderLeft = `3px solid ${color}`;
+
+      const iconEl = document.createElement('div');
+      iconEl.className = 'marker-icon';
+      iconEl.style.backgroundColor = color;
+      iconEl.textContent = icon;
+
+      const titleEl = document.createElement('span');
+      titleEl.className = 'marker-title';
+      titleEl.textContent = poi.name || '';
+
+      pin.appendChild(iconEl);
+      pin.appendChild(titleEl);
+      el.appendChild(pin);
 
       el.addEventListener('click', (evt) => {
         evt.stopPropagation();
@@ -461,9 +546,14 @@ const AddressMap: React.FC = () => {
 
       {/* Modal Inicial de Localização */}
       {showLocationPrompt && (
-        <div className="location-prompt-overlay">
-          <div className="location-prompt-modal">
-            <h3>Definir Meu Local</h3>
+        <div className="location-prompt-overlay" role="presentation">
+          <div
+            className="location-prompt-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="location-prompt-title"
+          >
+            <h3 id="location-prompt-title">Definir Meu Local</h3>
             <p>Para buscar serviços e estabelecimentos próximos, precisamos saber onde você está. Como deseja configurar?</p>
             <div className="location-buttons">
               <button className="btn-auto" onClick={handleAutoLocation}>
@@ -564,19 +654,29 @@ const AddressMap: React.FC = () => {
 
       {/* Modal / Drawer Elegante de Filtro por Categoria */}
       {showCategoryModal && (
-        <div className="category-modal-overlay" onClick={() => setShowCategoryModal(false)}>
-          <div className="category-modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="category-modal-overlay" onClick={() => setShowCategoryModal(false)} role="presentation">
+          <div
+            className="category-modal-card"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="category-modal-title"
+          >
             <div className="category-modal-header">
               <div className="category-modal-title-group">
                 <div className="category-modal-icon-badge">
                   <Filter size={18} />
                 </div>
                 <div>
-                  <h3>Filtrar por Categoria</h3>
+                  <h3 id="category-modal-title">Filtrar por Categoria</h3>
                   <p>Selecione um segmento para exibir no mapa</p>
                 </div>
               </div>
-              <button className="category-modal-close" onClick={() => setShowCategoryModal(false)}>
+              <button
+                className="category-modal-close"
+                onClick={() => setShowCategoryModal(false)}
+                aria-label="Fechar filtro de categorias"
+              >
                 <X size={20} />
               </button>
             </div>
@@ -584,7 +684,6 @@ const AddressMap: React.FC = () => {
             {/* Abas de Grupos Principais dentro do Modal */}
             <div className="category-modal-group-tabs">
               {CATEGORY_GROUPS.map((group) => {
-                const isGroupActive = selectedGroup === group.id && !selectedCategory;
                 return (
                   <button
                     key={group.id}
@@ -705,12 +804,61 @@ const AddressMap: React.FC = () => {
         </div>
       )}
 
+      {/* Banner de Indisponibilidade de Provedor de Mapa */}
+      {mapError && !loadingPois && (
+        <div className="poi-error-banner" style={{
+          position: 'absolute',
+          top: '75px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          border: '1px solid rgba(239, 68, 68, 0.4)',
+          borderRadius: '12px',
+          padding: '8px 16px',
+          zIndex: 30,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          color: '#fca5a5',
+          fontSize: '12px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+        }}>
+          <span>⚠️ {mapError}</span>
+          <button
+            type="button"
+            onClick={() => fetchPOIsRef.current && fetchPOIsRef.current()}
+            style={{
+              background: '#ef4444',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '4px 10px',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '11px'
+            }}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )}
+
       {/* Modal do POI (Estabelecimento Selecionado) */}
       {clickedPoi && (
-        <div className="poi-detail-card">
+        <div
+          className="poi-detail-card"
+          role="region"
+          aria-label={`Detalhes de ${clickedPoi.name}`}
+        >
           <div className="poi-detail-header">
             <h3>{clickedPoi.name}</h3>
-            <button className="close-card-btn" onClick={() => setClickedPoi(null)}>✕</button>
+            <button
+              className="close-card-btn"
+              onClick={() => setClickedPoi(null)}
+              aria-label="Fechar detalhes do estabelecimento"
+            >
+              ✕
+            </button>
           </div>
           <p className="poi-category-badge" style={{ color: clickedPoi.categoryColor || '#6343f2' }}>
             {clickedPoi.categoryIcon} {clickedPoi.category}

@@ -173,7 +173,7 @@
   position: relative;
   box-shadow: 0 0 15px rgba(99, 67, 242, 0.6);
   pointer-events: none;
-  animation: pulse 2s infinite;
+  animation: map-pulse 2s infinite;
 }
 
 .user-location-marker::after {
@@ -189,7 +189,7 @@
   border: 2px solid white;
 }
 
-@keyframes pulse {
+@keyframes map-pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(99, 67, 242, 0.7);
   }

@@ -1,4 +1,17 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://voyagegabi.onrender.com';
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'https://voyagegabi.onrender.com';
+
+/**
+ * Limpa a sessão do usuário de forma centralizada no frontend
+ */
+export function clearSession() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  localStorage.removeItem('user_company');
+  localStorage.removeItem('user_profile_data');
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('storage'));
+  }
+}
 
 /**
  * Utilitário central de requisições que automaticamente injeta
@@ -17,8 +30,10 @@ export async function apiFetch(endpoint, options = {}) {
     ...(options.headers || {}),
   };
 
-  // Se houver token armazenado e o cabeçalho Authorization não foi passado explicitamente, adiciona
-  if (token && !headers['Authorization']) {
+  // Se houver token armazenado e o cabeçalho Authorization não foi passado explicitamente,
+  // injeta apenas para a API do Voyage (nunca para provedores externos)
+  const isVoyageApi = !endpoint.startsWith('http') || endpoint.startsWith(API_BASE_URL);
+  if (token && !headers['Authorization'] && isVoyageApi) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
@@ -29,13 +44,16 @@ export async function apiFetch(endpoint, options = {}) {
 
   const response = await fetch(url, config);
 
-  // Se receber 401 Unauthorized em uma rota protegida, limpa a sessão e redireciona
-  if (response.status === 401 && token) {
-    console.warn('Sessão expirada ou não autorizada. Removendo credenciais.');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
-    return null;
+  // Se receber 401 Unauthorized em uma rota protegida, limpa a sessão centralizada e interrompe o fluxo
+  if (response.status === 401) {
+    console.warn('Sessão expirada ou não autorizada (401). Limpando credenciais de forma centralizada.');
+    clearSession();
+    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+      window.location.href = '/login';
+    }
+    const authError = new Error('Sessão expirada ou não autorizada (401). Faça login novamente.');
+    authError.status = 401;
+    throw authError;
   }
 
   const data = await response.json().catch(() => null);
@@ -43,7 +61,11 @@ export async function apiFetch(endpoint, options = {}) {
   if (!response.ok) {
     const errorMsg =
       data?.error ||
-      (data?.errors && Array.isArray(data.errors) ? data.errors.join(', ') : null) ||
+      data?.erro ||
+      data?.erroPrincipal ||
+      (Array.isArray(data?.solucoesDetalhadas) ? data.solucoesDetalhadas.join(', ') : null) ||
+      (Array.isArray(data?.detalhes) ? data.detalhes.join(', ') : null) ||
+      (Array.isArray(data?.errors) ? data.errors.join(', ') : null) ||
       data?.message ||
       `Erro na requisição (${response.status})`;
     const error = new Error(errorMsg);

@@ -119,20 +119,27 @@ function EditarPerfilClient() {
         dadosAtualizar.cpf = cpf.trim()
       }
 
-      // Se preencheu nova senha, inclui no payload
+      // Se preencheu nova senha, inclui no payload da requisição
       if (senha && senha.trim()) {
         dadosAtualizar.password = senha
       }
 
-      let atualizado = null
-      try {
-        atualizado = await userService.updateUser(storedUser.id, dadosAtualizar, token)
-      } catch (errApi) {
-        console.warn('Aviso API updateUser:', errApi.message)
-      }
+      // Propaga falha da API — não exibe falso sucesso se a requisição falhar
+      const atualizado = await userService.updateUser(storedUser.id, dadosAtualizar, token)
 
-      // Atualiza os dados salvos localmente
-      const novoUser = { ...storedUser, ...dadosAtualizar, ...(atualizado || {}) }
+      // Atualiza os dados salvos localmente apenas com campos públicos confirmados
+      const serverUser = (atualizado && typeof atualizado === 'object') ? (atualizado.user || atualizado) : {}
+      const novoUser = {
+        ...storedUser,
+        name: dadosAtualizar.name,
+        email: dadosAtualizar.email,
+        phone: dadosAtualizar.phone,
+        ...(dadosAtualizar.avatar ? { avatar: dadosAtualizar.avatar } : {}),
+        ...serverUser,
+      }
+      // NUNCA persistir senha no estado persistente ou na sessão
+      delete novoUser.password
+
       localStorage.setItem('user', JSON.stringify(novoUser))
       window.dispatchEvent(new Event('storage'))
       window.dispatchEvent(new CustomEvent('userPlanUpdated', { detail: novoUser }))

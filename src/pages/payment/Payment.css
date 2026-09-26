@@ -530,10 +530,10 @@
   height: 8px;
   border-radius: 50%;
   background: #fbbf24;
-  animation: pulse 1.5s infinite;
+  animation: payment-pulse 1.5s infinite;
 }
 
-@keyframes pulse {
+@keyframes payment-pulse {
   0% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(1.2); }
   100% { opacity: 1; transform: scale(1); }

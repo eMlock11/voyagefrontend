@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import PerformanceCharts from './PerformanceCharts';
+import { MerchantPanel } from '../../components/Merchant/MerchantPanel';
 import './Company.css';
 import { companyService } from '../../services/companyService';
 import { userService } from '../../services/userService';
@@ -26,7 +27,9 @@ import {
   PlusCircle,
   Eye,
   Phone,
-  FileText
+  FileText,
+  Store,
+  Info
 } from 'lucide-react';
 
 function Company() {
@@ -34,8 +37,8 @@ function Company() {
   const [searchParams, setSearchParams] = useSearchParams();
   // Estado para controlar a aba lateral (Sidebar)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  // Estado para controlar a aba selecionada (suporta ?tab=desempenho na URL)
-  const initialTab = searchParams.get('tab') || 'kpis';
+  // Estado para controlar a aba selecionada (suporta ?tab=merchant na URL)
+  const initialTab = searchParams.get('tab') || 'merchant';
   const [activeTab, setActiveTab] = useState(initialTab);
 
   // Sincronizar activeTab quando o parâmetro da URL mudar
@@ -44,7 +47,7 @@ function Company() {
     if (tabFromUrl && tabFromUrl !== activeTab) {
       setActiveTab(tabFromUrl);
     }
-  }, [searchParams]);
+  }, [searchParams, activeTab]);
 
   const handleTabChange = (newTab) => {
     setActiveTab(newTab);
@@ -105,18 +108,21 @@ function Company() {
         if (storedCompany) {
           try {
             const parsed = JSON.parse(storedCompany);
-            // Só aplica a empresa do storage se pertencer ao usuário logado atual
-            const belongsToUser =
-              (parsed.userId && currentUser?.id && parsed.userId === currentUser.id) ||
-              (parsed.cnpj && currentUser?.cnpj && parsed.cnpj === currentUser.cnpj) ||
-              (parsed.name?.toLowerCase().trim() === currentUser?.name?.toLowerCase().trim());
+            // Só aplica a empresa do storage se pertencer ao usuário logado atual estritamente por ID
+            const belongsToUser = Boolean(
+              currentUser?.id && (
+                parsed.userId === currentUser.id ||
+                parsed.ownerId === currentUser.id ||
+                (currentUser.companyId && parsed.id === currentUser.companyId)
+              )
+            );
 
-            if (parsed && belongsToUser && (parsed.id || parsed.name)) {
+            if (parsed && belongsToUser && parsed.id) {
               applyCompanyData(parsed);
               setLoading(false);
               return;
             } else {
-              // Se a empresa no storage for de outro usuário, descarta do storage
+              // Se a empresa no storage for de outro usuário ou sem vínculo por ID, descarta do storage
               localStorage.removeItem('user_company');
             }
           } catch {
@@ -128,20 +134,48 @@ function Company() {
         if (Array.isArray(companies) && companies.length > 0) {
           const myCompany = companies.find(
             (c) =>
-              (c.userId && currentUser?.id && c.userId === currentUser.id) ||
-              (currentUser?.cnpj && c.cnpj === currentUser.cnpj) ||
-              c.name?.toLowerCase().trim() === currentUser?.name?.toLowerCase().trim()
+              (currentUser?.id && (c.userId === currentUser.id || c.ownerId === currentUser.id)) ||
+              (currentUser?.companyId && c.id === currentUser.companyId)
           );
 
           if (myCompany) {
             applyCompanyData(myCompany);
-            localStorage.setItem('user_company', JSON.stringify(myCompany));
+            localStorage.setItem('user_company', JSON.stringify({ ...myCompany, userId: currentUser?.id }));
+            localStorage.removeItem('pending_company_registration');
           } else {
-            setFormData((prev) => ({
-              ...prev,
-              nomeFantasia: currentUser?.name || '',
-              razaoSocial: currentUser?.name || '',
-            }));
+            // Verifica se há cadastro pendente/rascunho vindo da tela de registro
+            const pendingReg = localStorage.getItem('pending_company_registration');
+            let recovered = false;
+            if (pendingReg) {
+              try {
+                const pendingData = JSON.parse(pendingReg);
+                if (pendingData.userId === currentUser?.id) {
+                  setFormData((prev) => ({
+                    ...prev,
+                    nomeFantasia: pendingData.name || currentUser?.name || '',
+                    razaoSocial: pendingData.name || currentUser?.name || '',
+                    cnpj: pendingData.cnpj || '',
+                    categoria: pendingData.category || 'Lanchonete',
+                    places: pendingData.places || ''
+                  }));
+                  setStatusMessage({
+                    type: 'info',
+                    text: 'Recuperamos o rascunho do seu cadastro de empresa. Revise as informações e clique em "Cadastrar Empresa" para concluir.'
+                  });
+                  recovered = true;
+                }
+              } catch {
+                localStorage.removeItem('pending_company_registration');
+              }
+            }
+
+            if (!recovered) {
+              setFormData((prev) => ({
+                ...prev,
+                nomeFantasia: currentUser?.name || '',
+                razaoSocial: currentUser?.name || '',
+              }));
+            }
           }
         } else {
           setFormData((prev) => ({
@@ -185,20 +219,21 @@ function Company() {
       name: formData.nomeFantasia || formData.razaoSocial,
       category: formData.categoria || 'Lanchonete',
       cnpj: formData.cnpj,
-      evaluate: 4.8,
       places: formData.places || 'Endereço Comercial'
     };
 
     try {
       if (companyId) {
         const updated = await companyService.updateCompany(companyId, payload);
-        localStorage.setItem('user_company', JSON.stringify({ ...formData, id: companyId, ...updated }));
+        localStorage.setItem('user_company', JSON.stringify({ ...formData, id: companyId, userId: currentUser?.id, ...updated }));
+        localStorage.removeItem('pending_company_registration');
         setStatusMessage({ type: 'success', text: 'Dados da sua empresa atualizados com sucesso!' });
       } else {
         const created = await companyService.createCompany(payload);
         if (created && created.id) {
           setCompanyId(created.id);
-          localStorage.setItem('user_company', JSON.stringify(created));
+          localStorage.setItem('user_company', JSON.stringify({ ...created, userId: currentUser?.id }));
+          localStorage.removeItem('pending_company_registration');
         }
         setStatusMessage({ type: 'success', text: 'Empresa cadastrada e vinculada com sucesso!' });
       }
@@ -320,7 +355,7 @@ function Company() {
                 <span className="meta-tag category">{formData.categoria}</span>
                 <div className="meta-rating">
                   <Star size={15} className="star-icon" />
-                  <span>4.8 / 5.0</span>
+                  <span>{formData.evaluate ? `${formData.evaluate.toFixed(1)} / 5.0` : 'Novo no Voyage'}</span>
                 </div>
                 <span className="meta-tag id">
                   {loading ? 'Carregando...' : companyId ? `ID: #${companyId}` : 'Nova Empresa'}
@@ -332,10 +367,10 @@ function Company() {
           <div className="hero-right-actions">
             <button 
               className="hero-action-btn primary"
-              onClick={() => setActiveTab('profile')}
+              onClick={() => handleTabChange('merchant')}
             >
-              <Building size={16} />
-              <span>Editar Empresa</span>
+              <Store size={16} />
+              <span>Painel do Comércio</span>
             </button>
             <button 
               className="hero-action-btn secondary"
@@ -350,25 +385,32 @@ function Company() {
         {/* Barra de Abas */}
         <nav className="company-tabs-nav" aria-label="Navegação do Módulo Empresa">
           <button
+            className={`tab-btn ${activeTab === 'merchant' ? 'active' : ''}`}
+            onClick={() => handleTabChange('merchant')}
+          >
+            <Store size={18} />
+            <span>Painel do Comércio</span>
+          </button>
+          <button
             className={`tab-btn ${activeTab === 'kpis' ? 'active' : ''}`}
             onClick={() => handleTabChange('kpis')}
           >
             <BarChart3 size={18} />
-            <span>Visão Geral & Métricas</span>
+            <span>Métricas & Resumo</span>
           </button>
           <button
             className={`tab-btn ${activeTab === 'desempenho' ? 'active' : ''}`}
             onClick={() => handleTabChange('desempenho')}
           >
             <TrendingUp size={18} />
-            <span>Desempenho & Gráficos</span>
+            <span>Gráficos Avançados</span>
           </button>
           <button
             className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
             onClick={() => handleTabChange('profile')}
           >
             <Building size={18} />
-            <span>Perfil Corporativo</span>
+            <span>Cadastro Básico</span>
           </button>
           <button
             className={`tab-btn ${activeTab === 'team' ? 'active' : ''}`}
@@ -397,6 +439,20 @@ function Company() {
         <div className="company-dashboard-layout">
           {/* Coluna Principal Dinâmica */}
           <main className="company-tab-content">
+
+            {/* ABA MERCHANT: PAINEL DO COMERCIANTE MODULAR */}
+            {activeTab === 'merchant' && (
+              <div className="tab-pane-content">
+                <MerchantPanel
+                  companyId={companyId || 'company-default'}
+                  userId={currentUser?.id}
+                  fallbackCompany={formData}
+                  onCompanyUpdated={(name, category) => {
+                    setFormData((prev) => ({ ...prev, nomeFantasia: name, categoria: category }));
+                  }}
+                />
+              </div>
+            )}
 
             {/* ABA 0: DESEMPENHO COM GRÁFICOS (DIAS, SEMANAS, MESES E SEMESTRAIS) */}
             {activeTab === 'desempenho' && (
@@ -661,6 +717,11 @@ function Company() {
                     Controle quem pode gerenciar produtos, visualizar faturamento e responder clientes da sua organização.
                   </p>
 
+                  <div className="p-3 mb-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs flex items-center gap-2">
+                    <Info size={16} />
+                    <span>Membros demonstrativos da organização para visualização da hierarquia de permissões.</span>
+                  </div>
+
                   <div className="team-list">
                     <div className="team-item">
                       <div className="team-member-info">
@@ -706,6 +767,11 @@ function Company() {
             {/* ABA 4: ASSINATURA & PLANO */}
             {activeTab === 'billing' && (
               <div className="tab-pane-content">
+                <div className="p-3 mb-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center gap-2">
+                  <Info size={16} />
+                  <span>Ambiente Demonstrativo: As faturas e o plano Business PRO abaixo são ilustrativos para validação visual da interface e não geram cobranças automáticas.</span>
+                </div>
+
                 <div className="plan-card">
                   <div className="plan-header-row">
                     <div>
@@ -733,7 +799,7 @@ function Company() {
                     </li>
                     <li className="plan-feature-item">
                       <CheckCircle2 size={16} className="feature-check-icon" />
-                      Selo oficial de "Empresa Verificada"
+                      Selo oficial de &quot;Empresa Verificada&quot;
                     </li>
                   </ul>
 

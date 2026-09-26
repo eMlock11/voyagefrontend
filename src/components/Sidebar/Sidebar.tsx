@@ -40,11 +40,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   const userType = currentUser?.type || 'client'; // 'client' | 'owner' | 'admin'
   const userPlan = currentUser?.plan || 'Gratuito';
 
   const displayName = companyName || currentUser?.name || (userType === 'owner' ? 'Minha Empresa' : 'Usuário Voyage');
-  const displayCategory = category || (userType === 'owner' ? 'Lanchonete' : userType === 'admin' ? 'Administrador do Sistema' : (currentUser?.plan ? `Plano ${currentUser.plan}` : 'Membro Voyage'));
+  const displayCategory = category || (userType === 'owner' ? 'Lanchonete' : userType === 'admin' ? 'Administrador do Sistema' : (userPlan ? `Plano ${userPlan}` : 'Membro Voyage'));
   const showVerified = isVerified !== undefined ? isVerified : (userType === 'owner' || userType === 'admin' || currentUser?.planId === 'plus');
 
 
@@ -82,6 +97,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <aside
         className={`voyage-sidebar ${isOpen ? 'open' : ''}`}
         aria-label="Menu Lateral Principal"
+        aria-hidden={!isOpen}
+        role="dialog"
+        aria-modal={isOpen ? 'true' : undefined}
       >
         {/* 1. Header com Logo Voyage */}
         <div className="sidebar-header">

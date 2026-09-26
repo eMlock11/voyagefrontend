@@ -1,4 +1,18 @@
-import { api } from './api';
+import { api, clearSession } from './api.js';
+export { clearSession };
+
+/**
+ * Sanitiza o objeto de usuário removendo propriedades sensíveis
+ * como senha e garantindo conformidade com a sessão pública.
+ * @param {Object} user
+ * @returns {Object|null}
+ */
+export function sanitizeUser(user) {
+  if (!user || typeof user !== 'object') return null;
+  const safeUser = { ...user };
+  delete safeUser.password;
+  return safeUser;
+}
 
 export const userService = {
   /**
@@ -7,12 +21,16 @@ export const userService = {
    * @returns {Promise<{ message: string, token: string, user: Object }>}
    */
   async login(credentials) {
+    // Limpa resquícios da sessão anterior
+    this.clearSession();
+
     const data = await api.post('/user/login', credentials);
     if (data && data.token) {
       localStorage.setItem('token', data.token);
     }
     if (data && data.user) {
-      localStorage.setItem('user', JSON.stringify(data.user));
+      const safe = sanitizeUser(data.user);
+      localStorage.setItem('user', JSON.stringify(safe));
     }
     return data;
   },
@@ -23,6 +41,8 @@ export const userService = {
    * @returns {Promise<{ message: string, token: string, user: Object }>}
    */
   async register(userData) {
+    this.clearSession();
+
     const payload = {
       type: 'client',
       ...userData,
@@ -33,9 +53,10 @@ export const userService = {
       localStorage.setItem('token', data.token);
     }
     if (data && data.user) {
+      const safe = sanitizeUser(data.user);
       // Nova conta criada inicia sem plano ativo para fins de teste
       const userWithoutPlan = {
-        ...data.user,
+        ...safe,
         plan: 'Nenhum',
         planId: null,
         planStatus: 'inactive',
@@ -92,13 +113,17 @@ export const userService = {
   },
 
   /**
-   * Encerra a sessão do usuário no frontend
+   * Encerra a sessão do usuário e limpa todos os caches de forma centralizada
    */
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('user_company');
-    localStorage.removeItem('user_profile_data');
+    clearSession();
+  },
+
+  /**
+   * Limpa a sessão de forma centralizada
+   */
+  clearSession() {
+    clearSession();
   },
 
   /**
@@ -109,12 +134,18 @@ export const userService = {
   },
 
   /**
-   * Retorna o usuário logado
+   * Retorna o usuário logado, higienizando qualquer senha de sessões antigas
    */
   getCurrentUser() {
     const userStr = localStorage.getItem('user');
     try {
-      return userStr ? JSON.parse(userStr) : null;
+      if (!userStr) return null;
+      const user = JSON.parse(userStr);
+      if (user && typeof user === 'object' && 'password' in user) {
+        delete user.password;
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      return user;
     } catch {
       return null;
     }
@@ -125,18 +156,20 @@ export const userService = {
    * @param {Object} planData { planId, planName, planStatus, planPrice, planPeriod }
    */
   updateCurrentUserPlan(planData) {
-    const userStr = localStorage.getItem('user');
+    const user = this.getCurrentUser() || {};
+    delete user.password;
     try {
-      const user = userStr ? JSON.parse(userStr) : {};
       const updatedUser = {
         ...user,
         plan: planData.planName || user.plan || 'Gratuito',
         planId: planData.planId || user.planId || 'basic',
         planStatus: planData.planStatus || 'active',
+        isDemoSubscription: Boolean(planData.isDemoSubscription),
         planPrice: planData.planPrice,
         planPeriod: planData.planPeriod,
         subscriptionDate: new Date().toISOString()
       };
+      delete updatedUser.password;
       localStorage.setItem('user', JSON.stringify(updatedUser));
       window.dispatchEvent(new Event('storage'));
       window.dispatchEvent(new CustomEvent('userPlanUpdated', { detail: updatedUser }));

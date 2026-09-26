@@ -7,9 +7,6 @@ import {
   Sliders,
   Shield,
   Building2,
-  Bell,
-  MapPin,
-  Moon,
   Laptop,
   CheckCircle,
   ExternalLink,
@@ -40,6 +37,7 @@ export default function Configuracoes() {
   const [activeTab, setActiveTab] = useState<'conta' | 'preferencias' | 'seguranca' | 'empresa'>('conta');
   
   // Feedback visual
+  const [loading, setLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
@@ -95,7 +93,7 @@ export default function Configuracoes() {
     }, 3000);
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!passwordState.currentPassword) {
       alert('Por favor, informe a senha atual.');
@@ -110,13 +108,30 @@ export default function Configuracoes() {
       return;
     }
 
-    setSaveSuccess(true);
-    setFeedbackMessage('Senha atualizada com sucesso!');
-    setPasswordState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    setTimeout(() => {
+    try {
+      if (!currentUser?.id) {
+        alert('Usuário não autenticado.');
+        return;
+      }
+      setLoading(true);
+      await userService.updateUser(currentUser.id, {
+        password: passwordState.newPassword,
+      });
+
+      setSaveSuccess(true);
+      setFeedbackMessage('Senha atualizada com sucesso no servidor!');
+      setPasswordState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setTimeout(() => {
+        setSaveSuccess(false);
+        setFeedbackMessage(null);
+      }, 3000);
+    } catch (err: any) {
       setSaveSuccess(false);
-      setFeedbackMessage(null);
-    }, 3000);
+      setFeedbackMessage(err.message || 'Erro ao atualizar senha no servidor.');
+      alert(err.message || 'Erro ao atualizar senha no servidor.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoBack = () => {
@@ -433,9 +448,9 @@ export default function Configuracoes() {
                 </div>
 
                 <div style={{ marginTop: '20px' }}>
-                  <button type="submit" className="settings-btn-primary">
+                  <button type="submit" className="settings-btn-primary" disabled={loading}>
                     <KeyRound size={16} />
-                    <span>Atualizar Senha</span>
+                    <span>{loading ? 'Atualizando...' : 'Atualizar Senha'}</span>
                   </button>
                 </div>
               </form>

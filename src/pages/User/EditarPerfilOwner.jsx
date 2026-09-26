@@ -70,26 +70,37 @@ function EditarPerfilOwner() {
         const storedCompany = localStorage.getItem('user_company')
         if (storedCompany) {
           const parsedCompany = JSON.parse(storedCompany)
-          if (parsedCompany && (parsedCompany.id || parsedCompany.name)) {
-            setCompanyId(parsedCompany.id || null)
+          // Vincula estritamente por IDs do usuário/empresa, sem inferir pelo nome
+          const belongsToUser = Boolean(
+            storedUser?.id && (
+              parsedCompany.userId === storedUser.id ||
+              parsedCompany.ownerId === storedUser.id ||
+              (storedUser.companyId && parsedCompany.id === storedUser.companyId)
+            )
+          )
+          if (parsedCompany && belongsToUser && parsedCompany.id) {
+            setCompanyId(parsedCompany.id)
             setNomeEmpresa(parsedCompany.name || storedUser.name || '')
             setEndereco(parsedCompany.places || '')
             return
+          } else {
+            localStorage.removeItem('user_company')
           }
         }
 
-        // Tenta buscar empresa pela lista
+        // Tenta buscar empresa pela lista estritamente por ID do proprietário
         const companies = await companyService.getCompanies()
         if (Array.isArray(companies) && companies.length > 0) {
           const myCompany = companies.find(
             (c) =>
-              c.name?.toLowerCase().trim() === storedUser?.name?.toLowerCase().trim() ||
-              (storedUser?.cnpj && c.cnpj === storedUser.cnpj)
+              (storedUser?.id && (c.userId === storedUser.id || c.ownerId === storedUser.id)) ||
+              (storedUser?.companyId && c.id === storedUser.companyId)
           )
           if (myCompany) {
             setCompanyId(myCompany.id)
             setNomeEmpresa(myCompany.name || storedUser.name || '')
             setEndereco(myCompany.places || '')
+            localStorage.setItem('user_company', JSON.stringify({ ...myCompany, userId: storedUser?.id }))
           }
         }
       } catch {
@@ -143,14 +154,24 @@ function EditarPerfilOwner() {
         dadosUsuario.password = senha
       }
 
-      let usuarioAtualizado = null
-      try {
-        usuarioAtualizado = await userService.updateUser(storedUser.id, dadosUsuario, token)
-      } catch (errApi) {
-        console.warn('Aviso API updateUser:', errApi.message)
-      }
+      // Propaga falha da API — não exibe falso sucesso se a requisição falhar
+      const usuarioAtualizado = await userService.updateUser(storedUser.id, dadosUsuario, token)
 
-      const novoUser = { ...storedUser, ...dadosUsuario, ...(usuarioAtualizado || {}) }
+      const serverUser = (usuarioAtualizado && typeof usuarioAtualizado === 'object')
+        ? (usuarioAtualizado.user || usuarioAtualizado)
+        : {}
+
+      const novoUser = {
+        ...storedUser,
+        name: dadosUsuario.name,
+        email: dadosUsuario.email,
+        phone: dadosUsuario.phone,
+        ...(dadosUsuario.avatar ? { avatar: dadosUsuario.avatar } : {}),
+        ...serverUser,
+      }
+      // NUNCA persistir senha no estado persistente ou na sessão
+      delete novoUser.password
+
       localStorage.setItem('user', JSON.stringify(novoUser))
       window.dispatchEvent(new Event('storage'))
       window.dispatchEvent(new CustomEvent('userPlanUpdated', { detail: novoUser }))
@@ -163,13 +184,15 @@ function EditarPerfilOwner() {
             name: storedCompany.name || nome.trim(),
             category: storedCompany.category || 'Outros',
             cnpj: storedCompany.cnpj || '',
-            evaluate: storedCompany.evaluate || 4.8,
             places: endereco.trim(),
+          }
+          if (typeof storedCompany.evaluate === 'number') {
+            companyPayload.evaluate = storedCompany.evaluate
           }
           const empresaAtualizada = await companyService.updateCompany(companyId, companyPayload)
           localStorage.setItem(
             'user_company',
-            JSON.stringify({ ...storedCompany, ...companyPayload, ...(empresaAtualizada || {}) })
+            JSON.stringify({ ...storedCompany, ...companyPayload, ...(empresaAtualizada || {}), userId: storedUser?.id })
           )
         } catch {
           // Avisa mas não bloqueia o fluxo

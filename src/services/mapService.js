@@ -4,9 +4,10 @@
  * integração com Overpass API (OpenStreetMap), Nominatim e rotas OSRM com cache em memória.
  */
 
-// Cache em memória para evitar requisições redundantes na Overpass
+// Cache em memória com TTL para evitar requisições redundantes na Overpass
 const poiCache = new Map();
-const CACHE_MAX_ENTRIES = 50;
+const CACHE_MAX_ENTRIES = 60;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos de validade
 
 // Lista de mirrors rápidos da Overpass API com failover
 const OVERPASS_ENDPOINTS = [
@@ -31,20 +32,20 @@ export const CATEGORY_GROUPS = [
 ];
 
 export const VOYAGE_CATEGORIES = [
-  // --- ALIMENTAÇÃO ---
-  { id: 'restaurante', label: 'Restaurante', group: 'alimentacao', icon: '🍽️', color: '#e27b55', tags: [{ key: 'amenity', value: 'restaurant' }, { key: 'amenity', value: 'food_court' }, { key: 'amenity', value: 'buffet' }] },
-  { id: 'lanchonete', label: 'Lanchonete', group: 'alimentacao', icon: '🍔', color: '#e27b55', tags: [{ key: 'amenity', value: 'fast_food' }, { key: 'amenity', value: 'snack_bar' }, { key: 'cuisine', value: 'burger' }, { key: 'cuisine', value: 'sandwich' }] },
-  { id: 'cafe', label: 'Café', group: 'alimentacao', icon: '☕', color: '#8c593b', tags: [{ key: 'amenity', value: 'cafe' }, { key: 'shop', value: 'coffee' }, { key: 'shop', value: 'tea' }] },
-  { id: 'sorveteria', label: 'Sorveteria', group: 'alimentacao', icon: '🍨', color: '#ec4899', tags: [{ key: 'amenity', value: 'ice_cream' }, { key: 'shop', value: 'ice_cream' }] },
-  { id: 'padaria', label: 'Padaria', group: 'alimentacao', icon: '🥐', color: '#d97706', tags: [{ key: 'shop', value: 'bakery' }, { key: 'shop', value: 'pastry' }] },
+  // --- ALIMENTAÇÃO (Especializadas primeiro para evitar subsumição por "restaurante") ---
   { id: 'pizzaria', label: 'Pizzaria', group: 'alimentacao', icon: '🍕', color: '#ef4444', tags: [{ key: 'amenity', value: 'pizzeria' }, { key: 'cuisine', value: 'pizza' }] },
+  { id: 'padaria', label: 'Padaria', group: 'alimentacao', icon: '🥐', color: '#d97706', tags: [{ key: 'shop', value: 'bakery' }, { key: 'shop', value: 'pastry' }] },
+  { id: 'sorveteria', label: 'Sorveteria', group: 'alimentacao', icon: '🍨', color: '#ec4899', tags: [{ key: 'amenity', value: 'ice_cream' }, { key: 'shop', value: 'ice_cream' }] },
+  { id: 'cafe', label: 'Café', group: 'alimentacao', icon: '☕', color: '#8c593b', tags: [{ key: 'amenity', value: 'cafe' }, { key: 'shop', value: 'coffee' }, { key: 'shop', value: 'tea' }] },
+  { id: 'lanchonete', label: 'Lanchonete', group: 'alimentacao', icon: '🍔', color: '#e27b55', tags: [{ key: 'amenity', value: 'fast_food' }, { key: 'amenity', value: 'snack_bar' }, { key: 'cuisine', value: 'burger' }, { key: 'cuisine', value: 'sandwich' }] },
+  { id: 'restaurante', label: 'Restaurante', group: 'alimentacao', icon: '🍽️', color: '#e27b55', tags: [{ key: 'amenity', value: 'restaurant' }, { key: 'amenity', value: 'food_court' }, { key: 'amenity', value: 'buffet' }] },
   { id: 'bar', label: 'Bar', group: 'alimentacao', icon: '🍺', color: '#f59e0b', tags: [{ key: 'amenity', value: 'bar' }, { key: 'amenity', value: 'lounge' }] },
   { id: 'pub', label: 'Pub', group: 'alimentacao', icon: '🍻', color: '#b45309', tags: [{ key: 'amenity', value: 'pub' }, { key: 'amenity', value: 'biergarten' }] },
   { id: 'adega', label: 'Adega', group: 'alimentacao', icon: '🍷', color: '#831843', tags: [{ key: 'shop', value: 'wine' }, { key: 'shop', value: 'alcohol' }, { key: 'shop', value: 'beverages' }] },
 
-  // --- COMPRAS ---
-  { id: 'mercado', label: 'Mercado', group: 'compras', icon: '🛒', color: '#10b981', tags: [{ key: 'shop', value: 'supermarket' }, { key: 'shop', value: 'grocery' }, { key: 'shop', value: 'general' }, { key: 'building', value: 'supermarket' }] },
+  // --- COMPRAS (Supermercado antes de mercado genérico) ---
   { id: 'supermercado', label: 'Supermercado', group: 'compras', icon: '🏬', color: '#059669', tags: [{ key: 'shop', value: 'supermarket' }, { key: 'building', value: 'supermarket' }] },
+  { id: 'mercado', label: 'Mercado', group: 'compras', icon: '🛒', color: '#10b981', tags: [{ key: 'shop', value: 'grocery' }, { key: 'shop', value: 'general' }, { key: 'shop', value: 'farm' }] },
   { id: 'conveniencia', label: 'Loja de Conveniência', group: 'compras', icon: '🏪', color: '#14b8a6', tags: [{ key: 'shop', value: 'convenience' }] },
   { id: 'shopping', label: 'Shopping', group: 'compras', icon: '🛍️', color: '#6366f1', tags: [{ key: 'shop', value: 'mall' }, { key: 'shop', value: 'department_store' }] },
   { id: 'loja_roupas', label: 'Loja de Roupas', group: 'compras', icon: '👗', color: '#ec4899', tags: [{ key: 'shop', value: 'clothes' }, { key: 'shop', value: 'fashion' }, { key: 'shop', value: 'boutique' }, { key: 'shop', value: 'shoes' }] },
@@ -90,9 +91,21 @@ export const VOYAGE_CATEGORIES = [
 
 /**
  * Identifica a categoria correspondente a partir das tags brutas do OSM
+ * Suporta priorização por categoria selecionada (preferredCategory) para evitar falsos negativos
  */
-export const getCategoryFromOSMTags = (tags) => {
+export const getCategoryFromOSMTags = (tags, preferredCategory = null) => {
   if (!tags) return null;
+
+  // 1. Prioridade: categoria selecionada pelo usuário
+  if (preferredCategory && preferredCategory.tags) {
+    for (const rule of preferredCategory.tags) {
+      if (tags[rule.key] && String(tags[rule.key]).toLowerCase() === rule.value.toLowerCase()) {
+        return preferredCategory;
+      }
+    }
+  }
+
+  // 2. Classificação padrão por ordem de especificidade
   for (const cat of VOYAGE_CATEGORIES) {
     for (const rule of cat.tags) {
       if (tags[rule.key] && String(tags[rule.key]).toLowerCase() === rule.value.toLowerCase()) {
@@ -113,7 +126,8 @@ const buildOverpassQuery = ({ center, radiusKm, bounds, category, group, limit =
   let locationFilter = '';
   if (radiusKm && radiusKm > 0 && center) {
     const [lng, lat] = center;
-    const radiusMeters = Math.min(radiusKm * 1000, 10000);
+    // Permite raio até 25 km alinhado com as opções de zoom da interface
+    const radiusMeters = Math.min(radiusKm * 1000, 25000);
     locationFilter = `(around:${radiusMeters},${lat.toFixed(5)},${lng.toFixed(5)})`;
   } else if (bounds) {
     locationFilter = `(${bounds.south.toFixed(4)},${bounds.west.toFixed(4)},${bounds.north.toFixed(4)},${bounds.east.toFixed(4)})`;
@@ -161,8 +175,9 @@ const buildOverpassQuery = ({ center, radiusKm, bounds, category, group, limit =
 
 /**
  * Converte elementos brutos do OpenStreetMap em POIs padronizados do Voyage
+ * Utiliza IDs compostos (osm_{type}_{id}) para evitar colisões entre node e way
  */
-const parseOSMElements = (elements) => {
+const parseOSMElements = (elements, preferredCategory = null) => {
   if (!elements || !Array.isArray(elements)) return [];
 
   return elements
@@ -173,7 +188,7 @@ const parseOSMElements = (elements) => {
         el.lat ?? el.center?.lat
       ];
       const tags = el.tags || {};
-      const matchedCat = getCategoryFromOSMTags(tags);
+      const matchedCat = getCategoryFromOSMTags(tags, preferredCategory);
 
       const categoryLabel = matchedCat?.label || tags.amenity || tags.shop || tags.tourism || 'Local';
       const categoryIcon = matchedCat?.icon || '📍';
@@ -187,8 +202,13 @@ const parseOSMElements = (elements) => {
       const seed = Math.abs(Number(el.id)) || 42;
       const score = Number((4.1 + (seed % 9) * 0.1).toFixed(1));
 
+      // ID composto tipo osm_node_12345 para evitar colisões entre node e way com mesmo número
+      const compositeId = `osm_${el.type || 'node'}_${el.id}`;
+
       return {
-        id: el.id,
+        id: compositeId,
+        rawId: el.id,
+        osmType: el.type || 'node',
         name: tags.name,
         category: categoryLabel,
         categoryId: categoryId,
@@ -207,17 +227,22 @@ const parseOSMElements = (elements) => {
 
 export const mapService = {
   /**
-   * Busca POIs por área e categoria com cache em memória
+   * Busca POIs por área e categoria com cache em memória e TTL
    */
   async getPOIs({ center, radiusKm, bounds, category, group }) {
-    // Gerar chave única para cache
+    // Gerar chave única para cache incluindo norte/sul/leste/oeste
     const centerKey = center ? `${center[0].toFixed(3)},${center[1].toFixed(3)}` : 'nocenter';
-    const radiusKey = radiusKm ? `${radiusKm}km` : (bounds ? `${bounds.south.toFixed(3)},${bounds.west.toFixed(3)}` : 'free');
+    const radiusKey = radiusKm ? `${radiusKm}km` : (bounds ? `${bounds.south.toFixed(3)},${bounds.west.toFixed(3)},${bounds.north.toFixed(3)},${bounds.east.toFixed(3)}` : 'free');
     const catKey = category?.id || group || 'todos';
     const cacheKey = `${centerKey}_${radiusKey}_${catKey}`;
 
+    // Verificar cache com TTL
     if (poiCache.has(cacheKey)) {
-      return poiCache.get(cacheKey);
+      const cached = poiCache.get(cacheKey);
+      if (Date.now() - cached.timestamp < CACHE_TTL_MS) {
+        return cached.data;
+      }
+      poiCache.delete(cacheKey);
     }
 
     const queryString = buildOverpassQuery({ center, radiusKm, bounds, category, group });
@@ -235,7 +260,7 @@ export const mapService = {
 
         if (res.ok) {
           const data = await res.json();
-          let parsed = parseOSMElements(data.elements);
+          let parsed = parseOSMElements(data.elements, category);
 
           // Filtrar estritamente pelo grupo ou categoria se não for "todos"
           if (category?.id) {
@@ -244,12 +269,12 @@ export const mapService = {
             parsed = parsed.filter((p) => p.categoryGroup === group);
           }
 
-          // Salvar em cache
+          // Salvar em cache com timestamp
           if (poiCache.size >= CACHE_MAX_ENTRIES) {
             const firstKey = poiCache.keys().next().value;
             poiCache.delete(firstKey);
           }
-          poiCache.set(cacheKey, parsed);
+          poiCache.set(cacheKey, { data: parsed, timestamp: Date.now() });
 
           return parsed;
         }
@@ -260,7 +285,9 @@ export const mapService = {
     }
 
     console.warn('[mapService] Todos os mirrors Overpass falharam ou deram timeout:', lastError);
-    return [];
+    const err = new Error('Falha de conexão com os serviços do mapa. Tente novamente em instantes.');
+    err.name = 'OverpassUnavailableError';
+    throw err;
   },
 
   /**
