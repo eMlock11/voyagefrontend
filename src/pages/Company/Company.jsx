@@ -25,7 +25,6 @@ import {
   LogOut,
   Save,
   PlusCircle,
-  Eye,
   Phone,
   FileText,
   Store,
@@ -62,6 +61,7 @@ function Company() {
 
   // Estados de feedback de API
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null); // { type: 'success' | 'error' | 'info', text: string }
 
@@ -186,11 +186,13 @@ function Company() {
         }
       } catch (err) {
         console.warn('Aviso ao carregar dados da empresa:', err.message);
+        setLoadError(err.message || 'Erro ao comunicar com o servidor para buscar os dados da empresa.');
       } finally {
         setLoading(false);
       }
     }
 
+    setLoadError(null);
     loadCompanyData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOwner]);
@@ -345,9 +347,11 @@ function Company() {
             <div className="company-title-area">
               <div className="company-name-row">
                 <h1 className="company-name">{formData.nomeFantasia || 'Seu Estabelecimento'}</h1>
-                <span className="verified-badge" title="Empresa Verificada">
-                  <CheckCircle2 size={20} />
-                </span>
+                {formData.isVerified && (
+                  <span className="verified-badge" title="Empresa Verificada">
+                    <CheckCircle2 size={20} />
+                  </span>
+                )}
               </div>
               <p className="company-subtitle">{formData.razaoSocial || 'Razão Social não informada'}</p>
               
@@ -443,14 +447,60 @@ function Company() {
             {/* ABA MERCHANT: PAINEL DO COMERCIANTE MODULAR */}
             {activeTab === 'merchant' && (
               <div className="tab-pane-content">
-                <MerchantPanel
-                  companyId={companyId || 'company-default'}
-                  userId={currentUser?.id}
-                  fallbackCompany={formData}
-                  onCompanyUpdated={(name, category) => {
-                    setFormData((prev) => ({ ...prev, nomeFantasia: name, categoria: category }));
-                  }}
-                />
+                {loading ? (
+                  <div className="p-12 text-center bg-slate-900/60 border border-white/10 rounded-2xl">
+                    <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-white">Carregando dados do estabelecimento...</p>
+                    <p className="text-xs text-slate-400 mt-1">Buscando informações cadastradas no servidor.</p>
+                  </div>
+                ) : loadError ? (
+                  <div className="p-8 text-center bg-rose-950/40 border border-rose-500/30 rounded-2xl">
+                    <Info className="w-10 h-10 text-rose-400 mx-auto mb-2" />
+                    <h3 className="text-base font-bold text-white">Erro ao carregar dados da empresa</h3>
+                    <p className="text-xs text-rose-300 mt-1 max-w-md mx-auto">{loadError}</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoadError(null);
+                        setLoading(true);
+                        companyService.getCompanies()
+                          .then((comps) => {
+                            const found = comps.find(c => (currentUser?.id && (c.userId === currentUser.id || c.ownerId === currentUser.id)) || (currentUser?.companyId && c.id === currentUser.companyId));
+                            if (found) applyCompanyData(found);
+                          })
+                          .catch((e) => setLoadError(e.message))
+                          .finally(() => setLoading(false));
+                      }}
+                      className="mt-4 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold"
+                    >
+                      Tentar Novamente
+                    </button>
+                  </div>
+                ) : !companyId ? (
+                  <div className="p-10 text-center bg-slate-900/60 border border-white/10 rounded-2xl">
+                    <Building className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-white">Nenhuma empresa cadastrada no momento</h3>
+                    <p className="text-sm text-slate-400 max-w-md mx-auto mt-2">
+                      Para configurar horários de funcionamento, cardápio, fotos e formas de pagamento, conclua primeiro o cadastro básico do seu estabelecimento.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleTabChange('profile')}
+                      className="mt-5 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/20"
+                    >
+                      Cadastrar Empresa Agora
+                    </button>
+                  </div>
+                ) : (
+                  <MerchantPanel
+                    companyId={companyId}
+                    userId={currentUser?.id}
+                    fallbackCompany={formData}
+                    onCompanyUpdated={(name, category) => {
+                      setFormData((prev) => ({ ...prev, nomeFantasia: name, categoria: category }));
+                    }}
+                  />
+                )}
               </div>
             )}
 
@@ -476,38 +526,38 @@ function Company() {
                   {/* 4 KPIs em Grid Desktop */}
                   <div className="kpi-grid">
                     <div className="kpi-box">
-                      <span className="kpi-label">Volume Estimado</span>
-                      <span className="kpi-value">R$ 48.250</span>
-                      <span className="kpi-growth positive">
-                        <TrendingUp size={14} />
-                        +12.4% vs mês ant.
+                      <span className="kpi-label">Volume de Pedidos</span>
+                      <span className="kpi-value text-slate-400">Dados indisponíveis</span>
+                      <span className="kpi-growth text-slate-500">
+                        <Info size={13} className="inline mr-1" />
+                        Sem checkout nesta versão
                       </span>
                     </div>
 
                     <div className="kpi-box">
                       <span className="kpi-label">Clientes Atendidos</span>
-                      <span className="kpi-value">1.420</span>
-                      <span className="kpi-growth positive">
-                        <TrendingUp size={14} />
-                        +8.1% vs mês ant.
+                      <span className="kpi-value text-slate-400">Dados indisponíveis</span>
+                      <span className="kpi-growth text-slate-500">
+                        <Info size={13} className="inline mr-1" />
+                        Aguardando telemetria
                       </span>
                     </div>
 
                     <div className="kpi-box">
                       <span className="kpi-label">Visualizações no Guia</span>
-                      <span className="kpi-value">9.840</span>
-                      <span className="kpi-growth positive">
-                        <Eye size={14} />
-                        +23.0% este mês
+                      <span className="kpi-value text-slate-400">Dados indisponíveis</span>
+                      <span className="kpi-growth text-slate-500">
+                        <Info size={13} className="inline mr-1" />
+                        Métrica em integração
                       </span>
                     </div>
 
                     <div className="kpi-box">
                       <span className="kpi-label">Avaliação do Estabelecimento</span>
-                      <span className="kpi-value">4.8 / 5.0</span>
+                      <span className="kpi-value">{formData.evaluate ? `${formData.evaluate.toFixed(1)} / 5.0` : 'Sem avaliações'}</span>
                       <span className="kpi-growth">
                         <Star size={14} />
-                        455 avaliações
+                        {formData.evaluate ? 'Baseado em avaliações' : 'Recém-chegado'}
                       </span>
                     </div>
                   </div>

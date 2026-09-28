@@ -5,7 +5,7 @@ import EditarPerfil from './pages/User/EditarPerfil';
 import UserDashboard from './pages/User/UserDashboard';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import Company from './pages/Company/Company';
-import Payment from './pages/Payment/Payment';
+import Payment from './pages/payment/Payment';
 import AddressMap from './pages/AddressMap/AddressMap';
 import Configuracoes from './pages/Configuracoes/Configuracoes';
 import ProtectedRoute from './components/ProtectedRoute';

@@ -1,15 +1,17 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Clock,
   Plus,
   Trash2,
-  Copy
+  Copy,
+  Globe
 } from 'lucide-react';
 import type { WeeklyBusinessHours, DayOfWeek, TimeShift } from '../../types/merchant';
 import { merchantService } from '../../services/merchantService';
 
 interface BusinessHoursEditorProps {
   hours: WeeklyBusinessHours;
+  timeZone?: string;
   onChange: (updatedHours: WeeklyBusinessHours) => void;
 }
 
@@ -23,11 +25,25 @@ const DAYS_ORDER: { key: DayOfWeek; label: string }[] = [
   { key: 'domingo', label: 'Domingo' }
 ];
 
-export const BusinessHoursEditor: React.FC<BusinessHoursEditorProps> = ({ hours, onChange }) => {
-  // Cálculo ao vivo do status de abertura
+export const BusinessHoursEditor: React.FC<BusinessHoursEditorProps> = ({
+  hours,
+  timeZone = 'America/Sao_Paulo',
+  onChange
+}) => {
+  // Timer periódico para recalcular status com a passagem do tempo a cada 30s
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTick((t) => t + 1);
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Cálculo de status no fuso horário do estabelecimento
   const currentStatus = useMemo(() => {
-    return merchantService.isEstablishmentOpen(hours);
-  }, [hours]);
+    return merchantService.isEstablishmentOpen(hours, [], undefined, timeZone);
+  }, [hours, timeZone, tick]);
 
   const handleToggleDay = (day: DayOfWeek) => {
     const current = hours[day];
@@ -121,13 +137,19 @@ export const BusinessHoursEditor: React.FC<BusinessHoursEditorProps> = ({ hours,
         className={`p-4 rounded-xl border flex items-center justify-between flex-wrap gap-4 transition-all ${
           currentStatus.isOpen
             ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-200'
+            : currentStatus.isUnspecified
+            ? 'bg-amber-950/40 border-amber-500/30 text-amber-200'
             : 'bg-rose-950/40 border-rose-500/30 text-rose-200'
         }`}
       >
         <div className="flex items-center gap-3">
           <div
             className={`w-3.5 h-3.5 rounded-full animate-pulse ${
-              currentStatus.isOpen ? 'bg-emerald-400' : 'bg-rose-400'
+              currentStatus.isOpen
+                ? 'bg-emerald-400'
+                : currentStatus.isUnspecified
+                ? 'bg-amber-400'
+                : 'bg-rose-400'
             }`}
           />
           <div>
@@ -137,18 +159,25 @@ export const BusinessHoursEditor: React.FC<BusinessHoursEditorProps> = ({ hours,
                 className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                   currentStatus.isOpen
                     ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    : currentStatus.isUnspecified
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                     : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                 }`}
               >
-                {currentStatus.isOpen ? 'Aberto' : 'Fechado'}
+                {currentStatus.isOpen
+                  ? 'Aberto'
+                  : currentStatus.isUnspecified
+                  ? 'Horário não informado'
+                  : 'Fechado'}
               </span>
             </h3>
             <p className="text-xs opacity-90 mt-0.5">{currentStatus.statusText}</p>
           </div>
         </div>
 
-        <div className="text-xs text-slate-400">
-          Atualizado automaticamente com base no fuso horário do visitante
+        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+          <Globe className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Fuso horário do estabelecimento: <strong>{timeZone}</strong></span>
         </div>
       </div>
 
@@ -184,7 +213,7 @@ export const BusinessHoursEditor: React.FC<BusinessHoursEditorProps> = ({ hours,
                   <span className="text-sm font-semibold text-white">{label}</span>
                   {!schedule.isOpen && (
                     <span className="text-xs px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 font-medium">
-                      Fechado
+                      Fechado neste dia
                     </span>
                   )}
                 </div>
@@ -215,46 +244,56 @@ export const BusinessHoursEditor: React.FC<BusinessHoursEditorProps> = ({ hours,
               {/* Turnos / Horários */}
               {schedule.isOpen && schedule.shifts.length > 0 && (
                 <div className="space-y-2 mt-2 pt-2 border-t border-white/5">
-                  {schedule.shifts.map((shift, index) => (
-                    <div
-                      key={shift.id}
-                      className="flex items-center gap-3 bg-slate-800/50 p-2.5 rounded-lg border border-white/5"
-                    >
-                      <Clock size={15} className="text-indigo-400 flex-shrink-0" />
-                      <span className="text-xs text-slate-400 w-16">Turno {index + 1}:</span>
+                  {schedule.shifts.map((shift, index) => {
+                    const isOvernight = shift.open && shift.close && shift.close < shift.open;
 
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="time"
-                          value={shift.open}
-                          onChange={(e) =>
-                            handleShiftTimeChange(key, shift.id, 'open', e.target.value)
-                          }
-                          className="bg-slate-900 border border-white/10 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-indigo-500"
-                        />
-                        <span className="text-xs text-slate-400">até</span>
-                        <input
-                          type="time"
-                          value={shift.close}
-                          onChange={(e) =>
-                            handleShiftTimeChange(key, shift.id, 'close', e.target.value)
-                          }
-                          className="bg-slate-900 border border-white/10 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-indigo-500"
-                        />
+                    return (
+                      <div
+                        key={shift.id}
+                        className="flex flex-wrap items-center gap-3 bg-slate-800/50 p-2.5 rounded-lg border border-white/5"
+                      >
+                        <Clock size={15} className="text-indigo-400 flex-shrink-0" />
+                        <span className="text-xs text-slate-400 w-16">Turno {index + 1}:</span>
+
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            value={shift.open}
+                            onChange={(e) =>
+                              handleShiftTimeChange(key, shift.id, 'open', e.target.value)
+                            }
+                            className="bg-slate-900 border border-white/10 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-indigo-500"
+                          />
+                          <span className="text-xs text-slate-400">até</span>
+                          <input
+                            type="time"
+                            value={shift.close}
+                            onChange={(e) =>
+                              handleShiftTimeChange(key, shift.id, 'close', e.target.value)
+                            }
+                            className="bg-slate-900 border border-white/10 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-indigo-500"
+                          />
+                        </div>
+
+                        {isOvernight && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium">
+                            🌙 Vira a meia-noite (encerra no dia seguinte)
+                          </span>
+                        )}
+
+                        {schedule.shifts.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveShift(key, shift.id)}
+                            className="ml-auto text-slate-400 hover:text-rose-400 p-1 rounded transition-colors"
+                            title="Remover este turno"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </div>
-
-                      {schedule.shifts.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveShift(key, shift.id)}
-                          className="ml-auto text-slate-400 hover:text-rose-400 p-1 rounded transition-colors"
-                          title="Remover este turno"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

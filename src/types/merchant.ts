@@ -78,6 +78,44 @@ export interface EstablishmentAddress {
   longitude?: number;
 }
 
+export interface CompanyApiRecord {
+  id?: number | string;
+  name?: string;
+  nomeFantasia?: string;
+  razaoSocial?: string;
+  category?: string;
+  categoria?: string;
+  cnpj?: string;
+  evaluate?: number;
+  places?: string;
+  userId?: number | string;
+  ownerId?: number | string;
+  phone?: string;
+  telefone?: string;
+  about?: string;
+  sobre?: string;
+}
+
+export interface BusinessStatusResult {
+  isOpen: boolean;
+  statusText: string;
+  isUnspecified?: boolean;
+  isNotReported?: boolean;
+  currentShift?: TimeShift;
+  nextShiftText?: string;
+}
+
+export interface SaveMerchantResult {
+  data: MerchantData;
+  remoteSaved: boolean;
+  localSaved: boolean;
+  remoteFields: string[];
+  localOnlyFields: string[];
+  syncedFields: string[];
+  localDraftFields: string[];
+  message: string;
+}
+
 export interface EstablishmentProfile {
   name: string;
   description: string;
@@ -96,6 +134,7 @@ import type { MerchantCatalogData } from './catalog';
 export interface MerchantData {
   companyId: string | number;
   userId?: string | number;
+  timeZone?: string; // Ex: 'America/Sao_Paulo'
   profile: EstablishmentProfile;
   hours: WeeklyBusinessHours;
   specialHours: SpecialDateSchedule[];

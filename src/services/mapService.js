@@ -235,16 +235,6 @@ export const mapService = {
     const radiusKey = radiusKm ? `${radiusKm}km` : (bounds ? `${bounds.south.toFixed(3)},${bounds.west.toFixed(3)},${bounds.north.toFixed(3)},${bounds.east.toFixed(3)}` : 'free');
     const catKey = category?.id || group || 'todos';
     const cacheKey = `${centerKey}_${radiusKey}_${catKey}`;
-
-<<<<<<< HEAD
-    // Verificar cache com TTL
-    if (poiCache.has(cacheKey)) {
-      const cached = poiCache.get(cacheKey);
-      if (Date.now() - cached.timestamp < CACHE_TTL_MS) {
-        return cached.data;
-      }
-      poiCache.delete(cacheKey);
-=======
     // Estabelecimentos Parceiros Fixos e Cadastrados (Ex: Supermercado Ratti)
     const FEATURED_PARTNERS = [
       {
@@ -272,16 +262,20 @@ export const mapService = {
       });
     };
 
+    // Verificar cache com TTL
     if (poiCache.has(cacheKey)) {
       const cached = poiCache.get(cacheKey);
-      const partners = filterPartners();
-      const ids = new Set(cached.map((p) => p.id));
-      const merged = [...cached];
-      partners.forEach((p) => {
-        if (!ids.has(p.id)) merged.unshift(p);
-      });
-      return merged;
->>>>>>> dd173f80e4d5b3b0871fa296538a06532073fe30
+      if (Date.now() - cached.timestamp < CACHE_TTL_MS) {
+        const partners = filterPartners();
+        const cachedData = Array.isArray(cached) ? cached : cached.data;
+        const ids = new Set((cachedData || []).map((p) => p.id));
+        const merged = [...(cachedData || [])];
+        partners.forEach((p) => {
+          if (!ids.has(p.id)) merged.unshift(p);
+        });
+        return merged;
+      }
+      poiCache.delete(cacheKey);
     }
 
     const queryString = buildOverpassQuery({ center, radiusKm, bounds, category, group });
@@ -308,9 +302,6 @@ export const mapService = {
             parsed = parsed.filter((p) => p.categoryGroup === group);
           }
 
-<<<<<<< HEAD
-          // Salvar em cache com timestamp
-=======
           // Incluir estabelecimentos parceiros cadastrados (como Supermercado Ratti)
           const partners = filterPartners();
           const existingIds = new Set(parsed.map((p) => p.id));
@@ -320,8 +311,7 @@ export const mapService = {
             }
           });
 
-          // Salvar em cache
->>>>>>> dd173f80e4d5b3b0871fa296538a06532073fe30
+          // Salvar em cache com timestamp
           if (poiCache.size >= CACHE_MAX_ENTRIES) {
             const firstKey = poiCache.keys().next().value;
             poiCache.delete(firstKey);
@@ -337,13 +327,13 @@ export const mapService = {
     }
 
     console.warn('[mapService] Todos os mirrors Overpass falharam ou deram timeout:', lastError);
-<<<<<<< HEAD
+    const partners = filterPartners();
+    if (partners.length > 0) {
+      return partners;
+    }
     const err = new Error('Falha de conexão com os serviços do mapa. Tente novamente em instantes.');
     err.name = 'OverpassUnavailableError';
     throw err;
-=======
-    return filterPartners();
->>>>>>> dd173f80e4d5b3b0871fa296538a06532073fe30
   },
 
   /**

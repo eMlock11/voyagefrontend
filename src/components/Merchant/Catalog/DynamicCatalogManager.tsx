@@ -5,7 +5,8 @@ import {
   ShoppingCart,
   Layers,
   Sparkles,
-  Info
+  Info,
+  AlertTriangle
 } from 'lucide-react';
 import {
   MerchantCatalogData,
@@ -14,6 +15,7 @@ import {
   PizzaCatalog,
   SupermarketCatalog
 } from '../../../types/catalog';
+import { resolveCategoryVertical } from '../../../services/merchantService';
 import { RestaurantMenuManager } from './RestaurantMenuManager';
 import { PizzaManager } from './PizzaManager';
 import { SupermarketCatalogManager } from './SupermarketCatalogManager';
@@ -32,23 +34,19 @@ export const DynamicCatalogManager: React.FC<DynamicCatalogManagerProps> = ({
   isLoading = false
 }) => {
   // Inferir vertical inicial a partir de categoria ou dado inicial
-  const inferInitialVertical = (): CatalogVertical => {
+  const inferInitialVertical = (): CatalogVertical | 'geral' => {
     if (initialData?.vertical) return initialData.vertical;
-    const cat = companyCategory.toLowerCase();
-    if (cat.includes('pizza')) return 'pizzaria';
-    if (cat.includes('mercado') || cat.includes('supermercado') || cat.includes('mercearia'))
-      return 'mercado';
-    return 'restaurante';
+    return resolveCategoryVertical(companyCategory);
   };
 
-  const [activeVertical, setActiveVertical] = useState<CatalogVertical>(inferInitialVertical);
+  const [activeVertical, setActiveVertical] = useState<CatalogVertical | 'geral'>(inferInitialVertical);
   const [catalogState, setCatalogState] = useState<MerchantCatalogData>(
-    initialData || { vertical: inferInitialVertical() }
+    initialData || { vertical: inferInitialVertical() === 'geral' ? 'restaurante' : (inferInitialVertical() as CatalogVertical) }
   );
 
   const handleVerticalChange = (vertical: CatalogVertical) => {
     setActiveVertical(vertical);
-    const updated = { ...catalogState, vertical };
+    const updated: MerchantCatalogData = { ...catalogState, vertical };
     setCatalogState(updated);
     onSave(updated);
   };
@@ -97,6 +95,7 @@ export const DynamicCatalogManager: React.FC<DynamicCatalogManagerProps> = ({
               </span>
             </div>
             <p className="text-xs text-neutral-400 mt-1">
+              {companyCategory ? `Categoria cadastrada: "${companyCategory}". ` : ''}
               Personalize a experiência com ferramentas específicas para o seu ramo de atuação.
             </p>
           </div>
@@ -153,12 +152,43 @@ export const DynamicCatalogManager: React.FC<DynamicCatalogManagerProps> = ({
               'Modo Pizzaria ativo: Gestão de múltiplos sabores por fatia, bordas especiais recheadas e tamanhos proporcionais.'}
             {activeVertical === 'mercado' &&
               'Modo Supermercado ativo: Gôndolas por departamento, ofertas da semana com vigência e encarte digital.'}
+            {activeVertical === 'geral' &&
+              'Segmento sem catálogo vertical nativo: selecione manualmente uma vertical acima caso seu estabelecimento comercialize produtos desse tipo.'}
           </span>
         </div>
       </div>
 
       {/* Renderização do Módulo Selecionado */}
       <div>
+        {activeVertical === 'geral' && (
+          <div className="p-8 text-center bg-neutral-900/60 border border-neutral-800 rounded-2xl">
+            <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-white">Catálogo deste segmento ainda não disponível</h3>
+            <p className="text-sm text-neutral-400 max-w-md mx-auto mt-2">
+              A categoria <strong>&quot;{companyCategory || 'Geral'}&quot;</strong> pertence a um segmento (como serviços, saúde, oficina ou hospedagem) que não requer nem possui cardápio alimentar vertical nesta versão do Voyage.
+            </p>
+            <p className="text-xs text-neutral-500 mt-2">
+              Se o seu estabelecimento também oferece serviços de alimentação ou conveniência, escolha um dos módulos disponíveis acima (Restaurante, Pizzaria ou Supermercado) para configurar seus produtos.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleVerticalChange('restaurante')}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl"
+              >
+                Habilitar Cardápio de Restaurante
+              </button>
+              <button
+                type="button"
+                onClick={() => handleVerticalChange('mercado')}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl"
+              >
+                Habilitar Catálogo de Varejo/Mercado
+              </button>
+            </div>
+          </div>
+        )}
+
         {activeVertical === 'restaurante' && (
           <RestaurantMenuManager
             initialData={catalogState.restaurant}

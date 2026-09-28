@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Store,
   Clock,
@@ -12,9 +12,11 @@ import {
   AlertCircle,
   ExternalLink,
   ChevronRight,
-  Menu
+  Menu,
+  Info,
+  AlertTriangle
 } from 'lucide-react';
-import type { MerchantData } from '../../types/merchant';
+import type { MerchantData, SaveMerchantResult } from '../../types/merchant';
 import { merchantService } from '../../services/merchantService';
 import { BusinessInfoForm } from './BusinessInfoForm';
 import { BusinessHoursEditor } from './BusinessHoursEditor';
@@ -45,35 +47,83 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
   );
 
   const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: 'success' | 'error' | 'warning';
+    title: string;
+    details?: string;
+  } | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Carrega os dados persistidos
+  // Snapshot para rastreamento de alterações pendentes (hasUnsavedChanges)
+  const initialSnapshotRef = useRef<string>(JSON.stringify(data));
+  const isDirty = JSON.stringify(data) !== initialSnapshotRef.current;
+
+  // Sincroniza ou reinicializa dados quando mudar a empresa ou usuário
   useEffect(() => {
-    if (companyId) {
+    if (companyId && companyId !== 'company-default') {
       const loaded = merchantService.getMerchantData(companyId, userId, fallbackCompany);
       setData(loaded);
+      initialSnapshotRef.current = JSON.stringify(loaded);
     }
-  }, [companyId, userId]);
+  }, [companyId, userId, fallbackCompany]);
+
+  // Alerta antes de fechar a aba/janela se houver alterações não salvas
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
   const handleSaveAll = async () => {
-    setSaving(true);
-    setFeedback(null);
-    try {
-      const saved = await merchantService.saveMerchantData(data);
-      setData(saved);
-      if (onCompanyUpdated) {
-        onCompanyUpdated(saved.profile.name, saved.profile.primaryCategory);
-      }
-      setFeedback({
-        type: 'success',
-        message: 'Todas as informações do estabelecimento foram salvas com sucesso!'
-      });
-      setTimeout(() => setFeedback(null), 4000);
-    } catch (err: any) {
+    // Evita requisições duplicadas enquanto o salvamento estiver em andamento
+    if (saving) return;
+
+    // Bloqueia atualizações sem ID válido
+    if (!companyId || companyId === 'company-default') {
       setFeedback({
         type: 'error',
-        message: err.message || 'Erro ao salvar os dados do estabelecimento.'
+        title: 'Operação não permitida',
+        details: 'Nenhuma empresa válida selecionada. Cadastre ou selecione uma empresa real antes de salvar.'
+      });
+      return;
+    }
+
+    setSaving(true);
+    setFeedback(null);
+
+    try {
+      // Chama o serviço: primeiro envia campos suportados à API real; se falhar, propaga o erro
+      const result: SaveMerchantResult = await merchantService.saveMerchantData(data);
+
+      // Sucesso confirmado: atualiza o estado com os dados consolidados e atualiza o snapshot
+      setData(result.data);
+      initialSnapshotRef.current = JSON.stringify(result.data);
+
+      if (onCompanyUpdated) {
+        onCompanyUpdated(result.data.profile.name, result.data.profile.primaryCategory);
+      }
+
+      setFeedback({
+        type: 'success',
+        title: 'Salvamento concluído!',
+        details: `${result.message} Sincronizados com o servidor: ${result.syncedFields.join(', ')}. Salvos como rascunho local: ${result.localDraftFields.join(', ')}.`
+      });
+
+      setTimeout(() => {
+        setFeedback((prev) => (prev?.type === 'success' ? null : prev));
+      }, 7000);
+    } catch (err: any) {
+      // Falha da API: propaga o erro para a interface SEM apagar nem resetar o formulário do usuário
+      console.error('Falha ao salvar dados do lojista:', err);
+      setFeedback({
+        type: 'error',
+        title: 'Falha ao salvar no servidor remoto',
+        details: `${err.message || 'Erro de comunicação com a API.'} Suas alterações foram preservadas no formulário para você tentar novamente.`
       });
     } finally {
       setSaving(false);
@@ -85,20 +135,25 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
     { id: 'perfil', label: 'Informações Gerais', icon: Building, badge: null },
     { id: 'horarios', label: 'Horários', icon: Clock, badge: 'Ao vivo' },
     { id: 'pagamentos', label: 'Formas de Pagamento', icon: CreditCard, badge: null },
-    { id: 'midia', label: 'Fotos & Mídia', icon: Image, badge: data.media.length > 0 ? String(data.media.length) : null },
-    { id: 'catalogo', label: 'Catálogo & Cardápio', icon: Utensils, badge: 'Fase 2' },
-    { id: 'desempenho', label: 'Analytics & Gráficos', icon: BarChart3, badge: null }
+    { id: 'midia', label: 'Fotos & Mídia', icon: Image, badge: data.media?.length > 0 ? String(data.media.length) : null },
+    { id: 'catalogo', label: 'Catálogo & Cardápio', icon: Utensils, badge: 'Modular' },
+    { id: 'desempenho', label: 'Analytics & Gráficos', icon: BarChart3, badge: 'Demo' }
   ];
 
   return (
     <div className="w-full">
       {/* Barra de Ações Superior / Header do Painel */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-white/10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-white/10">
         <div>
           <div className="flex items-center gap-2 text-xs text-indigo-400 font-semibold uppercase tracking-wider mb-1">
             <span>Painel do Comerciante Voyage</span>
             <span>•</span>
-            <span>{data.profile.primaryCategory}</span>
+            <span>{data.profile.primaryCategory || 'Categoria não informada'}</span>
+            {isDirty && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30">
+                <AlertTriangle className="w-3 h-3" /> Alterações pendentes
+              </span>
+            )}
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-white">
             {data.profile.name || 'Gerenciamento do Estabelecimento'}
@@ -118,25 +173,42 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
             type="button"
             onClick={handleSaveAll}
             disabled={saving}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
           >
             <Save size={15} />
-            <span>{saving ? 'Salvando...' : 'Salvar Alterações'}</span>
+            <span>{saving ? 'Salvando na API...' : 'Salvar Alterações'}</span>
           </button>
+        </div>
+      </div>
+
+      {/* Banner Informativo de Arquitetura e Rascunho */}
+      <div className="mb-4 p-3 rounded-xl bg-slate-900/70 border border-slate-800 text-[11px] text-slate-400 flex items-start gap-2.5">
+        <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+        <div>
+          <span className="font-semibold text-slate-300">Status de Sincronização:</span> Dados cadastrais básicos (Nome, Categoria, CNPJ e Endereço) são confirmados diretamente na API remota. Horários, formas de pagamento, fotos e catálogo ficam salvos com segurança como <strong>rascunho local neste navegador</strong> enquanto não houver endpoint remoto dedicado no backend.
         </div>
       </div>
 
       {/* Alerta de Feedback */}
       {feedback && (
         <div
-          className={`p-3.5 rounded-xl text-xs font-semibold mb-6 flex items-center gap-2.5 animate-fadeIn ${
+          className={`p-4 rounded-xl text-xs font-medium mb-6 flex items-start gap-3 animate-fadeIn ${
             feedback.type === 'success'
               ? 'bg-emerald-950/60 border border-emerald-500/30 text-emerald-300'
+              : feedback.type === 'warning'
+              ? 'bg-amber-950/60 border border-amber-500/30 text-amber-300'
               : 'bg-rose-950/60 border border-rose-500/30 text-rose-300'
           }`}
         >
-          {feedback.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
-          <span>{feedback.message}</span>
+          {feedback.type === 'success' ? (
+            <CheckCircle2 size={18} className="shrink-0 mt-0.5 text-emerald-400" />
+          ) : (
+            <AlertCircle size={18} className="shrink-0 mt-0.5 text-rose-400" />
+          )}
+          <div>
+            <div className="font-bold text-sm text-white">{feedback.title}</div>
+            {feedback.details && <div className="mt-1 text-slate-300">{feedback.details}</div>}
+          </div>
         </div>
       )}
 
@@ -236,6 +308,7 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
         {activeTab === 'horarios' && (
           <BusinessHoursEditor
             hours={data.hours}
+            timeZone={data.timeZone}
             onChange={(hours) => setData({ ...data, hours })}
           />
         )}

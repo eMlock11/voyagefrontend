@@ -78,23 +78,60 @@ Este arquivo é mantido por agentes de IA e desenvolvedores para registrar o est
 
 ---
 
-## 4. Módulo: Empresa / Parceiro (Company)
+## 4. Módulo: Empresa / Parceiro (Company) & Painel do Comerciante (Merchant)
 
-### [IMPLEMENTADO] Tela de Gestão da Empresa (`Company`)
-- **Arquivos:** [`src/pages/Company/Company.jsx`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/Company/Company.jsx), [`src/pages/Company/Company.css`](file:///c:/Users/kevin.cdorinho/Desktop/PRJ_FrontEnd/voyagefrontend/src/pages/Company/Company.css)
-- **Rota:** `/company`
+### [IMPLEMENTADO & REVISADO] Painel da Empresa e Comerciante (`Company` & `MerchantPanel`)
+- **Arquivos:**
+  - `src/pages/Company/Company.jsx`, `src/pages/Company/Company.css`
+  - `src/pages/Company/PerformanceCharts.tsx`
+  - `src/components/Merchant/MerchantPanel.tsx`
+  - `src/components/Merchant/MerchantOverview.tsx`
+  - `src/components/Merchant/BusinessHoursEditor.tsx`
+  - `src/components/Merchant/PaymentMethodsEditor.tsx`
+  - `src/components/Merchant/MediaGalleryEditor.tsx`
+  - `src/components/Merchant/Catalog/DynamicCatalogManager.tsx`
+  - `src/components/Merchant/Catalog/RestaurantMenuManager.tsx`
+  - `src/components/Merchant/Catalog/PizzaManager.tsx`
+  - `src/components/Merchant/Catalog/SupermarketCatalogManager.tsx`
+  - `src/services/merchantService.ts`
+  - `src/utils/catalogValidators.ts`
+  - `src/utils/mediaStorage.ts`
+- **Rota:** `/company` (aba padrão `?tab=merchant`)
 - **ID da Tela:** `#company-page`
-- **Funcionalidades e Correções:**
-  - Navegação por abas (`kpis`, `profile`, `team`, `billing`, `security`).
-  - Cabeçalho executivo com logotipo Voyage, badge de "Empresa Verificada", avaliação (`4.8/5 ★`) e botão integrado para abertura da nova Aba Lateral (Sidebar).
-  - Painel de KPIs operacionais e visualizações.
-  - Formulário de perfil corporativo (Razão social, nome fantasia, CNPJ, categoria, telefone, places, descrição).
-  - Gestão de equipe com níveis de permissão.
-  - Assinatura corporativa e histórico de faturas demonstrativo.
-  - Auditoria de segurança e logs de acesso.
-  - **Correção de Seletores Desktop:** Corrigidos os seletores de `@media (min-width: 768px)` para coincidir com os nomes reais do JSX (`.company-tabs-nav`, `.company-tab-content`, `.kpi-grid`, `.kpi-card`).
-  - **Isolamento de Animação:** Renomeado `@keyframes fadeIn` para `company-fade-in`.
-  - **Eliminação de Estilos Inline:** Substituído o `style={{ ... }}` do banner do proprietário pelas classes `.company-owner-banner`, `.company-owner-text` e `.company-owner-badge`.
+- **Estado de Integração & Correções Realizadas:**
+  - **Sincronização Real vs Rascunho Local:**
+    - A API remota (`PUT /company/:id`, `POST /company`) aceita apenas `{ name, category, cnpj, places }`.
+    - Os demais recursos (horários, fotos, pagamentos, catálogo) são mantidos como **rascunho local explicitamente identificado** sem promessa falsa de publicação.
+    - `saveMerchantData` agora envia primeiro para a API remota, propaga falhas e não atualiza estado confirmado se a API falhar, preservando os dados no formulário.
+  - **Identificação da Empresa & Carregamento:**
+    - Adaptador tipado `adaptCompanyToProfile` mapeia os campos existentes sem inventar dados comerciais.
+    - Remoção do uso de `'company-default'` em chamadas de API.
+    - Separação clara de estados: `loading`, `loadError` (com botão de retry) e `!companyId` (com orientação e link para o cadastro básico).
+    - Isolamento de rascunhos por usuário e empresa (`voyage_merchant_draft_${userId}_${companyId}`).
+  - **Remoção de Dados Sintéticos do Fluxo Normal:**
+    - Cadastros novos iniciam limpos (sem pratos/pizzas fake, sem horários inventados e sem presunção de delivery/acessibilidade).
+    - Botão "Carregar Exemplo" opcional em modo demonstrativo isolado.
+    - Métricas sem telemetria rotuladas como "Dados ainda indisponíveis".
+    - Gráficos rotulados com badge "Amostragem Demonstrativa".
+    - Selo de "Verificada" só é exibido se `isVerified: true`.
+  - **Unificação da Edição do Catálogo:**
+    - Sincronização em tempo real entre subeditores (Restaurante, Pizzaria, Supermercado) e o rascunho do painel via `onSave` imediato.
+    - Detecção de alterações pendentes com alerta antes de fechar a aba (`beforeunload`).
+  - **Alinhamento de Categorias & Verticais:**
+    - Mapeamento centralizado via `resolveCategoryVertical`. Categorias gerais sem módulo dedicado exibem tela orientativa e permitem escolha manual consciente sem apagar dados anteriores.
+  - **Fotos e Armazenamento Otimizado:**
+    - `Promise.all` para processamento concorrente sem race conditions.
+    - Armazenamento em IndexedDB (`src/utils/mediaStorage.ts`) para Blobs, evitando estouro da cota do `localStorage`. Limites de 15 imagens e 2MB por arquivo.
+  - **Horários e Fuso Horário:**
+    - Motor de horários puro configurado no fuso `America/Sao_Paulo`.
+    - Suporte a turnos noturnos que atravessam a meia-noite (inclusive do dia anterior).
+    - Precedência de horários especiais em feriados e datas sazonais.
+    - Fechamento no instante exato do término.
+    - Timer de 30 segundos reavalia o status operacional com a passagem do tempo.
+  - **Preços e Promoções:**
+    - Validação de preços finitos, `promoPrice < regularPrice`, datas ordenadas e cálculo de % de desconto via `catalogValidators.ts`.
+    - Contagem de ofertas ativas apenas dentro da vigência.
+
 
 ---
 

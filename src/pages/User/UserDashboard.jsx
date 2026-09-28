@@ -7,7 +7,6 @@ import { ThemeToggle } from '../../components/ThemeToggle';
 import {
   Compass,
   Menu,
-  Bell,
   Settings,
   MapPin,
   Heart,

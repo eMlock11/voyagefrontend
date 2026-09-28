@@ -5,9 +5,17 @@ import {
   Trash2,
   Star,
   Plus,
-  Filter
+  Filter,
+  AlertCircle,
+  Info
 } from 'lucide-react';
 import type { MediaItem } from '../../types/merchant';
+import {
+  validateMediaFiles,
+  saveMediaBlob,
+  deleteMediaBlob,
+  MEDIA_LIMITS
+} from '../../utils/mediaStorage';
 
 interface MediaGalleryEditorProps {
   media: MediaItem[];
@@ -19,29 +27,57 @@ export const MediaGalleryEditor: React.FC<MediaGalleryEditorProps> = ({
   onChange
 }) => {
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [rejectionErrors, setRejectionErrors] = useState<{ name: string; reason: string }[]>([]);
 
-  const handleUploadFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newItem: MediaItem = {
-          id: `media-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-          url: reader.result as string,
-          title: file.name.split('.')[0] || 'Foto do Estabelecimento',
-          category: 'internal',
-          isPrimary: media.length === 0
-        };
-        onChange([...media, newItem]);
-      };
-      reader.readAsDataURL(file);
-    });
+    const { validFiles, rejectedFiles } = validateMediaFiles(files, media.length);
+    setRejectionErrors(rejectedFiles);
+
+    if (validFiles.length === 0) {
+      e.target.value = '';
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const newItems: MediaItem[] = await Promise.all(
+        validFiles.map(async (file, idx) => {
+          const id = `media-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 6)}`;
+          const objectUrl = await saveMediaBlob(id, file);
+          return {
+            id,
+            url: objectUrl,
+            title: file.name.split('.')[0] || 'Foto do Estabelecimento',
+            category: 'internal' as const,
+            isPrimary: media.length === 0 && idx === 0
+          };
+        })
+      );
+
+      onChange([...media, ...newItems]);
+    } catch {
+      setRejectionErrors((prev) => [
+        ...prev,
+        { name: 'Upload', reason: 'Falha ao processar as fotos selecionadas.' }
+      ]);
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
   };
 
-  const handleRemoveItem = (id: string) => {
-    onChange(media.filter((item) => item.id !== id));
+  const handleRemoveItem = async (id: string) => {
+    await deleteMediaBlob(id);
+    const updated = media.filter((item) => item.id !== id);
+    const removedWasPrimary = media.find((m) => m.id === id)?.isPrimary;
+    if (removedWasPrimary && updated.length > 0) {
+      updated[0] = { ...updated[0], isPrimary: true };
+    }
+    onChange(updated);
   };
 
   const handleSetPrimary = (id: string) => {
@@ -61,34 +97,73 @@ export const MediaGalleryEditor: React.FC<MediaGalleryEditorProps> = ({
     );
   };
 
-  const filteredItems = filterCategory === 'all'
-    ? media
-    : media.filter((item) => item.category === filterCategory);
+  const filteredItems =
+    filterCategory === 'all'
+      ? media
+      : media.filter((item) => item.category === filterCategory);
 
   return (
     <div className="space-y-6">
+      {/* Header com limites documentados */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
         <div>
-          <h3 className="text-sm font-bold text-white">Galeria de Fotos & Mídia</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-bold text-white">Galeria de Fotos & Mídia</h3>
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-white/10">
+              {media.length} / {MEDIA_LIMITS.MAX_TOTAL_ITEMS} fotos
+            </span>
+          </div>
           <p className="text-xs text-slate-400 mt-0.5">
-            Adicione fotos reais da fachada, ambiente interno, pratos e equipe para atrair mais clientes no mapa.
+            Adicione imagens do ambiente interno, fachada, produtos e serviços. Limite de {MEDIA_LIMITS.MAX_FILE_SIZE_MB}MB por foto (JPG, PNG ou WebP).
           </p>
         </div>
 
         <div>
-          <label className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold cursor-pointer shadow-md transition-colors">
+          <label
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold shadow-md transition-colors ${
+              media.length >= MEDIA_LIMITS.MAX_TOTAL_ITEMS || isUploading
+                ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5'
+                : 'bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer'
+            }`}
+          >
             <Plus size={16} />
-            <span>Adicionar Fotos</span>
+            <span>{isUploading ? 'Processando fotos...' : 'Adicionar Fotos'}</span>
             <input
               type="file"
-              accept="image/*"
+              accept={MEDIA_LIMITS.ALLOWED_EXTENSIONS.join(',')}
               multiple
+              disabled={media.length >= MEDIA_LIMITS.MAX_TOTAL_ITEMS || isUploading}
               className="hidden"
               onChange={handleUploadFiles}
             />
           </label>
         </div>
       </div>
+
+      {/* Aviso de Transparência sobre Armazenamento */}
+      <div className="p-3.5 rounded-xl bg-slate-900/90 border border-indigo-500/20 text-xs text-slate-300 flex items-start gap-2.5">
+        <Info size={16} className="text-indigo-400 shrink-0 mt-0.5" />
+        <div>
+          <strong className="text-indigo-300 font-semibold">Prévia de Rascunho Local:</strong> As fotos adicionadas são armazenadas localmente neste navegador via IndexedDB. Não há publicação remota de fotos na API nesta versão.
+        </div>
+      </div>
+
+      {/* Erros e Rejeições de Upload */}
+      {rejectionErrors.length > 0 && (
+        <div className="p-3.5 rounded-xl bg-rose-950/50 border border-rose-500/30 text-xs text-rose-300 space-y-1">
+          <div className="font-bold flex items-center gap-1.5 text-rose-200">
+            <AlertCircle size={15} />
+            <span>Arquivos rejeitados:</span>
+          </div>
+          <ul className="list-disc pl-5 space-y-0.5">
+            {rejectionErrors.map((err, idx) => (
+              <li key={idx}>
+                <strong>{err.name}</strong>: {err.reason}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Filtros de Categoria */}
       <div className="flex flex-wrap items-center gap-2">
@@ -100,7 +175,7 @@ export const MediaGalleryEditor: React.FC<MediaGalleryEditorProps> = ({
           { key: 'all', label: 'Todas' },
           { key: 'internal', label: 'Ambiente Interno' },
           { key: 'external', label: 'Fachada & Externo' },
-          { key: 'products', label: 'Produtos / Pratos' },
+          { key: 'products', label: 'Produtos / Cardápio' },
           { key: 'services', label: 'Serviços' }
         ].map((f) => (
           <button
@@ -124,14 +199,14 @@ export const MediaGalleryEditor: React.FC<MediaGalleryEditorProps> = ({
           <Image size={40} className="mx-auto text-slate-600 mb-3" />
           <h4 className="text-sm font-semibold text-slate-300">Nenhuma foto adicionada ainda</h4>
           <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">
-            Estabelecimentos com fotos reais recebem até 4x mais rotas e contatos no Voyage.
+            Adicione fotos reais para enriquecer o perfil visual do estabelecimento.
           </p>
           <label className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-lg text-xs font-semibold cursor-pointer transition-colors">
             <Upload size={14} />
             <span>Fazer Upload da Primeira Foto</span>
             <input
               type="file"
-              accept="image/*"
+              accept={MEDIA_LIMITS.ALLOWED_EXTENSIONS.join(',')}
               multiple
               className="hidden"
               onChange={handleUploadFiles}
@@ -143,39 +218,43 @@ export const MediaGalleryEditor: React.FC<MediaGalleryEditorProps> = ({
           {filteredItems.map((item) => (
             <div
               key={item.id}
-              className="group relative bg-slate-900 rounded-xl overflow-hidden border border-white/10 flex flex-col"
+              className={`group relative rounded-xl overflow-hidden border bg-slate-900 transition-all ${
+                item.isPrimary ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-white/10'
+              }`}
             >
-              <div className="aspect-video w-full overflow-hidden bg-slate-950 relative">
+              <div className="aspect-square relative overflow-hidden bg-slate-950">
                 <img
                   src={item.url}
-                  alt={item.title || 'Foto'}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  alt={item.title || 'Foto do estabelecimento'}
+                  className="w-full h-full object-cover"
                 />
 
                 {item.isPrimary && (
-                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-amber-500 text-slate-950 text-[10px] font-bold shadow">
-                    Foto Principal
+                  <span className="absolute top-2 left-2 px-2 py-0.5 bg-amber-500 text-slate-950 text-[10px] font-bold rounded-md flex items-center gap-1 shadow-md">
+                    <Star size={11} fill="currentColor" />
+                    Principal
                   </span>
                 )}
 
-                <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleSetPrimary(item.id)}
-                    title={item.isPrimary ? 'Foto principal' : 'Definir como principal'}
-                    className={`p-1.5 rounded-lg text-xs ${
-                      item.isPrimary
-                        ? 'bg-amber-500 text-slate-950'
-                        : 'bg-white/20 text-white hover:bg-amber-500 hover:text-slate-950'
-                    } transition-colors`}
-                  >
-                    <Star size={14} />
-                  </button>
+                <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+                  {!item.isPrimary && (
+                    <button
+                      type="button"
+                      onClick={() => handleSetPrimary(item.id)}
+                      className="p-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 transition-colors"
+                      title="Definir como foto principal"
+                      aria-label="Definir como foto principal"
+                    >
+                      <Star size={14} />
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => handleRemoveItem(item.id)}
-                    title="Excluir foto"
-                    className="p-1.5 rounded-lg bg-white/20 text-white hover:bg-rose-600 transition-colors"
+                    className="p-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white transition-colors"
+                    title="Remover foto"
+                    aria-label="Remover foto"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -183,12 +262,14 @@ export const MediaGalleryEditor: React.FC<MediaGalleryEditorProps> = ({
               </div>
 
               <div className="p-2.5">
+                <p className="text-xs font-semibold text-slate-200 truncate">{item.title}</p>
                 <select
                   value={item.category}
                   onChange={(e) =>
                     handleChangeCategory(item.id, e.target.value as MediaItem['category'])
                   }
-                  className="w-full bg-slate-800 border border-white/10 rounded px-2 py-1 text-[11px] text-slate-300 focus:outline-none focus:border-indigo-500"
+                  className="mt-1 w-full bg-slate-800 border border-white/10 rounded px-2 py-1 text-[11px] text-slate-300 focus:outline-none focus:border-indigo-500"
+                  aria-label="Categoria da foto"
                 >
                   <option value="internal">Ambiente Interno</option>
                   <option value="external">Fachada & Externo</option>

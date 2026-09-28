@@ -92,10 +92,27 @@ export const PizzaManager: React.FC<PizzaManagerProps> = ({
   onSave,
   isLoading = false
 }) => {
-  const [catalog, setCatalog] = useState<PizzaCatalog>(initialData || DEFAULT_PIZZA_DATA);
+  const [catalog, setCatalog] = useState<PizzaCatalog>(
+    initialData || { sizes: [], crusts: [], flavors: [], commonAddons: [] }
+  );
   const [activeTab, setActiveTab] = useState<'flavors' | 'sizes' | 'crusts' | 'addons'>('flavors');
   const [flavorSearch, setFlavorSearch] = useState('');
   const [flavorFilter, setFlavorFilter] = useState<'all' | 'tradicional' | 'especial' | 'premium' | 'doce'>('all');
+
+  // Atualiza estado local e notifica o rascunho do painel imediatamente
+  const updateCatalog = (updater: (prev: PizzaCatalog) => PizzaCatalog) => {
+    setCatalog((prev) => {
+      const next = updater(prev);
+      onSave(next);
+      return next;
+    });
+  };
+
+  const handleLoadDemoData = () => {
+    updateCatalog(() => DEFAULT_PIZZA_DATA);
+    setFeedback('Exemplos de sabores e tamanhos carregados no rascunho local.');
+    setTimeout(() => setFeedback(null), 3000);
+  };
 
   // Modal / Edição de Sabor
   const [editingFlavor, setEditingFlavor] = useState<PizzaFlavor | null>(null);
@@ -151,7 +168,7 @@ export const PizzaManager: React.FC<PizzaManagerProps> = ({
       ingredients: parsedIngredients
     };
 
-    setCatalog(prev => {
+    updateCatalog(prev => {
       const exists = prev.flavors.some(f => f.id === updated.id);
       return {
         ...prev,
@@ -163,11 +180,13 @@ export const PizzaManager: React.FC<PizzaManagerProps> = ({
 
     setIsFlavorModalOpen(false);
     setEditingFlavor(null);
+    setFeedback('Sabor atualizado no rascunho local.');
+    setTimeout(() => setFeedback(null), 2500);
   };
 
   const handleDeleteFlavor = (id: string) => {
     if (confirm('Tem certeza que deseja excluir este sabor?')) {
-      setCatalog(prev => ({
+      updateCatalog(prev => ({
         ...prev,
         flavors: prev.flavors.filter(f => f.id !== id)
       }));
@@ -175,7 +194,7 @@ export const PizzaManager: React.FC<PizzaManagerProps> = ({
   };
 
   const handleToggleFlavorAvailability = (id: string) => {
-    setCatalog(prev => ({
+    updateCatalog(prev => ({
       ...prev,
       flavors: prev.flavors.map(f => (f.id === id ? { ...f, isAvailable: !f.isAvailable } : f))
     }));
@@ -192,13 +211,15 @@ export const PizzaManager: React.FC<PizzaManagerProps> = ({
       basePrice: Number(newSize.basePrice) || 0,
       maxFlavors: Number(newSize.maxFlavors) || 1
     };
-    setCatalog(prev => ({ ...prev, sizes: [...prev.sizes, sizeToAdd] }));
+    updateCatalog(prev => ({ ...prev, sizes: [...prev.sizes, sizeToAdd] }));
     setNewSize({ name: '', slices: 8, basePrice: 50, maxFlavors: 2 });
     setIsAddingSize(false);
+    setFeedback('Tamanho adicionado ao rascunho local.');
+    setTimeout(() => setFeedback(null), 2500);
   };
 
   const handleDeleteSize = (id: string) => {
-    setCatalog(prev => ({ ...prev, sizes: prev.sizes.filter(s => s.id !== id) }));
+    updateCatalog(prev => ({ ...prev, sizes: prev.sizes.filter(s => s.id !== id) }));
   };
 
   // --- Handlers de Bordas ---
@@ -210,13 +231,15 @@ export const PizzaManager: React.FC<PizzaManagerProps> = ({
       name: newCrust.name,
       additionalPrice: Number(newCrust.additionalPrice) || 0
     };
-    setCatalog(prev => ({ ...prev, crusts: [...prev.crusts, crustToAdd] }));
+    updateCatalog(prev => ({ ...prev, crusts: [...prev.crusts, crustToAdd] }));
     setNewCrust({ name: '', additionalPrice: 10 });
     setIsAddingCrust(false);
+    setFeedback('Borda adicionada ao rascunho local.');
+    setTimeout(() => setFeedback(null), 2500);
   };
 
   const handleDeleteCrust = (id: string) => {
-    setCatalog(prev => ({ ...prev, crusts: prev.crusts.filter(c => c.id !== id) }));
+    updateCatalog(prev => ({ ...prev, crusts: prev.crusts.filter(c => c.id !== id) }));
   };
 
   // --- Handlers de Adicionais ---
@@ -229,19 +252,21 @@ export const PizzaManager: React.FC<PizzaManagerProps> = ({
       price: Number(newAddon.price) || 0,
       isAvailable: true
     };
-    setCatalog(prev => ({ ...prev, commonAddons: [...prev.commonAddons, addonToAdd] }));
+    updateCatalog(prev => ({ ...prev, commonAddons: [...prev.commonAddons, addonToAdd] }));
     setNewAddon({ name: '', price: 5 });
     setIsAddingAddon(false);
+    setFeedback('Adicional incluído no rascunho local.');
+    setTimeout(() => setFeedback(null), 2500);
   };
 
   const handleDeleteAddon = (id: string) => {
-    setCatalog(prev => ({ ...prev, commonAddons: prev.commonAddons.filter(a => a.id !== id) }));
+    updateCatalog(prev => ({ ...prev, commonAddons: prev.commonAddons.filter(a => a.id !== id) }));
   };
 
-  // Submissão Global
+  // Confirmação no Rascunho
   const handleGlobalSave = () => {
     onSave(catalog);
-    setFeedback('Cardápio da Pizzaria salvo com sucesso!');
+    setFeedback('Cardápio da Pizzaria atualizado no rascunho local.');
     setTimeout(() => setFeedback(null), 3000);
   };
 
@@ -290,15 +315,27 @@ export const PizzaManager: React.FC<PizzaManagerProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {catalog.flavors.length === 0 && catalog.sizes.length === 0 && (
+              <button
+                type="button"
+                onClick={handleLoadDemoData}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-semibold border border-neutral-700 transition-colors"
+                title="Carregar sabores e tamanhos de exemplo"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Carregar Exemplos (Demo)</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={handleGlobalSave}
               disabled={isLoading}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-semibold text-sm shadow-lg shadow-orange-600/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-semibold text-xs shadow-lg shadow-orange-600/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
-              {isLoading ? 'Salvando...' : 'Salvar Pizzaria'}
+              <span>Confirmar no Rascunho</span>
             </button>
           </div>
         </div>

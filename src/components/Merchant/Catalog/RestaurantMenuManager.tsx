@@ -5,9 +5,12 @@ import {
   Edit2,
   CheckCircle2,
   XCircle,
-  ChefHat
+  ChefHat,
+  Sparkles,
+  AlertCircle
 } from 'lucide-react';
 import type { RestaurantCatalog, MenuItem, MenuCategory } from '../../../types/catalog';
+import { validatePrice, validatePromoPrice } from '../../../utils/catalogValidators';
 
 interface RestaurantMenuManagerProps {
   catalog?: RestaurantCatalog;
@@ -17,14 +20,41 @@ interface RestaurantMenuManagerProps {
   isLoading?: boolean;
 }
 
-const DEFAULT_RESTAURANT_DATA: RestaurantCatalog = {
+const EMPTY_RESTAURANT_DATA: RestaurantCatalog = {
+  categories: [],
+  items: [],
+  commonAddons: [],
+  diningOptions: {
+    aLaCarte: false,
+    buffet: false,
+    buffetKg: false,
+    selfService: false,
+    pratoFeito: false,
+    delivery: false,
+    takeout: false,
+    dineIn: false
+  }
+};
+
+const DEMO_RESTAURANT_DATA: RestaurantCatalog = {
   categories: [
     { id: 'cat_entradas', name: 'Entradas & Petiscos', order: 1 },
     { id: 'cat_principais', name: 'Pratos Principais', order: 2 },
     { id: 'cat_sobremesas', name: 'Sobremesas', order: 3 },
     { id: 'cat_bebidas', name: 'Bebidas & Drinques', order: 4 }
   ],
-  items: [],
+  items: [
+    {
+      id: 'demo_item_1',
+      name: 'Batata Frita Rústica com Alecrim',
+      description: 'Porção crocante temperada com flor de sal e ervas frescas.',
+      price: 28.0,
+      categoryId: 'cat_entradas',
+      isAvailable: true,
+      ingredients: ['Batata', 'Alecrim', 'Sal'],
+      addons: []
+    }
+  ],
   commonAddons: [],
   diningOptions: {
     aLaCarte: true,
@@ -32,7 +62,7 @@ const DEFAULT_RESTAURANT_DATA: RestaurantCatalog = {
     buffetKg: false,
     selfService: false,
     pratoFeito: false,
-    delivery: true,
+    delivery: false,
     takeout: true,
     dineIn: true
   }
@@ -44,12 +74,14 @@ export const RestaurantMenuManager: React.FC<RestaurantMenuManagerProps> = ({
   onChange,
   onSave
 }) => {
-  const currentCatalog = propCatalog || initialData || DEFAULT_RESTAURANT_DATA;
+  const currentCatalog = propCatalog || initialData || EMPTY_RESTAURANT_DATA;
+  const catalog = currentCatalog;
+
   const notifyChange = (updated: RestaurantCatalog) => {
     if (onChange) onChange(updated);
     if (onSave) onSave(updated);
   };
-  const catalog = currentCatalog;
+
   const [selectedCategory, setSelectedCategory] = useState<string>(
     catalog.categories[0]?.id || ''
   );
@@ -63,16 +95,30 @@ export const RestaurantMenuManager: React.FC<RestaurantMenuManagerProps> = ({
     isAvailable: true,
     addons: []
   });
+  const [formError, setFormError] = useState<string | null>(null);
 
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddingCategory, setIsAddingCategory] = useState(false);
 
+  // Carregar demonstração explicitamente
+  const handleLoadDemo = () => {
+    if (
+      catalog.categories.length > 0 &&
+      !confirm('Deseja carregar a estrutura de exemplo? Categorias e pratos atuais serão substituídos pelo modelo de demonstração.')
+    ) {
+      return;
+    }
+    notifyChange(DEMO_RESTAURANT_DATA);
+    setSelectedCategory(DEMO_RESTAURANT_DATA.categories[0].id);
+  };
+
   // Adicionar nova categoria
   const handleAddCategory = () => {
-    if (!newCategoryName.trim()) return;
+    const cleanName = newCategoryName.trim();
+    if (!cleanName) return;
     const newCat: MenuCategory = {
       id: `cat-${Date.now()}`,
-      name: newCategoryName.trim(),
+      name: cleanName,
       order: catalog.categories.length + 1
     };
     const updated = {
@@ -101,24 +147,55 @@ export const RestaurantMenuManager: React.FC<RestaurantMenuManagerProps> = ({
 
   // Salvar Item (Adicionar ou Editar)
   const handleSaveItem = () => {
-    if (!editingItem.name || !editingItem.price) {
-      alert('Por favor, informe o nome e o preço do prato/produto.');
+    setFormError(null);
+    const name = editingItem.name?.trim();
+    if (!name) {
+      setFormError('Por favor, informe o nome do prato/produto.');
+      return;
+    }
+
+    const priceVal = validatePrice(Number(editingItem.price));
+    if (!priceVal.valid) {
+      setFormError(`Preço inválido: ${priceVal.error}`);
+      return;
+    }
+
+    if (editingItem.promoPrice !== undefined && editingItem.promoPrice !== null) {
+      const promoVal = validatePromoPrice(Number(editingItem.price), Number(editingItem.promoPrice));
+      if (!promoVal.valid) {
+        setFormError(`Preço promocional inválido: ${promoVal.error}`);
+        return;
+      }
+    }
+
+    const targetCategoryId = editingItem.categoryId || selectedCategory || catalog.categories[0]?.id;
+    if (!targetCategoryId) {
+      setFormError('Crie ou selecione uma categoria antes de adicionar itens ao cardápio.');
       return;
     }
 
     let updatedItems: MenuItem[];
     if (editingItem.id) {
       updatedItems = catalog.items.map((i) =>
-        i.id === editingItem.id ? (editingItem as MenuItem) : i
+        i.id === editingItem.id
+          ? ({
+              ...i,
+              ...editingItem,
+              name,
+              price: Number(editingItem.price),
+              promoPrice: editingItem.promoPrice ? Number(editingItem.promoPrice) : undefined,
+              categoryId: targetCategoryId
+            } as MenuItem)
+          : i
       );
     } else {
       const newItem: MenuItem = {
         id: `item-${Date.now()}`,
-        name: editingItem.name,
+        name,
         description: editingItem.description || '',
         price: Number(editingItem.price),
         promoPrice: editingItem.promoPrice ? Number(editingItem.promoPrice) : undefined,
-        categoryId: editingItem.categoryId || selectedCategory,
+        categoryId: targetCategoryId,
         ingredients: editingItem.ingredients || [],
         isAvailable: editingItem.isAvailable !== false,
         addons: editingItem.addons || [],
@@ -136,7 +213,7 @@ export const RestaurantMenuManager: React.FC<RestaurantMenuManagerProps> = ({
       name: '',
       description: '',
       price: 0,
-      categoryId: selectedCategory,
+      categoryId: targetCategoryId,
       ingredients: [],
       isAvailable: true,
       addons: []
@@ -170,10 +247,22 @@ export const RestaurantMenuManager: React.FC<RestaurantMenuManagerProps> = ({
     <div className="space-y-6">
       {/* 1. Modalidades de Atendimento / Serviço */}
       <div className="bg-slate-900/60 p-4 rounded-xl border border-white/5">
-        <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-          <ChefHat size={14} className="text-amber-400" />
-          <span>Modalidades do Estabelecimento</span>
-        </h4>
+        <div className="flex items-center justify-between mb-2.5">
+          <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+            <ChefHat size={14} className="text-amber-400" />
+            <span>Modalidades de Atendimento Oferecidas</span>
+          </h4>
+          {catalog.categories.length === 0 && (
+            <button
+              type="button"
+              onClick={handleLoadDemo}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-700 text-[11px]"
+            >
+              <Sparkles className="w-3 h-3 text-amber-400" />
+              Carregar Exemplo
+            </button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           {[
             { key: 'aLaCarte', label: 'À la Carte' },
@@ -271,116 +360,146 @@ export const RestaurantMenuManager: React.FC<RestaurantMenuManagerProps> = ({
           )}
         </div>
 
-        {/* Botão de Adicionar Produto nesta Categoria */}
-        <div className="flex items-center justify-between">
-          <div className="text-xs text-slate-400">
-            {filteredItems.length} item(ns) nesta categoria
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setEditingItem({
-                name: '',
-                description: '',
-                price: 0,
-                categoryId: selectedCategory,
-                ingredients: [],
-                isAvailable: true,
-                addons: []
-              });
-              setIsEditingItem(true);
-            }}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow transition-all"
-          >
-            <Plus size={14} />
-            <span>Adicionar ao Cardápio</span>
-          </button>
-        </div>
-
-        {/* Lista de Itens do Cardápio */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              className={`p-4 rounded-xl border transition-all ${
-                item.isAvailable
-                  ? 'bg-slate-900/80 border-white/10'
-                  : 'bg-slate-950/60 border-white/5 opacity-60'
-              }`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h5 className="text-sm font-bold text-white">{item.name}</h5>
-                    {!item.isAvailable && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 font-semibold">
-                        Esgotado
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-400 mt-1 line-clamp-2">{item.description}</p>
-
-                  <div className="flex items-center gap-2 mt-2.5">
-                    <span className="text-sm font-extrabold text-emerald-400">
-                      R$ {item.price.toFixed(2).replace('.', ',')}
-                    </span>
-                    {item.promoPrice && (
-                      <span className="text-xs text-slate-500 line-through">
-                        R$ {item.promoPrice.toFixed(2).replace('.', ',')}
-                      </span>
-                    )}
-                  </div>
-
-                  {item.addons && item.addons.length > 0 && (
-                    <div className="mt-2 text-[11px] text-slate-500">
-                      <span className="font-semibold text-slate-400">Adicionais: </span>
-                      {item.addons.map((a) => `${a.name} (+R$ ${a.price.toFixed(2)})`).join(', ')}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleToggleItemAvailability(item.id)}
-                    title={item.isAvailable ? 'Marcar como indisponível' : 'Marcar como disponível'}
-                    className={`p-1.5 rounded-lg text-xs ${
-                      item.isAvailable
-                        ? 'text-emerald-400 hover:bg-emerald-500/10'
-                        : 'text-slate-500 hover:text-emerald-400'
-                    }`}
-                  >
-                    {item.isAvailable ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingItem(item);
-                      setIsEditingItem(true);
-                    }}
-                    title="Editar item"
-                    className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5"
-                  >
-                    <Edit2 size={15} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      notifyChange({
-                        ...catalog,
-                        items: catalog.items.filter((i) => i.id !== item.id)
-                      });
-                    }}
-                    title="Excluir item"
-                    className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-              </div>
+        {catalog.categories.length === 0 ? (
+          <div className="text-center py-10 bg-slate-900/40 rounded-2xl border border-white/5">
+            <ChefHat className="w-10 h-10 text-slate-600 mx-auto mb-2" />
+            <h4 className="text-sm font-semibold text-white">Nenhuma categoria no cardápio</h4>
+            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+              Crie categorias como Entradas, Pratos Principais ou Sobremesas para organizar seus itens.
+            </p>
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsAddingCategory(true)}
+                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold"
+              >
+                Criar Primeira Categoria
+              </button>
+              <button
+                type="button"
+                onClick={handleLoadDemo}
+                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium border border-white/10"
+              >
+                Carregar Exemplo
+              </button>
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <>
+            {/* Botão de Adicionar Produto nesta Categoria */}
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-slate-400">
+                {filteredItems.length} item(ns) nesta categoria
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingItem({
+                    name: '',
+                    description: '',
+                    price: 0,
+                    categoryId: selectedCategory,
+                    ingredients: [],
+                    isAvailable: true,
+                    addons: []
+                  });
+                  setFormError(null);
+                  setIsEditingItem(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow transition-all"
+              >
+                <Plus size={14} />
+                <span>Adicionar ao Cardápio</span>
+              </button>
+            </div>
+
+            {/* Lista de Itens do Cardápio */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`p-4 rounded-xl border transition-all ${
+                    item.isAvailable
+                      ? 'bg-slate-900/80 border-white/10'
+                      : 'bg-slate-950/60 border-white/5 opacity-60'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h5 className="text-sm font-bold text-white">{item.name}</h5>
+                        {!item.isAvailable && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 font-semibold">
+                            Esgotado
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-400 mt-1 line-clamp-2">{item.description}</p>
+
+                      <div className="flex items-center gap-2 mt-2.5">
+                        <span className="text-sm font-extrabold text-emerald-400">
+                          R$ {item.price.toFixed(2).replace('.', ',')}
+                        </span>
+                        {item.promoPrice && (
+                          <span className="text-xs text-slate-500 line-through">
+                            R$ {item.promoPrice.toFixed(2).replace('.', ',')}
+                          </span>
+                        )}
+                      </div>
+
+                      {item.addons && item.addons.length > 0 && (
+                        <div className="mt-2 text-[11px] text-slate-500">
+                          <span className="font-semibold text-slate-400">Adicionais: </span>
+                          {item.addons.map((a) => `${a.name} (+R$ ${a.price.toFixed(2)})`).join(', ')}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleItemAvailability(item.id)}
+                        title={item.isAvailable ? 'Marcar como indisponível' : 'Marcar como disponível'}
+                        className={`p-1.5 rounded-lg text-xs ${
+                          item.isAvailable
+                            ? 'text-emerald-400 hover:bg-emerald-500/10'
+                            : 'text-slate-500 hover:text-emerald-400'
+                        }`}
+                      >
+                        {item.isAvailable ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingItem(item);
+                          setFormError(null);
+                          setIsEditingItem(true);
+                        }}
+                        title="Editar item"
+                        className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5"
+                      >
+                        <Edit2 size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          notifyChange({
+                            ...catalog,
+                            items: catalog.items.filter((i) => i.id !== item.id)
+                          });
+                        }}
+                        title="Excluir item"
+                        className="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* MODAL DE EDIÇÃO DE ITEM */}
@@ -399,6 +518,13 @@ export const RestaurantMenuManager: React.FC<RestaurantMenuManagerProps> = ({
                 ✕
               </button>
             </div>
+
+            {formError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                {formError}
+              </div>
+            )}
 
             <div className="space-y-3.5 max-h-[70vh] overflow-y-auto pr-1">
               <div>
@@ -430,8 +556,8 @@ export const RestaurantMenuManager: React.FC<RestaurantMenuManagerProps> = ({
                     type="number"
                     step="0.01"
                     value={editingItem.promoPrice || ''}
-                    onChange={(e) => setEditingItem({ ...editingItem, promoPrice: parseFloat(e.target.value) || undefined })}
-                    placeholder="24.90"
+                    onChange={(e) => setEditingItem({ ...editingItem, promoPrice: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    placeholder="Deixe vazio se não houver"
                     className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
@@ -447,49 +573,20 @@ export const RestaurantMenuManager: React.FC<RestaurantMenuManagerProps> = ({
                   className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Ingredientes (separados por vírgula)</label>
-                <input
-                  type="text"
-                  value={editingItem.ingredients?.join(', ') || ''}
-                  onChange={(e) =>
-                    setEditingItem({
-                      ...editingItem,
-                      ingredients: e.target.value.split(',').map((s) => s.trim()).filter(Boolean)
-                    })
-                  }
-                  placeholder="Pão brioche, Carne 180g, Queijo cheddar, Bacon"
-                  className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="item-available"
-                  checked={editingItem.isAvailable !== false}
-                  onChange={(e) => setEditingItem({ ...editingItem, isAvailable: e.target.checked })}
-                  className="rounded bg-slate-800 border-white/10 text-indigo-600 focus:ring-0"
-                />
-                <label htmlFor="item-available" className="text-xs font-medium text-slate-300">
-                  Item disponível para pedidos no momento
-                </label>
-              </div>
             </div>
 
             <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setIsEditingItem(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleSaveItem}
-                className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow"
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow"
               >
                 Salvar Item
               </button>

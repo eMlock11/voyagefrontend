@@ -9,7 +9,6 @@ import {
   ShieldAlert,
   Compass,
   Menu,
-  Bell,
   Settings,
   Users,
   Building,
@@ -142,104 +141,23 @@ export default function AdminDashboard() {
                   Logado como: <strong>{currentUser?.name || 'Administrador'}</strong> ({currentUser?.email || 'admin@voyage.com'})
                 </p>
               </div>
-<<<<<<< HEAD
-              <span className="text-xs text-gray-400">Total Real</span>
-            </div>
-            <div className="admin-stat-val">
-              {loading ? '...' : (error ? '—' : companies.length)}
-            </div>
-            <span className="text-xs text-gray-400">Empresas Cadastradas</span>
-          </div>
-
-          <div className="admin-stat-card">
-            <div className="flex items-center justify-between">
-              <div className="admin-stat-icon">
-                <Users size={22} />
-              </div>
-              <span className="text-[10px] uppercase font-bold text-amber-400/80 bg-amber-500/10 px-1.5 py-0.5 rounded">Estimado</span>
-=======
             </div>
             <div className="flex items-center gap-2">
               <Button variant="default" size="sm" onClick={() => navigate('/company/cadastro')} className="gap-1.5">
                 <Plus size={15} /> Novo Estabelecimento
               </Button>
->>>>>>> dd173f80e4d5b3b0871fa296538a06532073fe30
             </div>
           </div>
-<<<<<<< HEAD
-
-          <div className="admin-stat-card">
-            <div className="flex items-center justify-between">
-              <div className="admin-stat-icon">
-                <Activity size={22} />
-              </div>
-              <span className="text-[10px] uppercase font-bold text-emerald-400/80 bg-emerald-500/10 px-1.5 py-0.5 rounded">Mock SLA</span>
-            </div>
-            <div className="admin-stat-val">99.98%</div>
-            <span className="text-xs text-gray-400">SLA dos Serviços GIS</span>
-          </div>
-
-          <div className="admin-stat-card">
-            <div className="flex items-center justify-between">
-              <div className="admin-stat-icon">
-                <CheckCircle size={22} />
-              </div>
-              <span className="text-[10px] uppercase font-bold text-blue-400/80 bg-blue-500/10 px-1.5 py-0.5 rounded">Local</span>
-            </div>
-            <div className="admin-stat-val">OK</div>
-            <span className="text-xs text-gray-400">Zero incidentes</span>
-          </div>
-        </section>
-
-        {/* Tabela de Estabelecimentos Cadastrados */}
-        <div className="admin-table-panel">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold flex items-center gap-2">
-              <FileText size={20} className="text-red-400" />
-              Empresas na Base de Dados
-            </h2>
-            <span className={`text-xs ${error ? 'text-rose-400 font-semibold' : 'text-gray-400'}`}>
-              {error ? 'Falha na conexão com a API' : 'Sincronizado com API'}
-            </span>
-          </div>
-
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nome do Estabelecimento</th>
-                <th>Categoria</th>
-                <th>CNPJ / Localização</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-6 text-gray-400">Carregando dados...</td>
-                </tr>
-              ) : companies.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-6 text-gray-400">Nenhum estabelecimento encontrado.</td>
-                </tr>
-              ) : (
-                companies.slice(0, 10).map((c) => (
-                  <tr key={c.id}>
-                    <td>#{c.id}</td>
-                    <td className="font-semibold text-white">{c.name}</td>
-                    <td>{c.category || 'Geral'}</td>
-                    <td>{c.places || c.cnpj || 'Endereço não informado'}</td>
-                    <td>
-                      <span className="badge-status active">Ativo</span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-=======
->>>>>>> dd173f80e4d5b3b0871fa296538a06532073fe30
         </div>
+
+        {error && (
+          <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center justify-between">
+            <span>{error}</span>
+            <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="h-7 text-xs">
+              Recarregar
+            </Button>
+          </div>
+        )}
 
         {/* Cards de Métricas shadcn KPI */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -224,9 +224,14 @@ export const PerformanceCharts: React.FC = () => {
           </div>
           <div>
             <h2 className="analytics-main-title">Painel Analítico de Desempenho</h2>
-            <p className="analytics-subtitle">
-              Métricas detalhadas e tendências do seu negócio no ecossistema Voyage
-            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                📊 Gráficos Demonstrativos / Amostragem Ilustrativa
+              </span>
+              <span className="text-xs text-slate-400">
+                (Aguardando integração de checkout/telemetria no backend)
+              </span>
+            </div>
           </div>
         </div>
 

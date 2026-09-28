@@ -16,25 +16,11 @@ import {
   SlidersHorizontal,
   X,
   Check,
-<<<<<<< HEAD
-  Filter
-=======
-  Sparkles,
-  Layers,
-  Search,
   Filter,
-  Flame,
-  Tag,
   Clock,
-  Sparkle,
-  ChevronRight,
-  Info,
   Navigation,
   Compass,
-  Phone,
-  MessageCircle,
-  Share2
->>>>>>> dd173f80e4d5b3b0871fa296538a06532073fe30
+  MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -596,6 +582,13 @@ const AddressMap: React.FC = () => {
         </div>
       )}
 
+      {mapError && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 px-4 py-2 bg-rose-900/90 border border-rose-500/40 text-rose-200 text-xs rounded-xl shadow-lg flex items-center gap-2">
+          <span>{mapError}</span>
+          <button onClick={() => setMapError(null)} className="text-white hover:opacity-80 font-bold ml-1">✕</button>
+        </div>
+      )}
+
       {/* Header com Busca, Filtro de Categorias e Seletor de Raio */}
       <div className="search-header">
         <div className="search-input-wrapper">
@@ -826,75 +819,9 @@ const AddressMap: React.FC = () => {
         </div>
       )}
 
-<<<<<<< HEAD
-      {/* Banner de Indisponibilidade de Provedor de Mapa */}
-      {mapError && !loadingPois && (
-        <div className="poi-error-banner" style={{
-          position: 'absolute',
-          top: '75px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          backgroundColor: 'rgba(15, 23, 42, 0.95)',
-          border: '1px solid rgba(239, 68, 68, 0.4)',
-          borderRadius: '12px',
-          padding: '8px 16px',
-          zIndex: 30,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          color: '#fca5a5',
-          fontSize: '12px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
-        }}>
-          <span>⚠️ {mapError}</span>
-          <button
-            type="button"
-            onClick={() => fetchPOIsRef.current && fetchPOIsRef.current()}
-            style={{
-              background: '#ef4444',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '4px 10px',
-              cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: '11px'
-            }}
-          >
-            Tentar novamente
-          </button>
-        </div>
-      )}
-
-      {/* Modal do POI (Estabelecimento Selecionado) */}
-      {clickedPoi && (
-        <div
-          className="poi-detail-card"
-          role="region"
-          aria-label={`Detalhes de ${clickedPoi.name}`}
-        >
-          <div className="poi-detail-header">
-            <h3>{clickedPoi.name}</h3>
-            <button
-              className="close-card-btn"
-              onClick={() => setClickedPoi(null)}
-              aria-label="Fechar detalhes do estabelecimento"
-            >
-              ✕
-            </button>
-          </div>
-          <p className="poi-category-badge" style={{ color: clickedPoi.categoryColor || '#6343f2' }}>
-            {clickedPoi.categoryIcon} {clickedPoi.category}
-          </p>
-          <p className="poi-address">📍 {clickedPoi.place}{clickedPoi.number ? `, ${clickedPoi.number}` : ''}</p>
-          {clickedPoi.phone && <p className="poi-info-extra">📞 {clickedPoi.phone}</p>}
-          {clickedPoi.opening_hours && <p className="poi-info-extra">⏰ {clickedPoi.opening_hours}</p>}
-          <div className="poi-rating">⭐ <strong>{clickedPoi.evaluate.toFixed(1)}</strong> / 5.0</div>
-=======
       {/* Modal do POI (Estabelecimento Selecionado com Detalhes Comerciais & shadcn UI) */}
       {clickedPoi && (() => {
         const commercial = getCommercialDetails(clickedPoi);
->>>>>>> dd173f80e4d5b3b0871fa296538a06532073fe30
 
         return (
           <div className="poi-detail-card expanded-commercial border border-border/80 shadow-2xl backdrop-blur-xl">
