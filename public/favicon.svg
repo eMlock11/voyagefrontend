@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Gradiente opcional para dar o aspecto dinâmico/moderno -->
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9C27B0" />
+      <stop offset="100%" stop-color="#673AB7" />
+    </linearGradient>
+  </defs>
+
+  <!-- Fundo opcional (remova a tag <rect> se quiser fundo transparente) -->
+  <rect width="512" height="512" rx="100" fill="#0f0f13" />
+
+  <g transform="translate(40, 40) scale(0.85)">
+    <!-- Letra V estilizada em roxo -->
+    <path d="M 120 80 L 220 340 L 270 340 L 390 80 L 320 80 L 245 250 L 170 80 Z" 
+          fill="url(#purpleGrad)" />
+
+    <!-- Traços de movimento dinâmicos -->
+    <path d="M 360 120 L 440 120" stroke="#9C27B0" stroke-width="20" stroke-linecap="round" />
+    <path d="M 390 170 L 450 170" stroke="#B388FF" stroke-width="16" stroke-linecap="round" />
+    <path d="M 410 220 L 440 220" stroke="#B388FF" stroke-width="12" stroke-linecap="round" />
+  </g>
+</svg>
