@@ -6,7 +6,6 @@ import './Company.css';
 import { companyService } from '../../services/companyService';
 import { userService } from '../../services/userService';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
-import { ThemeToggle } from '../../components/ThemeToggle';
 import {
   Compass,
   Menu,
@@ -296,7 +295,6 @@ function Company() {
             <button className="header-icon-btn" title="Notificações" aria-label="Notificações">
               <Bell size={19} />
             </button>
-            <ThemeToggle className="header-icon-btn" />
             <button
               className="header-icon-btn"
               onClick={() => navigate('/configuracoes')}

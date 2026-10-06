@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import './UserDashboard.css';
 import { userService } from '../../services/userService';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
-import { ThemeToggle } from '../../components/ThemeToggle';
 import {
   Compass,
   Menu,
@@ -87,7 +86,6 @@ export default function UserDashboard() {
               <MapPin size={15} />
               <span className="hidden sm:inline">Explorar Mapa</span>
             </Button>
-            <ThemeToggle className="h-9 w-9 rounded-xl border border-input bg-background/60 hover:bg-accent flex items-center justify-center" />
             <Button
               variant="outline"
               size="icon"

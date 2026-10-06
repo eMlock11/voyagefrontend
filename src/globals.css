@@ -6,101 +6,7 @@
 
 @layer base {
   :root {
-    /* shadcn/ui Light Mode tokens (HSL) */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 238.7 83.5% 66.7%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 238.7 83.5% 66.7%;
-
-    --radius: 0.75rem;
-
-    /* Voyage Design Tokens - Light Mode */
-    --voyage-bg-main: #f8fafc;
-    --voyage-bg-card: #ffffff;
-    --voyage-bg-card-hover: #f1f5f9;
-    --voyage-bg-surface: #f1f5f9;
-    --voyage-bg-surface-hover: #e2e8f0;
-    --voyage-bg-input: #ffffff;
-    --voyage-bg-glass: rgba(255, 255, 255, 0.9);
-
-    --voyage-text-primary: #0f172a;
-    --voyage-text-secondary: #475569;
-    --voyage-text-muted: #64748b;
-    --voyage-text-dim: #94a3b8;
-
-    --voyage-accent-primary: #6366f1;
-    --voyage-accent-primary-hover: #4f46e5;
-    --voyage-accent-primary-subtle: rgba(99, 102, 241, 0.1);
-    --voyage-accent-secondary: #0284c7;
-    --voyage-accent-secondary-hover: #0369a1;
-
-    --voyage-status-success: #10b981;
-    --voyage-status-success-subtle: rgba(16, 185, 129, 0.12);
-    --voyage-status-error: #ef4444;
-    --voyage-status-error-subtle: rgba(239, 68, 68, 0.12);
-    --voyage-status-warning: #f59e0b;
-    --voyage-status-warning-subtle: rgba(245, 158, 11, 0.12);
-    --voyage-status-info: #3b82f6;
-
-    --voyage-border-subtle: rgba(0, 0, 0, 0.08);
-    --voyage-border-card: rgba(0, 0, 0, 0.1);
-    --voyage-border-focus: rgba(99, 102, 241, 0.6);
-    --voyage-border-glow: rgba(99, 102, 241, 0.25);
-
-    --voyage-gradient-brand: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
-    --voyage-gradient-card: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-    --voyage-gradient-glow: radial-gradient(circle at top center, rgba(99, 102, 241, 0.08), transparent 70%);
-
-    --voyage-space-xs: 4px;
-    --voyage-space-sm: 8px;
-    --voyage-space-md: 12px;
-    --voyage-space-lg: 16px;
-    --voyage-space-xl: 24px;
-    --voyage-space-2xl: 32px;
-    --voyage-space-3xl: 48px;
-    --voyage-space-4xl: 64px;
-
-    --voyage-radius-xs: 6px;
-    --voyage-radius-sm: 8px;
-    --voyage-radius-md: 14px;
-    --voyage-radius-lg: 20px;
-    --voyage-radius-xl: 24px;
-    --voyage-radius-full: 9999px;
-
-    --voyage-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-    --voyage-shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.05);
-    --voyage-shadow-elevated: 0 20px 35px -10px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06);
-    --voyage-shadow-glow: 0 0 30px rgba(99, 102, 241, 0.2);
-
-    --voyage-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-    --voyage-transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .dark {
-    /* shadcn/ui Dark Mode tokens (HSL) */
+    /* shadcn/ui tokens (HSL) alinhados à paleta Voyage */
     --background: 228 38% 5%;
     --foreground: 210 40% 98%;
 
@@ -129,7 +35,9 @@
     --input: 225 25% 18%;
     --ring: 238.7 83.5% 66.7%;
 
-    /* Voyage Design Tokens - Dark Mode */
+    --radius: 0.75rem;
+
+    /* Voyage Design Tokens - Paleta Original Padrão */
     --voyage-bg-main: #080a12;
     --voyage-bg-card: #0e1222;
     --voyage-bg-card-hover: #13182e;
@@ -138,17 +46,20 @@
     --voyage-bg-input: #111628;
     --voyage-bg-glass: rgba(14, 18, 34, 0.85);
 
+    /* Cores de Texto */
     --voyage-text-primary: #ffffff;
     --voyage-text-secondary: #94a3b8;
     --voyage-text-muted: #64748b;
     --voyage-text-dim: #475569;
 
+    /* Cores de Ação e Destaque */
     --voyage-accent-primary: #6366f1;
     --voyage-accent-primary-hover: #4f46e5;
     --voyage-accent-primary-subtle: rgba(99, 102, 241, 0.15);
     --voyage-accent-secondary: #38bdf8;
     --voyage-accent-secondary-hover: #0ea5e9;
 
+    /* Estados e Feedback */
     --voyage-status-success: #10b981;
     --voyage-status-success-subtle: rgba(16, 185, 129, 0.15);
     --voyage-status-error: #ef4444;
@@ -157,19 +68,44 @@
     --voyage-status-warning-subtle: rgba(245, 158, 11, 0.15);
     --voyage-status-info: #3b82f6;
 
+    /* Bordas e Divisores */
     --voyage-border-subtle: rgba(255, 255, 255, 0.08);
     --voyage-border-card: rgba(255, 255, 255, 0.12);
     --voyage-border-focus: rgba(99, 102, 241, 0.6);
     --voyage-border-glow: rgba(99, 102, 241, 0.35);
 
+    /* Gradientes */
     --voyage-gradient-brand: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
     --voyage-gradient-card: linear-gradient(180deg, rgba(21, 27, 48, 0.8) 0%, rgba(14, 18, 34, 0.95) 100%);
     --voyage-gradient-glow: radial-gradient(circle at top center, rgba(99, 102, 241, 0.15), transparent 70%);
 
+    /* Espaçamentos */
+    --voyage-space-xs: 4px;
+    --voyage-space-sm: 8px;
+    --voyage-space-md: 12px;
+    --voyage-space-lg: 16px;
+    --voyage-space-xl: 24px;
+    --voyage-space-2xl: 32px;
+    --voyage-space-3xl: 48px;
+    --voyage-space-4xl: 64px;
+
+    /* Raios de Borda */
+    --voyage-radius-xs: 6px;
+    --voyage-radius-sm: 8px;
+    --voyage-radius-md: 14px;
+    --voyage-radius-lg: 20px;
+    --voyage-radius-xl: 24px;
+    --voyage-radius-full: 9999px;
+
+    /* Sombras */
     --voyage-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
     --voyage-shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
     --voyage-shadow-elevated: 0 20px 45px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
     --voyage-shadow-glow: 0 0 35px rgba(99, 102, 241, 0.25);
+
+    /* Transições */
+    --voyage-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --voyage-transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -187,7 +123,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   min-height: 100vh;
-  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 #root {
@@ -206,16 +141,10 @@ body {
   background: var(--voyage-bg-main);
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #1f2746;
   border-radius: 4px;
 }
-.dark ::-webkit-scrollbar-thumb {
-  background: #1f2746;
-}
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-.dark ::-webkit-scrollbar-thumb:hover {
   background: #2d3862;
 }
 
@@ -228,289 +157,6 @@ button {
 
 input, select, textarea {
   font-family: inherit;
-}
-
-/* ==========================================================================
-   Ajustes e Tratamento Global de Contraste para Light Mode
-   ========================================================================== */
-html:not(.dark) {
-  color-scheme: light;
-}
-
-/* Quando não estiver em modo escuro, garantir que títulos e textos em destaque sejam escuros */
-html:not(.dark) h1,
-html:not(.dark) h2,
-html:not(.dark) h3,
-html:not(.dark) h4,
-html:not(.dark) h5,
-html:not(.dark) h6,
-html:not(.dark) .card-title,
-html:not(.dark) .company-name,
-html:not(.dark) .company-logo-text,
-html:not(.dark) .user-logo-text,
-html:not(.dark) .kpi-value,
-html:not(.dark) .channel-pct,
-html:not(.dark) .company-owner-text strong,
-html:not(.dark) .mobile-brand-name {
-  color: #0f172a !important;
-}
-
-/* Textos secundários com alto contraste no fundo claro */
-html:not(.dark) p,
-html:not(.dark) .card-subtitle,
-html:not(.dark) .company-subtitle,
-html:not(.dark) .form-label,
-html:not(.dark) .input-label,
-html:not(.dark) .kpi-label,
-html:not(.dark) .settings-item-info p,
-html:not(.dark) .session-texts p {
-  color: #334155 !important;
-}
-
-/* Inputs, Selects e Textareas legíveis no Light Mode */
-html:not(.dark) input:not([type="checkbox"]):not([type="radio"]),
-html:not(.dark) select,
-html:not(.dark) textarea,
-html:not(.dark) .form-input,
-html:not(.dark) .custom-input,
-html:not(.dark) .settings-input,
-html:not(.dark) .settings-select {
-  color: #0f172a !important;
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-}
-
-html:not(.dark) input::placeholder,
-html:not(.dark) textarea::placeholder {
-  color: #94a3b8 !important;
-}
-
-html:not(.dark) select option {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-}
-
-/* Abas e botões no Light Mode */
-html:not(.dark) .tab-btn {
-  color: #475569 !important;
-}
-html:not(.dark) .tab-btn:hover {
-  color: #0f172a !important;
-  background-color: #f1f5f9 !important;
-}
-html:not(.dark) .tab-btn.active {
-  color: #4f46e5 !important;
-  background-color: #e0e7ff !important;
-  border-bottom-color: #6366f1 !important;
-}
-
-/* Botões com texto branco (Primários / Ações de destaque) */
-html:not(.dark) .btn-primary-login,
-html:not(.dark) .primary-btn,
-html:not(.dark) .hero-action-btn.primary,
-html:not(.dark) .settings-btn-primary,
-html:not(.dark) .sidebar-logout-btn {
-  color: #ffffff !important;
-}
-
-/* Ícones de cabeçalho no Light Mode */
-html:not(.dark) .header-icon-btn,
-html:not(.dark) .settings-back-btn,
-html:not(.dark) .btn-quick-map {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  color: #334155 !important;
-}
-
-html:not(.dark) .header-icon-btn:hover,
-html:not(.dark) .settings-back-btn:hover,
-html:not(.dark) .btn-quick-map:hover {
-  background-color: #f1f5f9 !important;
-  color: #0f172a !important;
-}
-
-/* Cards e superfícies no Light Mode */
-html:not(.dark) .company-hero,
-html:not(.dark) .dashboard-card,
-html:not(.dark) .kpi-box,
-html:not(.dark) .settings-card,
-html:not(.dark) .active-session-item,
-html:not(.dark) .login-wrapper,
-html:not(.dark) .login-card-container,
-html:not(.dark) .cadastro-wrapper,
-html:not(.dark) #payment-root,
-html:not(.dark) .plan-card-item,
-html:not(.dark) .selected-plan-banner,
-html:not(.dark) .payment-option-btn,
-html:not(.dark) .payment-header {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
-}
-
-/* Painel Hero do Login no Light Mode */
-html:not(.dark) .login-hero-panel {
-  background: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%) !important;
-  border-right-color: #cbd5e1 !important;
-}
-
-html:not(.dark) .login-hero-panel .hero-title,
-html:not(.dark) .login-hero-panel .brand-name {
-  color: #0f172a !important;
-}
-
-html:not(.dark) .login-hero-panel .hero-description {
-  color: #475569 !important;
-}
-
-html:not(.dark) .login-hero-panel .hero-feature-item {
-  background: rgba(255, 255, 255, 0.7) !important;
-  border-color: #cbd5e1 !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
-}
-
-html:not(.dark) .login-hero-panel .hero-feature-item h4 {
-  color: #0f172a !important;
-}
-
-html:not(.dark) .login-hero-panel .hero-feature-item p {
-  color: #475569 !important;
-}
-
-/* Planos e Assinatura no Light Mode */
-html:not(.dark) .page-title,
-html:not(.dark) .header-logo-title,
-html:not(.dark) .plan-name,
-html:not(.dark) .plan-price-val,
-html:not(.dark) .summary-val,
-html:not(.dark) .option-title,
-html:not(.dark) .selected-summary-pill strong,
-html:not(.dark) .cadastro-title,
-html:not(.dark) .brand-badge-title {
-  color: #0f172a !important;
-}
-
-html:not(.dark) .plan-card-item {
-  background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-}
-
-html:not(.dark) .plan-card-item.selected {
-  background: #f8faff !important;
-  border-color: #6366f1 !important;
-  box-shadow: 0 0 25px rgba(99, 102, 241, 0.15) !important;
-}
-
-html:not(.dark) .plan-desc-text,
-html:not(.dark) .page-subtitle,
-html:not(.dark) .cadastro-subtitle,
-html:not(.dark) .summary-label,
-html:not(.dark) .option-sub {
-  color: #475569 !important;
-}
-
-html:not(.dark) .btn-choose-plan {
-  background: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
-  color: #334155 !important;
-}
-
-html:not(.dark) .btn-choose-plan.active {
-  background: #6366f1 !important;
-  border-color: #6366f1 !important;
-  color: #ffffff !important;
-}
-
-html:not(.dark) .btn-primary-action {
-  color: #ffffff !important;
-}
-
-html:not(.dark) .back-btn {
-  background: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
-  color: #334155 !important;
-}
-
-html:not(.dark) .back-btn:hover {
-  background: #e2e8f0 !important;
-  color: #0f172a !important;
-}
-
-/* User & Admin Dashboards no Light Mode */
-html:not(.dark) #user-dashboard-page,
-html:not(.dark) #admin-dashboard-page {
-  background-color: var(--voyage-bg-main) !important;
-  color: #0f172a !important;
-}
-
-html:not(.dark) .user-header-bar,
-html:not(.dark) .admin-header-bar {
-  border-bottom-color: #e2e8f0 !important;
-}
-
-html:not(.dark) .user-hero-card,
-html:not(.dark) .user-section-card {
-  background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
-}
-
-html:not(.dark) .user-hero-info h2,
-html:not(.dark) .user-section-header h3 {
-  color: #0f172a !important;
-}
-
-html:not(.dark) .user-hero-info p,
-html:not(.dark) .user-meta-item,
-html:not(.dark) .user-section-header p {
-  color: #475569 !important;
-}
-
-/* Sidebar no Light Mode */
-html:not(.dark) .voyage-sidebar {
-  background-color: #ffffff !important;
-  border-right-color: #e2e8f0 !important;
-  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.1) !important;
-  color: #0f172a !important;
-}
-
-html:not(.dark) .sidebar-logo-v,
-html:not(.dark) .sidebar-logo-rest,
-html:not(.dark) .sidebar-company-name {
-  color: #0f172a !important;
-}
-
-html:not(.dark) .sidebar-category {
-  color: #475569 !important;
-}
-
-html:not(.dark) .sidebar-nav-item {
-  color: #475569 !important;
-}
-
-html:not(.dark) .sidebar-nav-item:hover {
-  background-color: #f1f5f9 !important;
-  color: #0f172a !important;
-}
-
-html:not(.dark) .sidebar-nav-item.active {
-  background: #e0e7ff !important;
-  color: #4f46e5 !important;
-}
-
-html:not(.dark) .sidebar-footer {
-  background-color: #ffffff !important;
-  border-top-color: #e2e8f0 !important;
-}
-
-html:not(.dark) .sidebar-back-btn {
-  color: #475569 !important;
-}
-
-html:not(.dark) .sidebar-back-btn:hover {
-  background-color: #f1f5f9 !important;
-  color: #0f172a !important;
 }
 
 /* Badge Demonstrativo Padrão */

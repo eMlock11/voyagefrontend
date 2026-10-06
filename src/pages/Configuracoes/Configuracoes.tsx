@@ -16,7 +16,6 @@ import {
   Sparkles
 } from 'lucide-react';
 import { userService } from '../../services/userService';
-import { useTheme, type Theme } from '../../components/ThemeProvider';
 import './Configuracoes.css';
 
 interface UserData {
@@ -32,7 +31,6 @@ interface UserData {
 
 export default function Configuracoes() {
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
   const [activeTab, setActiveTab] = useState<'conta' | 'preferencias' | 'seguranca' | 'empresa'>('conta');
   
@@ -319,23 +317,6 @@ export default function Configuracoes() {
               <div className="settings-card-header">
                 <h2>Experiência de Navegação & Mapa</h2>
                 <p>Personalize os parâmetros de geolocalização e interface</p>
-              </div>
-
-              {/* Tema */}
-              <div className="settings-item-row">
-                <div className="settings-item-info">
-                  <h4>Tema da Interface</h4>
-                  <p>Escolha a paleta visual mais confortável para seus olhos (shadcn/ui)</p>
-                </div>
-                <select
-                  className="settings-select"
-                  value={theme}
-                  onChange={(e) => setTheme(e.target.value as Theme)}
-                >
-                  <option value="dark">Escuro (Dark Mode)</option>
-                  <option value="light">Claro (Light Mode)</option>
-                  <option value="system">Seguir Sistema (Auto)</option>
-                </select>
               </div>
 
               {/* Raio do Mapa */}

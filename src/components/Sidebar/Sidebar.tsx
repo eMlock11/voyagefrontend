@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 import { userService } from '@/services/userService';
-import { ThemeToggle } from '../ThemeToggle';
 
 export interface SidebarProps {
   isOpen: boolean;
@@ -291,8 +290,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <path d="M20 20v-7a4 4 0 0 0-4-4H4" />
             </svg>
           </button>
-
-          <ThemeToggle className="sidebar-back-btn" />
 
           <button
             className="sidebar-logout-btn"
